@@ -1,0 +1,132 @@
+{
+  "behaviour": "GwsLib.FanCoil",
+  "category": "equipment",
+  "description": "Chilled-water fan-wall unit (coil plus EC fan array) serving a Level 2 Data Hall or ground room (review A6).",
+  "fault_modes": {
+    "filter_choke": {
+      "description": "Filter blocks: the fan moves less air at the same speed.",
+      "kind": "degrade",
+      "parameters": {
+        "airflow_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Airflow as a fraction of the clean-filter value.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "supply_air_sensor": {
+      "description": "Supply-air temperature sensor reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 2.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    },
+    "trip": {
+      "description": "Unit trips (fan or control fault) and stops until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "FWU",
+  "ignition_type_id": "FWU",
+  "name": "Fan-wall unit",
+  "parameters": {
+    "dp_air_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 300.0,
+      "description": "Coil air-side pressure drop at design flow.",
+      "min": 0,
+      "unit": "Pa"
+    },
+    "dp_wat_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 40.0,
+      "description": "Coil water-side pressure drop at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_air_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 20.71,
+      "description": "Design air flow (12 K air-side temperature difference).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "m_wat_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 9.95,
+      "description": "Design CHW flow at the site 14 / 20 degC CHW temperatures.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "q_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 250.0,
+      "description": "Design sensible cooling.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "supply_air_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 18.0,
+      "description": "Supply-air temperature set point.",
+      "max": 30,
+      "min": 10,
+      "unit": "degC"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "air_in": {
+      "description": "Return air from the served room.",
+      "direction": "in",
+      "domain": "air"
+    },
+    "air_out": {
+      "description": "Supply air into the served room.",
+      "direction": "out",
+      "domain": "air"
+    },
+    "chw_in": {
+      "description": "CHW supply to the coil.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "CHW return from the coil.",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "power_in": {
+      "description": "Fan and controls supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

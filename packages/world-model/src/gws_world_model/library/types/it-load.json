@@ -1,0 +1,59 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "The IT equipment of one Data Hall: draws the hall's IT load from its branch circuits, and all of it becomes heat in the hall. Operating load comes from the Operating Conditions.",
+  "fault_modes": {
+    "emergency_power_off": {
+      "description": "The hall's IT equipment is powered off (EPO) until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "IT Load",
+  "ignition_type_id": null,
+  "name": "IT load",
+  "parameters": {
+    "design_power": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 1000.0,
+      "description": "Design IT load (site data: plant-design.json basis.it; DH08 is 1,200 kW).",
+      "min": 0,
+      "unit": "kW"
+    },
+    "liquid_fraction": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 0.0,
+      "description": "Share removed by liquid cooling (site data: plant-design.json basis.it; DH08 is 0.4).",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "power_factor": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.95,
+      "description": "Power factor of the IT power supplies.",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "ride_through": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.02,
+      "description": "Time the power supplies ride through a total loss of supply.",
+      "max": 1,
+      "min": 0,
+      "unit": "s"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Branch circuits from the hall's UPS outputs (dual-corded).",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

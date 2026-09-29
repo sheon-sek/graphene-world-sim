@@ -1,0 +1,12 @@
+{
+  "behaviour": null,
+  "category": "support",
+  "description": "Digital-input event test artefact in the Ignition project: projected, not simulated.",
+  "fault_modes": {},
+  "id": "DI Event Test",
+  "ignition_type_id": "DI Event Test",
+  "name": "DI event test",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

@@ -1,0 +1,107 @@
+{
+  "behaviour": "GwsLib.Pump",
+  "category": "equipment",
+  "description": "VSD makeup booster for one cooling-tower cell, controlled to a discharge pressure set point (review A14).",
+  "fault_modes": {
+    "impeller_wear": {
+      "description": "Worn impeller: the pump develops less head at the same speed.",
+      "kind": "degrade",
+      "parameters": {
+        "head_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.8,
+          "description": "Head delivered as a fraction of the healthy curve.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "pressure_sensor": {
+      "description": "Discharge pressure transmitter reads with a bias; the VSD controls to the wrong pressure.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 50.0,
+          "description": "Offset added to the reading.",
+          "max": 500,
+          "min": -500,
+          "unit": "kPa"
+        }
+      }
+    },
+    "trip": {
+      "description": "Motor or drive trips; the pump stops and ignores its command until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Makeup Water Pump",
+  "ignition_type_id": "Makeup Water Pump",
+  "name": "Tower makeup pump",
+  "parameters": {
+    "discharge_pressure_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 300.0,
+      "description": "Discharge pressure set point of the VSD loop.",
+      "max": 1000,
+      "min": 0,
+      "unit": "kPa"
+    },
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 300.0,
+      "description": "Pump head at nominal flow (the curve is scaled from it).",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.6,
+      "description": "Design flow: evaporation plus blowdown of a 1,000 kW cell.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "speed": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Speed command as a fraction of full speed.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Motor supply.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "water_in": {
+      "description": "Suction.",
+      "direction": "in",
+      "domain": "water"
+    },
+    "water_out": {
+      "description": "Discharge.",
+      "direction": "out",
+      "domain": "water"
+    }
+  }
+}

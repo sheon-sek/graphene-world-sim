@@ -1,0 +1,23 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "BMS control-network device (switch, router or gateway) in the Network Topology view. A failed device stops forwarding, so every point behind it goes Bad (review A11).",
+  "fault_modes": {
+    "failure": {
+      "description": "The device stops forwarding traffic.",
+      "kind": "network"
+    }
+  },
+  "id": "Network Device",
+  "ignition_type_id": "Network Device",
+  "name": "Control-network device",
+  "parameters": {},
+  "parent": null,
+  "ports": {
+    "net": {
+      "description": "Network links to neighbouring devices.",
+      "direction": "both",
+      "domain": "net"
+    }
+  }
+}

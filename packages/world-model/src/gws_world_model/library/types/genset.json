@@ -1,0 +1,97 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "3,750 kVA / 3,000 kW prime diesel genset, three per side (N+1), transferring through the ATS within 15 s (plant-design basis).",
+  "fault_modes": {
+    "derate": {
+      "description": "Engine or alternator fault limits the output.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Available output as a fraction of prime.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "fail_to_start": {
+      "description": "The engine fails to start (over-crank) and locks out until reset.",
+      "kind": "trip"
+    },
+    "shutdown": {
+      "description": "A running genset shuts down on a protection (oil pressure, coolant, short circuit).",
+      "kind": "trip"
+    }
+  },
+  "id": "Genset",
+  "ignition_type_id": "Genset",
+  "name": "Diesel generator set",
+  "parameters": {
+    "frequency_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 50.0,
+      "description": "Output frequency.",
+      "min": 0,
+      "unit": "Hz"
+    },
+    "fuel_flow_full_load": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.19,
+      "description": "Fuel consumption at prime power (about 0.27 L/kWh).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "p_prime": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 3000.0,
+      "description": "Prime power rating (site data: plant-design.json basis.capacities: Gensets).",
+      "min": 0,
+      "unit": "kW"
+    },
+    "s_rated": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 3750.0,
+      "description": "Apparent power rating (site data: plant-design.json basis.capacities: Gensets).",
+      "min": 0,
+      "unit": "kVA"
+    },
+    "start_time": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 10.0,
+      "description": "Time from start signal to ready to accept load; within the site's 15 s ATS transfer.",
+      "max": 60,
+      "min": 0,
+      "unit": "s"
+    },
+    "voltage_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 400.0,
+      "description": "Line-to-line output voltage.",
+      "min": 0,
+      "unit": "V"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fuel_in": {
+      "description": "Day-tank supply from the bulk diesel tank.",
+      "direction": "in",
+      "domain": "fuel"
+    },
+    "power_out": {
+      "description": "Generator output to the ATS / genset bus.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

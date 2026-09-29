@@ -1,0 +1,33 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Point smoke detector in a fire zone (review A18). Unexported.",
+  "fault_modes": {
+    "detector_fault": {
+      "description": "The detector fails (dirty chamber or head fault): it reports a fault and no longer detects smoke.",
+      "kind": "sensor"
+    }
+  },
+  "id": "Smoke Detector",
+  "ignition_type_id": null,
+  "name": "Smoke detector",
+  "parameters": {
+    "obscuration_threshold": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 3.0,
+      "description": "Smoke obscuration per metre at which it alarms.",
+      "max": 100,
+      "min": 0,
+      "unit": "%"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Detection loop to its fire zone.",
+      "direction": "both",
+      "domain": "fire"
+    }
+  }
+}

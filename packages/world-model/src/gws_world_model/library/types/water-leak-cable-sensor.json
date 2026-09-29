@@ -1,0 +1,26 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Leak detection cable laid under a plant area or hall; reports leak state and position.",
+  "fault_modes": {
+    "cable_fault": {
+      "description": "The cable breaks or is contaminated: the sensor reports a fault or a false leak.",
+      "kind": "sensor"
+    }
+  },
+  "id": "Water Leak Cable Sensor",
+  "ignition_type_id": "Water Leak Cable Sensor",
+  "name": "Water leak detection cable",
+  "parameters": {
+    "cable_length": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 20.0,
+      "description": "Sensing cable length.",
+      "min": 0,
+      "unit": "m"
+    }
+  },
+  "parent": null,
+  "ports": {}
+}

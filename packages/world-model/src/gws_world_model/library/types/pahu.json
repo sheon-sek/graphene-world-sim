@@ -1,0 +1,148 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Primary AHU providing fresh air, dehumidification and pressurisation (review A6); it shuts down on its fire zone's signal. Its coil dehumidifies, which GwsLib.FanCoil (a dry coil) does not model.",
+  "fault_modes": {
+    "filter_choke": {
+      "description": "Filter blocks: the fan moves less air at the same speed.",
+      "kind": "degrade",
+      "parameters": {
+        "airflow_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Airflow as a fraction of the clean-filter value.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "supply_air_sensor": {
+      "description": "Supply-air temperature sensor reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 2.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    },
+    "trip": {
+      "description": "Unit trips (fan or control fault) and stops until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "PAHU",
+  "ignition_type_id": "PAHU",
+  "name": "Primary air-handling unit",
+  "parameters": {
+    "m_air_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 3.0,
+      "description": "Design fresh-air flow.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "m_wat_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 3.2,
+      "description": "Design CHW flow.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "q_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 80.0,
+      "description": "Coil cooling at design, sensible plus latent.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "return_air_rh_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 50.0,
+      "description": "Return-air relative humidity set point.",
+      "max": 90,
+      "min": 20,
+      "unit": "%"
+    },
+    "return_air_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 24.0,
+      "description": "Return-air temperature set point.",
+      "max": 35,
+      "min": 15,
+      "unit": "degC"
+    },
+    "supply_air_rh_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 55.0,
+      "description": "Supply-air relative humidity set point.",
+      "max": 90,
+      "min": 20,
+      "unit": "%"
+    },
+    "supply_air_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 16.0,
+      "description": "Supply-air temperature set point.",
+      "max": 30,
+      "min": 10,
+      "unit": "degC"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "air_in": {
+      "description": "Outdoor fresh-air intake.",
+      "direction": "in",
+      "domain": "air"
+    },
+    "air_out": {
+      "description": "Supply air into the served room.",
+      "direction": "out",
+      "domain": "air"
+    },
+    "chw_in": {
+      "description": "CHW supply to the coil.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "CHW return from the coil.",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "fire": {
+      "description": "Fire-shutdown signal from the fire zone it supplies.",
+      "direction": "in",
+      "domain": "fire"
+    },
+    "power_in": {
+      "description": "Fan and controls supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

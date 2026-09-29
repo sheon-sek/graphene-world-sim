@@ -1,0 +1,54 @@
+{
+  "behaviour": "GwsLib.Valve",
+  "category": "equipment",
+  "description": "Motorised valve in the roof cold-water plant (tank inlets and outlets, booster headers, makeup and domestic branches).",
+  "fault_modes": {
+    "stuck": {
+      "description": "Actuator seizes; the valve holds its current position whatever the command.",
+      "kind": "stuck"
+    }
+  },
+  "id": "CW Roof Valve",
+  "ignition_type_id": "CW Roof Valve",
+  "name": "Roof cold-water valve",
+  "parameters": {
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 10.0,
+      "description": "Pressure drop fully open at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 12.0,
+      "description": "Design flow.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "position": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Position command, 0 closed to 1 open.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "water_in": {
+      "description": "Inlet.",
+      "direction": "in",
+      "domain": "water"
+    },
+    "water_out": {
+      "description": "Outlet.",
+      "direction": "out",
+      "domain": "water"
+    }
+  }
+}
