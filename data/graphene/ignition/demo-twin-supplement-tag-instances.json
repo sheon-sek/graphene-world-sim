@@ -1,0 +1,719 @@
+{
+ "tags": [
+  {
+   "name": "DemoRack",
+   "tagType": "Folder",
+   "tags": [
+    {
+     "name": "RCMS425",
+     "tagType": "Folder",
+     "tags": [
+      {
+       "dataType": "Float4",
+       "name": "I_AC_CH1",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin",
+       "engUnit": "A"
+      },
+      {
+       "dataType": "Float4",
+       "name": "I_DC_CH1",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin",
+       "engUnit": "A"
+      },
+      {
+       "dataType": "Float4",
+       "name": "I_RMS_CH1",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin",
+       "engUnit": "A"
+      },
+      {
+       "dataType": "Int4",
+       "name": "TestStatus",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Environment Monitoring",
+   "tagType": "Folder",
+   "tags": [
+    {
+     "name": "Level 1",
+     "tagType": "Folder",
+     "tags": [
+      {
+       "name": "DH01",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH02",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH03",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH04",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Level 2",
+     "tagType": "Folder",
+     "tags": [
+      {
+       "name": "DH05",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH06",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH07",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH08",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Dashboard",
+   "tagType": "Folder",
+   "tags": [
+    {
+     "name": "Carbon Footprint",
+     "tagType": "Folder",
+     "tags": [
+      {
+       "name": "Demo Inputs",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float8",
+         "name": "Capital Goods Emission Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e/day"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Diesel Consumption Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "L/day"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Elapsed Days YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "day"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Elapsed Hours YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "h"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Facility Power",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "MW"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Fuel and Energy Related Emission Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e/day"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Refrigerant Emission Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e/day"
+        },
+        {
+         "dataType": "DateTime",
+         "name": "Year Start",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "dataType": "Float8",
+       "name": "GFA",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin",
+       "engUnit": "m²"
+      },
+      {
+       "name": "Realtime",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float8",
+         "name": "Carbon Emission Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e/h"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Scope 2 Emission Rate",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e/h"
+        }
+       ]
+      },
+      {
+       "name": "Scope 1",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float8",
+         "name": "Diesel Emission Factor",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kgCO₂e/L"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Diesel Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Diesel Used YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "L"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Refrigerant Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Total Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        }
+       ]
+      },
+      {
+       "name": "Scope 2",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float8",
+         "name": "Grid Emission Factor",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kgCO₂e/kWh"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Grid Energy YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "MWh"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Total Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        }
+       ]
+      },
+      {
+       "name": "Scope 3",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float8",
+         "name": "Capital Goods Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Fuel and Energy Related Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        },
+        {
+         "dataType": "Float8",
+         "name": "Total Emissions YTD",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "tCO₂e"
+        }
+       ]
+      },
+      {
+       "dataType": "Float8",
+       "name": "Total GHG Emissions YTD",
+       "tagType": "AtomicTag",
+       "valueSource": "opc",
+       "opcServer": "Graphene Demo Twin",
+       "engUnit": "tCO₂e"
+      }
+     ]
+    },
+    {
+     "name": "Data Halls",
+     "tagType": "Folder",
+     "tags": [
+      {
+       "name": "DH01",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH02",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH03",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH04",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH05",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH06",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH07",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      },
+      {
+       "name": "DH08",
+       "tagType": "Folder",
+       "tags": [
+        {
+         "dataType": "Float4",
+         "name": "Facility Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "IT Load",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin",
+         "engUnit": "kW"
+        },
+        {
+         "dataType": "Float4",
+         "name": "PUE",
+         "tagType": "AtomicTag",
+         "valueSource": "opc",
+         "opcServer": "Graphene Demo Twin"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "dataType": "Float4",
+     "name": "Carbon Intensity (YTD)",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "kgCO₂e/m²"
+    },
+    {
+     "dataType": "Float4",
+     "name": "Facility Load",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "MW"
+    },
+    {
+     "dataType": "Float4",
+     "name": "GFA",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "m²"
+    },
+    {
+     "dataType": "Float4",
+     "name": "IT Energy Usage",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "MWh"
+    },
+    {
+     "dataType": "Float4",
+     "name": "IT Load",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "MW"
+    },
+    {
+     "dataType": "Float4",
+     "name": "PUE (New)",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin"
+    },
+    {
+     "dataType": "Float4",
+     "name": "Scope 1 Total Emissions YTD",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "tCO₂e"
+    },
+    {
+     "dataType": "Float4",
+     "name": "Scope 2 Total Emissions YTD",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "tCO₂e"
+    },
+    {
+     "dataType": "Float4",
+     "name": "Scope 3 Total Emissions YTD",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "tCO₂e"
+    },
+    {
+     "dataType": "Float4",
+     "name": "TSE",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "kW/RT"
+    },
+    {
+     "dataType": "Float4",
+     "name": "TSE (Daily)",
+     "tagType": "AtomicTag",
+     "valueSource": "opc",
+     "opcServer": "Graphene Demo Twin",
+     "engUnit": "kW/RT"
+    }
+   ]
+  }
+ ]
+}
