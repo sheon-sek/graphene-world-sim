@@ -26,6 +26,32 @@ water. The engine must:
 | Julia ModelingToolkit | Acausal models assembled from data at runtime, fast rebuilds, strong solvers. Its HVAC component library is much thinner than Buildings, so more components would be ours. |
 | Hand-written Python physics | What graphene-demo-twin-2 did. Rejected: every behaviour becomes our own code. |
 
+## Why not Omniverse / PhysX as the engine
+
+The behaviour this platform must produce is thermofluid flow, heat transfer, power flow and
+control logic. PhysX simulates rigid bodies, collisions, articulated joints and particles. It
+has no concept of a pump curve, a pipe network's pressure drop, a chiller's heat balance, a
+room's thermal inertia or a bus losing supply. Building on it would mean writing every one of
+those behaviours ourselves, which is exactly the hand-authored behaviour ADR-0001 rules out.
+
+Omniverse's strengths are photoreal RTX rendering, USD scene composition, multi-user
+collaboration and sensor simulation for robotics. None of them is needed by Ignition, which
+only sees OPC UA, or by engineers observing a plant's response. Omniverse Kit also needs RTX
+GPUs on the server, and each browser viewer is a video stream (see ADR-0004).
+
+As we understand it, NVIDIA's own data-centre digital twin work takes its thermal and
+electrical behaviour from partner solvers (CFD and power-system tools), not from PhysX, which
+matches the split proposed here: a domain solver computes behaviour, and a renderer shows it.
+
+By contrast, Modelica is equation-based and acausal: the World Model's topology is generated
+into a system of equations, and the solver determines flows, temperatures and loads. The
+Buildings Library supplies validated component models and real control sequences, and FMI
+keeps the engine replaceable per partition.
+
+Omniverse remains possible later in two roles that do not affect this decision: an optional
+high-fidelity viewer fed from the World Model (exported to USD), and offline CFD studies of a
+hall's airflow.
+
 ## Decision (proposed)
 
 Use the Modelica Buildings + pandapower + networkx option:

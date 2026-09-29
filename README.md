@@ -43,6 +43,7 @@ pnpm web:check
 - [ADR-0001](docs/adr/0001-layer-boundaries.md): layer boundaries
 - [ADR-0002](docs/adr/0002-simulation-stack.md): simulation stack (proposed, pending the Phase 1 spike)
 - [ADR-0003](docs/adr/0003-opcua-compatibility-contract.md): OPC UA compatibility contract
+- [ADR-0004](docs/adr/0004-web-and-3d-stack.md): web application and 3D visualisation stack
 
 Asset data comes from `sheon-sek/graphene-demo-twin-2`, which is a source of what exists only.
 None of its simulation, fault, runtime or UI code is used here.
