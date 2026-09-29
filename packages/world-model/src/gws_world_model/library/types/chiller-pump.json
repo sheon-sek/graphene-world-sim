@@ -1,0 +1,98 @@
+{
+  "behaviour": "GwsLib.Pump",
+  "category": "equipment",
+  "description": "Variable-speed pump in the chiller plant. One type serves three roles (review A1): primary CHW pumps R_CP1-4, condenser-water pumps R_CP5-8 and the secondary distribution pump R_CP9. An asset connects either its chw or its cw ports; defaults are sized for a primary CHW pump.",
+  "fault_modes": {
+    "impeller_wear": {
+      "description": "Worn impeller: the pump develops less head at the same speed.",
+      "kind": "degrade",
+      "parameters": {
+        "head_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.8,
+          "description": "Head delivered as a fraction of the healthy curve.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "trip": {
+      "description": "Motor or drive trips; the pump stops and ignores its command until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Chiller Pump",
+  "ignition_type_id": "Chiller Pump",
+  "name": "Chiller plant pump",
+  "parameters": {
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 150.0,
+      "description": "Pump head at nominal flow (the curve is scaled from it).",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_flow_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 139.4,
+      "description": "Design flow: one chiller's evaporator flow (site data: plant-design.json basis.capacities: 3,500 kW, CHW 14 / 20 degC). Condenser pumps override to 195 kg/s.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "speed": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Speed command as a fraction of full speed.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "chw_in": {
+      "description": "Suction in a CHW role.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "Discharge in a CHW role.",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "cw_in": {
+      "description": "Suction in a condenser-water role.",
+      "direction": "in",
+      "domain": "cw"
+    },
+    "cw_out": {
+      "description": "Discharge in a condenser-water role.",
+      "direction": "out",
+      "domain": "cw"
+    },
+    "power_in": {
+      "description": "Motor supply.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "water_in": {
+      "description": "Makeup / pressurisation water into the closed loop at the pump suction.",
+      "direction": "in",
+      "domain": "water"
+    }
+  }
+}

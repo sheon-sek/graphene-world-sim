@@ -1,0 +1,12 @@
+{
+  "behaviour": null,
+  "category": "support",
+  "description": "Raw hex / base64 decoder for GEM630 CT-L frames (review A9): projected, not simulated.",
+  "fault_modes": {},
+  "id": "GEM630-CT-L",
+  "ignition_type_id": "GEM630-CT-L",
+  "name": "GEM630 CT-L decoder",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

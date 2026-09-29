@@ -1,0 +1,100 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Double-conversion UPS with battery: 800 kVA hall units (960 kVA in DH08), three per hall distributed redundant, 8 min at rated load; UPS 25 is 100 kVA for the BMS control room (plant-design basis, review A7).",
+  "fault_modes": {
+    "battery_degraded": {
+      "description": "Aged battery strings hold less energy.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.5,
+          "description": "Battery capacity as a fraction of new.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "output_fault": {
+      "description": "The inverter output fails and the UPS drops its load.",
+      "kind": "trip"
+    },
+    "rectifier_failure": {
+      "description": "The rectifier trips; the inverter carries the load from the battery until it is exhausted.",
+      "kind": "trip"
+    }
+  },
+  "id": "UPS",
+  "ignition_type_id": "UPS",
+  "name": "Uninterruptible power supply",
+  "parameters": {
+    "battery_autonomy": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 480.0,
+      "description": "Battery run time at rated load (site data: plant-design.json basis.capacities: Hall UPS, 8 min).",
+      "min": 0,
+      "unit": "s"
+    },
+    "efficiency": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.96,
+      "description": "Double-conversion efficiency.",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "power_factor": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1.0,
+      "description": "Output power factor rating (kW / kVA).",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "recharge_fraction": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.1,
+      "description": "Battery recharge power as a fraction of rating.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "s_rated": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 800.0,
+      "description": "Apparent power rating (site data: plant-design.json basis.capacities: Hall UPS).",
+      "min": 0,
+      "unit": "kVA"
+    },
+    "state_of_charge_start": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Initial battery state of charge.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Rectifier and bypass input.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "Inverter output to the branch circuits.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Residual-current monitored circuit on the L1 DB.",
+  "fault_modes": {
+    "earth_leakage": {
+      "description": "Insulation of the monitored circuit deteriorates and residual current flows to earth.",
+      "kind": "degrade",
+      "parameters": {
+        "residual_current": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.03,
+          "description": "Residual current to earth.",
+          "max": 10,
+          "min": 0,
+          "unit": "A"
+        }
+      }
+    },
+    "measurement_error": {
+      "description": "Meter reads wrong (CT fault or calibration drift): readings scaled by a gain error.",
+      "kind": "sensor",
+      "parameters": {
+        "gain": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.1,
+          "description": "Multiplier applied to the measured current and power.",
+          "max": 2,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "RCMS",
+  "ignition_type_id": "RCMS",
+  "name": "Residual current monitor",
+  "parameters": {},
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Upstream supply the metered circuit takes from.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "The metered circuit, feeding downstream loads.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

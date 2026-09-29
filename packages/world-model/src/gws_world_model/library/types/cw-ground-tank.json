@@ -1,0 +1,97 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Cold-water ground storage tank fed from the municipal supply (review A14).",
+  "fault_modes": {
+    "leak": {
+      "description": "The tank leaks: part of its contents drains away.",
+      "kind": "degrade",
+      "parameters": {
+        "leak_flow": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.5,
+          "description": "Leak flow at full level.",
+          "min": 0,
+          "unit": "kg/s"
+        }
+      }
+    },
+    "level_sensor": {
+      "description": "Level transmitter reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.1,
+          "description": "Offset added to the level fraction.",
+          "max": 1,
+          "min": -1,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "CW Ground Tank",
+  "ignition_type_id": "CW Ground Tank",
+  "name": "Ground cold-water tank",
+  "parameters": {
+    "height": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 4.0,
+      "description": "Water depth when full.",
+      "min": 0,
+      "unit": "m"
+    },
+    "level_alarm_high": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.95,
+      "description": "High-level alarm as a fraction of full.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "level_alarm_low": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.2,
+      "description": "Low-level alarm as a fraction of full.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "level_start": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.8,
+      "description": "Initial level as a fraction of full.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "volume": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 200.0,
+      "description": "Storage volume (site data: plant-design.json basis.capacities: Water).",
+      "min": 0,
+      "unit": "m3"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "water_in": {
+      "description": "Inlet.",
+      "direction": "in",
+      "domain": "water"
+    },
+    "water_out": {
+      "description": "Outlet.",
+      "direction": "out",
+      "domain": "water"
+    }
+  }
+}

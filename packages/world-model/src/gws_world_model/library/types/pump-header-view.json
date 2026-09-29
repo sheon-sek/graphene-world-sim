@@ -1,0 +1,12 @@
+{
+  "behaviour": null,
+  "category": "aggregate",
+  "description": "Condenser-water header P-CWS-01, read as the aggregate of the condenser pumps R_CP5-8 (review A1). No physical state.",
+  "fault_modes": {},
+  "id": "Pump header view",
+  "ignition_type_id": null,
+  "name": "Pump header view",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

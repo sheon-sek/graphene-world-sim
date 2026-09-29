@@ -1,0 +1,45 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Passenger lift in the central core, Ground to Roof; returns to the ground floor on fire recall (review A18). Unexported.",
+  "fault_modes": {
+    "out_of_service": {
+      "description": "Drive or door fault takes the lift out of service until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Lift",
+  "ignition_type_id": null,
+  "name": "Lift",
+  "parameters": {
+    "rated_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 30.0,
+      "description": "Drive power while travelling.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "standby_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1.5,
+      "description": "Controller and lighting power while idle.",
+      "min": 0,
+      "unit": "kW"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Fire-recall signal from the fire zones.",
+      "direction": "in",
+      "domain": "fire"
+    },
+    "power_in": {
+      "description": "Drive and controller supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

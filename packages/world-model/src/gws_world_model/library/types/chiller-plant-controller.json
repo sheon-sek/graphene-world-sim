@@ -1,0 +1,71 @@
+{
+  "behaviour": null,
+  "category": "controller",
+  "description": "The chiller plant sequencer with the CHW differential-pressure and bypass PIDs and their set points. Its reads and writes are ControlBindings; it has no physical ports.",
+  "fault_modes": {
+    "halt": {
+      "description": "The controller halts: its outputs hold their last values until it is reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Chiller Plant Controller",
+  "ignition_type_id": null,
+  "name": "Chiller plant controller",
+  "parameters": {
+    "chw_dp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 100.0,
+      "description": "Index-circuit differential-pressure set point for the secondary pump.",
+      "max": 500,
+      "min": 0,
+      "unit": "kPa"
+    },
+    "chw_supply_temp_set": {
+      "assumed": false,
+      "change_class": "live",
+      "default": 14.0,
+      "description": "Plant CHW supply set point (site data: plant-design.json basis.capacities: CHW 14 / 20 degC).",
+      "max": 20,
+      "min": 5,
+      "unit": "degC"
+    },
+    "duty_chillers": {
+      "assumed": false,
+      "change_class": "live",
+      "default": 3,
+      "description": "Chillers in duty; the rest are standby (site data: plant-design.json basis.capacities: 3 duty + 1 standby).",
+      "max": 4,
+      "min": 1,
+      "unit": null
+    },
+    "stage_delay": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 600.0,
+      "description": "Minimum time between staging steps.",
+      "min": 0,
+      "unit": "s"
+    },
+    "stage_down_load_fraction": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.4,
+      "description": "Stage a chiller off below this load.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "stage_up_load_fraction": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.9,
+      "description": "Stage another chiller when running chillers exceed this load.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {}
+}

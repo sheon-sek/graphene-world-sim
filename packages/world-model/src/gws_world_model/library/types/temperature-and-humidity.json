@@ -1,0 +1,43 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Hot-aisle / return temperature and humidity sensor (review A10).",
+  "fault_modes": {
+    "humidity_sensor": {
+      "description": "Humidity element reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 5.0,
+          "description": "Offset added to the reading.",
+          "max": 50,
+          "min": -50,
+          "unit": "%"
+        }
+      }
+    },
+    "temp_sensor": {
+      "description": "Temperature element reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    }
+  },
+  "id": "Temperature and Humidity",
+  "ignition_type_id": "Temperature and Humidity",
+  "name": "Hot-aisle T/RH sensor",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

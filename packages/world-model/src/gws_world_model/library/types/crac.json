@@ -1,0 +1,149 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Direct-expansion CRAC with two compressors and an EC fan; not on the CHW plant, so it keeps cooling when the chillers fail, and high ambient raises its head pressure (review A4). No GwsLib model yet.",
+  "fault_modes": {
+    "compressor_failure": {
+      "description": "A compressor fails; the unit runs on its remaining stage.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.5,
+          "description": "Available capacity as a fraction of rated.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "filter_choke": {
+      "description": "Filter blocks: the fan moves less air at the same speed.",
+      "kind": "degrade",
+      "parameters": {
+        "airflow_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Airflow as a fraction of the clean-filter value.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "supply_air_sensor": {
+      "description": "Supply-air temperature sensor reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 2.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    },
+    "trip": {
+      "description": "Unit trips (fan or control fault) and stops until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "CRAC",
+  "ignition_type_id": "CRAC",
+  "name": "DX computer-room air conditioner",
+  "parameters": {
+    "compressor_count": {
+      "assumed": true,
+      "change_class": "structural",
+      "default": 2,
+      "description": "Compressor stages (members Compressor, Compressor 2).",
+      "max": 4,
+      "min": 1,
+      "unit": null
+    },
+    "cop_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 3.0,
+      "description": "Coefficient of performance at rated conditions.",
+      "max": 8,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "high_pressure_ambient_limit": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 46.0,
+      "description": "Outdoor temperature above which the condenser can no longer hold head pressure and the high-pressure switch trips.",
+      "max": 60,
+      "min": 30,
+      "unit": "degC"
+    },
+    "m_air_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 9.9,
+      "description": "Design air flow (12 K air-side temperature difference).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "q_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 120.0,
+      "description": "Rated sensible cooling.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "return_air_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 24.0,
+      "description": "Return-air temperature set point.",
+      "max": 35,
+      "min": 15,
+      "unit": "degC"
+    },
+    "supply_air_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 18.0,
+      "description": "Supply-air temperature set point.",
+      "max": 30,
+      "min": 10,
+      "unit": "degC"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "air_in": {
+      "description": "Return air from the served room.",
+      "direction": "in",
+      "domain": "air"
+    },
+    "air_out": {
+      "description": "Supply air into the served room.",
+      "direction": "out",
+      "domain": "air"
+    },
+    "power_in": {
+      "description": "Compressor, fan and controls supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

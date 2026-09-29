@@ -1,0 +1,64 @@
+{
+  "behaviour": "GwsLib.Valve",
+  "category": "equipment",
+  "description": "Motorised isolation, header or bypass valve in the chiller plant (review A2: evaporator MV-01, condenser MV-02, header MV-001-004, bypass BV-001-004). An asset connects its chw or its cw ports.",
+  "fault_modes": {
+    "stuck": {
+      "description": "Actuator seizes; the valve holds its current position whatever the command.",
+      "kind": "stuck"
+    }
+  },
+  "id": "Chiller Valve",
+  "ignition_type_id": "Chiller Valve",
+  "name": "Chiller plant valve",
+  "parameters": {
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 10.0,
+      "description": "Pressure drop fully open at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_flow_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 139.4,
+      "description": "Design flow: one chiller's CHW flow (site data: plant-design.json basis.capacities).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "position": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Position command, 0 closed to 1 open.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "chw_in": {
+      "description": "Inlet in a CHW role.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "Outlet in a CHW role.",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "cw_in": {
+      "description": "Inlet in a condenser-water role.",
+      "direction": "in",
+      "domain": "cw"
+    },
+    "cw_out": {
+      "description": "Outlet in a condenser-water role.",
+      "direction": "out",
+      "domain": "cw"
+    }
+  }
+}

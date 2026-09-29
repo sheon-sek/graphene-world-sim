@@ -1,0 +1,54 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Isolated (IT-earthed) power circuit with insulation monitoring, serving the control room.",
+  "fault_modes": {
+    "insulation_fault": {
+      "description": "First insulation fault on the isolated circuit; it keeps supplying and the monitor alarms.",
+      "kind": "degrade",
+      "parameters": {
+        "insulation_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.05,
+          "description": "Insulation resistance as a fraction of healthy.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "measurement_error": {
+      "description": "Meter reads wrong (CT fault or calibration drift): readings scaled by a gain error.",
+      "kind": "sensor",
+      "parameters": {
+        "gain": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.1,
+          "description": "Multiplier applied to the measured current and power.",
+          "max": 2,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "IPS",
+  "ignition_type_id": "IPS",
+  "name": "Isolated power supply monitor",
+  "parameters": {},
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Upstream supply the metered circuit takes from.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "The metered circuit, feeding downstream loads.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Break-glass manual call point in a fire zone (review A18). Unexported.",
+  "fault_modes": {
+    "detector_fault": {
+      "description": "The call point's contact fails: operating it no longer raises an alarm.",
+      "kind": "sensor"
+    }
+  },
+  "id": "Manual Call Point",
+  "ignition_type_id": null,
+  "name": "Manual call point",
+  "parameters": {},
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Detection loop to its fire zone.",
+      "direction": "both",
+      "domain": "fire"
+    }
+  }
+}

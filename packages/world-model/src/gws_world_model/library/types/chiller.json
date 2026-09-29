@@ -1,0 +1,165 @@
+{
+  "behaviour": "GwsLib.Chiller",
+  "category": "equipment",
+  "description": "Electric water-cooled centrifugal chiller with manufacturer EIR curves and an evaporator flow switch. Rated 3,500 kWr, CHW 14 / 20 degC, CW 32 / 37 degC (plant-design basis).",
+  "fault_modes": {
+    "capacity_loss": {
+      "description": "Refrigerant loss or compressor wear limits the cooling the chiller can deliver.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Available capacity as a fraction of rated.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "chw_temp_sensor": {
+      "description": "Leaving CHW temperature sensor reads with a bias; the chiller controls to the wrong value.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.5,
+          "description": "Offset added to the reading.",
+          "max": 10,
+          "min": -10,
+          "unit": "K"
+        }
+      }
+    },
+    "condenser_fouling": {
+      "description": "Fouled condenser tubes raise head pressure and cut efficiency.",
+      "kind": "degrade",
+      "parameters": {
+        "cop_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.8,
+          "description": "COP as a fraction of the clean value.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "trip": {
+      "description": "Safety trip (compressor, oil or motor protection); the chiller stops until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Chiller",
+  "ignition_type_id": "Chiller",
+  "name": "Water-cooled centrifugal chiller",
+  "parameters": {
+    "chw_supply_temp_set": {
+      "assumed": false,
+      "change_class": "live",
+      "default": 14.0,
+      "description": "Leaving CHW set point (site data: plant-design.json basis.capacities: CHW 14 / 20 degC).",
+      "max": 20,
+      "min": 5,
+      "unit": "degC"
+    },
+    "cop_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 6.0,
+      "description": "Coefficient of performance at rated conditions.",
+      "max": 12,
+      "min": 1,
+      "unit": "1"
+    },
+    "dp_chw_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 60.0,
+      "description": "Evaporator pressure drop at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "dp_cw_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 60.0,
+      "description": "Condenser pressure drop at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "flow_switch_fraction": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.2,
+      "description": "The chiller runs only while evaporator flow exceeds this fraction of design.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "m_chw_flow_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 139.4,
+      "description": "Evaporator design flow, 3,500 kW over the 6 K CHW range (site data: plant-design.json basis.capacities).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "m_cw_flow_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 195.1,
+      "description": "Condenser design flow: 3,500 kW x (1 + 1/COP) over the 5 K CW range (site data: plant-design.json basis.capacities: Tower Groups).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "q_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 3500.0,
+      "description": "Rated cooling capacity (site data: plant-design.json basis.capacities: Chillers).",
+      "min": 0,
+      "unit": "kW"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "chw_in": {
+      "description": "Evaporator inlet (CHW return).",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "Evaporator outlet (CHW supply).",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "cw_in": {
+      "description": "Condenser inlet (from the pumps).",
+      "direction": "in",
+      "domain": "cw"
+    },
+    "cw_out": {
+      "description": "Condenser outlet (to the tower group).",
+      "direction": "out",
+      "domain": "cw"
+    },
+    "power_in": {
+      "description": "Compressor motor supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

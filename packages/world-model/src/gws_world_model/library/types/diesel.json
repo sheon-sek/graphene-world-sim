@@ -1,0 +1,85 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "50,000 L bulk diesel tank with fuel pump, flowmeter and inlet valve, each feeding a genset pair (plant-design basis).",
+  "fault_modes": {
+    "contamination": {
+      "description": "The stored fuel is contaminated or unavailable: the tank supplies no fuel.",
+      "kind": "loss_of_supply"
+    },
+    "flowmeter": {
+      "description": "The flowmeter reads with a gain error.",
+      "kind": "sensor",
+      "parameters": {
+        "gain": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.2,
+          "description": "Multiplier applied to the reading.",
+          "max": 2,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "inlet_valve_stuck": {
+      "description": "The inlet valve holds its position (time-out alarm).",
+      "kind": "stuck"
+    },
+    "pump_trip": {
+      "description": "The fuel pump trips and stops until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Diesel",
+  "ignition_type_id": "Diesel",
+  "name": "Bulk diesel tank",
+  "parameters": {
+    "level_start": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.9,
+      "description": "Initial fill as a fraction of capacity.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "pump_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.5,
+      "description": "Fuel pump transfer flow.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "pump_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 3.0,
+      "description": "Fuel pump motor power.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "volume": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 50000.0,
+      "description": "Tank capacity (site data: plant-design.json basis.capacities: Diesel).",
+      "min": 0,
+      "unit": "L"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fuel_out": {
+      "description": "Fuel supply to the gensets it feeds.",
+      "direction": "out",
+      "domain": "fuel"
+    },
+    "power_in": {
+      "description": "Fuel pump and PLC panel supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Coolant distribution unit of the DH08 liquid-cooled pod: facility-water heat exchanger and secondary pumps. Its air connection to DH08 carries no air; it removes the liquid-cooled share of the hall's IT load directly (review A17). The Ignition UDT inherits Dashboard for its energy KPIs.",
+  "fault_modes": {
+    "pump_failure": {
+      "description": "One secondary pump fails; the unit continues on the rest.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.67,
+          "description": "Available capacity as a fraction of rated.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
+    "trip": {
+      "description": "Unit trips and its secondary pumps stop until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "CDU",
+  "ignition_type_id": "CDU",
+  "name": "Coolant distribution unit",
+  "parameters": {
+    "m_facility_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 6.37,
+      "description": "Facility CHW flow at design (14 / 20 degC).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "pump_count": {
+      "assumed": true,
+      "change_class": "structural",
+      "default": 3,
+      "description": "Secondary pumps in the unit (members Pump 1-3).",
+      "max": 6,
+      "min": 1,
+      "unit": null
+    },
+    "q_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 160.0,
+      "description": "Design heat removal: DH08 1,200 kW x 40 % liquid over three CDUs (site data: plant-design.json basis.it).",
+      "min": 0,
+      "unit": "kW"
+    },
+    "secondary_supply_temp_set": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 25.0,
+      "description": "Technology-cooling-loop supply set point.",
+      "max": 45,
+      "min": 15,
+      "unit": "degC"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    }
+  },
+  "parent": "Dashboard",
+  "ports": {
+    "air_out": {
+      "description": "Heat removed from the served hall's IT load (no air flows).",
+      "direction": "out",
+      "domain": "air"
+    },
+    "chw_in": {
+      "description": "Facility water supply.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "Facility water return.",
+      "direction": "out",
+      "domain": "chw"
+    },
+    "power_in": {
+      "description": "Pumps and controls supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "behaviour": null,
+  "category": "aggregate",
+  "description": "Energy dashboard widget for a Data Hall: IT load, facility load and PUE computed from other points. No physical state. Its root instances are support assets in the Ignition project.",
+  "fault_modes": {},
+  "id": "Dashboard",
+  "ignition_type_id": "Dashboard",
+  "name": "Energy dashboard",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

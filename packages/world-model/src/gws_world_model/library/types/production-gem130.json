@@ -1,0 +1,48 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Meter in the standalone demo rack (own incomer, not connected to the site).",
+  "fault_modes": {
+    "measurement_error": {
+      "description": "Meter reads wrong (CT fault or calibration drift): readings scaled by a gain error.",
+      "kind": "sensor",
+      "parameters": {
+        "gain": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.1,
+          "description": "Multiplier applied to the measured current and power.",
+          "max": 2,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "Production/GEM130",
+  "ignition_type_id": "Production/GEM130",
+  "name": "GEM130 power meter (demo rack)",
+  "parameters": {
+    "ct_primary": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 400.0,
+      "description": "Current-transformer primary rating the meter scales to.",
+      "min": 0,
+      "unit": "A"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Upstream supply the metered circuit takes from.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "The metered circuit, feeding downstream loads.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

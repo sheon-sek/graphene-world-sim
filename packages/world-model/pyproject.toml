@@ -3,7 +3,7 @@ name = "gws-world-model"
 version = "0.0.0"
 description = "World Model: what exists and how it is connected, as versioned data."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["pydantic==2.12.3"]
 
 [build-system]
 requires = ["hatchling>=1.25"]

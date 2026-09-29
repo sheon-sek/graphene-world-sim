@@ -1,0 +1,37 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Wet sprinkler alarm valve with pressure switch: signals water flow to its fire zone and starts the fire pumps (review A18). Unexported.",
+  "fault_modes": {
+    "clapper_stuck": {
+      "description": "The clapper sticks in its current position.",
+      "kind": "stuck"
+    },
+    "pressure_switch": {
+      "description": "The pressure switch fails and does not report flow.",
+      "kind": "sensor"
+    }
+  },
+  "id": "Alarm Valve",
+  "ignition_type_id": null,
+  "name": "Sprinkler alarm valve",
+  "parameters": {
+    "retard_delay": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 30.0,
+      "description": "Retard-chamber delay before the pressure switch operates.",
+      "max": 120,
+      "min": 0,
+      "unit": "s"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Flow alarm to its fire zone and pump-start signal to the fire pumps.",
+      "direction": "both",
+      "domain": "fire"
+    }
+  }
+}

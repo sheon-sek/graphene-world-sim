@@ -1,0 +1,46 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Electric sprinkler fire pump started by the alarm valves; fed from the essential-services board and stops without supply (review A18). Unexported.",
+  "fault_modes": {
+    "fail_to_start": {
+      "description": "The pump fails to start or trips, and stays stopped until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Fire Pump",
+  "ignition_type_id": null,
+  "name": "Fire pump",
+  "parameters": {
+    "rated_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 110.0,
+      "description": "Motor power when running.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "start_delay": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 5.0,
+      "description": "Delay from start signal to running.",
+      "max": 60,
+      "min": 0,
+      "unit": "s"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Pump-start signal from the alarm valves.",
+      "direction": "in",
+      "domain": "fire"
+    },
+    "power_in": {
+      "description": "Motor supply.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

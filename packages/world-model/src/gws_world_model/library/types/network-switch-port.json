@@ -1,0 +1,33 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "One port of a Network Switch (nested under Ports/Port NN, no instances of its own).",
+  "fault_modes": {
+    "link_down": {
+      "description": "The port's link goes down and stops forwarding.",
+      "kind": "network"
+    }
+  },
+  "id": "Network Switch Port",
+  "ignition_type_id": null,
+  "name": "Network switch port",
+  "parameters": {
+    "speed": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1000,
+      "description": "Link speed in Mbit/s.",
+      "max": 100000,
+      "min": 0,
+      "unit": null
+    }
+  },
+  "parent": null,
+  "ports": {
+    "net": {
+      "description": "The port's link.",
+      "direction": "both",
+      "domain": "net"
+    }
+  }
+}

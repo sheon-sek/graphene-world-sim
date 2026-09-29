@@ -1,0 +1,18 @@
+{
+  "behaviour": null,
+  "category": "support",
+  "description": "Smart Alarm Logic demo breaker and the demo-rack breakers (review A12): projected, not simulated.",
+  "fault_modes": {},
+  "id": "Breaker",
+  "ignition_type_id": "Breaker",
+  "name": "Breaker (alarm logic demo)",
+  "parameters": {},
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Demo-rack circuit feeding it.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

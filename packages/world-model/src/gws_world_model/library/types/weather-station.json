@@ -1,0 +1,43 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Rooftop weather station reading the outdoor air the site rejects heat to. Unexported.",
+  "fault_modes": {
+    "humidity_sensor": {
+      "description": "Humidity element reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 5.0,
+          "description": "Offset added to the reading.",
+          "max": 50,
+          "min": -50,
+          "unit": "%"
+        }
+      }
+    },
+    "temp_sensor": {
+      "description": "Dry-bulb element reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 1.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    }
+  },
+  "id": "Weather Station",
+  "ignition_type_id": null,
+  "name": "Weather station",
+  "parameters": {},
+  "parent": null,
+  "ports": {}
+}

@@ -1,0 +1,56 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "The chilled-water branch serving one Data Hall (riser tee, strainer and balancing valve) that feeds the hall's air units and CDUs. Unexported: observed through its Chiller_System folder.",
+  "fault_modes": {
+    "strainer_blockage": {
+      "description": "A blocked strainer raises the branch resistance.",
+      "kind": "degrade",
+      "parameters": {
+        "flow_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.6,
+          "description": "Flow at design pressure as a fraction of the clean branch.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "Cooling Block",
+  "ignition_type_id": null,
+  "name": "CHW branch",
+  "parameters": {
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 20.0,
+      "description": "Branch pressure drop at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "m_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 39.8,
+      "description": "Design flow: a 1,000 kW hall over the 6 K CHW range.",
+      "min": 0,
+      "unit": "kg/s"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "chw_in": {
+      "description": "From the CHW riser.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "To the hall's units.",
+      "direction": "out",
+      "domain": "chw"
+    }
+  }
+}

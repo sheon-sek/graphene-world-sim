@@ -1,0 +1,69 @@
+{
+  "behaviour": "GwsLib.BufferTank",
+  "category": "equipment",
+  "description": "Stratified 30 m3 CHW buffer tank, two per chiller leg (review A3), with its normally open and normally closed recharge valves.",
+  "fault_modes": {
+    "stratification_sensor": {
+      "description": "A stratification temperature sensor reads with a bias.",
+      "kind": "sensor",
+      "parameters": {
+        "bias": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 2.0,
+          "description": "Offset added to the reading.",
+          "max": 20,
+          "min": -20,
+          "unit": "K"
+        }
+      }
+    },
+    "valve_fail_to_close": {
+      "description": "The normally closed recharge valve sticks in its current position.",
+      "kind": "stuck"
+    }
+  },
+  "id": "Buffer Tank",
+  "ignition_type_id": "Buffer Tank",
+  "name": "Chilled-water buffer tank",
+  "parameters": {
+    "m_flow_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 69.7,
+      "description": "Design flow through the tank: half a chiller's CHW flow.",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "temp_alarm_high": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 18.0,
+      "description": "Tank temperature alarm limit.",
+      "max": 30,
+      "min": 5,
+      "unit": "degC"
+    },
+    "volume": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 30.0,
+      "description": "Water volume (site data: plant-design.json basis.capacities: Buffer tanks).",
+      "min": 0,
+      "unit": "m3"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "chw_in": {
+      "description": "CHW from the chiller leg.",
+      "direction": "in",
+      "domain": "chw"
+    },
+    "chw_out": {
+      "description": "CHW to the header.",
+      "direction": "out",
+      "domain": "chw"
+    }
+  }
+}

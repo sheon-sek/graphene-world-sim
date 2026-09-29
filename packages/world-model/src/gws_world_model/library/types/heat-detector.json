@@ -1,0 +1,33 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Fixed-temperature heat detector in a fire zone (review A18). Unexported.",
+  "fault_modes": {
+    "detector_fault": {
+      "description": "The detector fails and no longer detects heat.",
+      "kind": "sensor"
+    }
+  },
+  "id": "Heat Detector",
+  "ignition_type_id": null,
+  "name": "Heat detector",
+  "parameters": {
+    "alarm_temp": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 57.0,
+      "description": "Air temperature at which it alarms.",
+      "max": 120,
+      "min": 30,
+      "unit": "degC"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Detection loop to its fire zone.",
+      "direction": "both",
+      "domain": "fire"
+    }
+  }
+}

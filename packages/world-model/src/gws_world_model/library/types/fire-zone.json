@@ -1,0 +1,33 @@
+{
+  "behaviour": null,
+  "category": "controller",
+  "description": "A fire panel zone: its detectors, call points and alarm valves report into it, and it signals its rooms, the PAHUs supplying them (fire shutdown) and the lifts (fire recall) (review A18). Unexported.",
+  "fault_modes": {
+    "zone_circuit_fault": {
+      "description": "The zone circuit opens: device alarms in the zone no longer reach the panel and the zone raises no alarm outputs.",
+      "kind": "network"
+    }
+  },
+  "id": "Fire Zone",
+  "ignition_type_id": null,
+  "name": "Fire alarm zone",
+  "parameters": {
+    "alarm_delay": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 0.0,
+      "description": "Verification delay before the zone raises its alarm outputs.",
+      "max": 300,
+      "min": 0,
+      "unit": "s"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "fire": {
+      "description": "Zone alarm signalling to its devices, rooms, PAHUs and lifts.",
+      "direction": "out",
+      "domain": "fire"
+    }
+  }
+}

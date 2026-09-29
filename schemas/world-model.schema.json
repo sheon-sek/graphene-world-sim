@@ -1,0 +1,1185 @@
+{
+  "$defs": {
+    "Access": {
+      "enum": [
+        "read",
+        "read_write"
+      ],
+      "title": "Access",
+      "type": "string"
+    },
+    "Aggregate": {
+      "additionalProperties": false,
+      "description": "A value computed from other points (a KPI, a hall average).",
+      "properties": {
+        "function": {
+          "enum": [
+            "sum",
+            "mean",
+            "max",
+            "min",
+            "ratio",
+            "count_true",
+            "first"
+          ],
+          "title": "Function",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "kind": {
+          "const": "aggregate",
+          "default": "aggregate",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function",
+        "inputs"
+      ],
+      "title": "Aggregate",
+      "type": "object"
+    },
+    "Asset": {
+      "additionalProperties": false,
+      "properties": {
+        "exported": {
+          "default": true,
+          "title": "Exported",
+          "type": "boolean"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "default": {
+            "room": null,
+            "x": null,
+            "y": null
+          }
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Scalar"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "role": {
+          "default": "",
+          "title": "Role",
+          "type": "string"
+        },
+        "system": {
+          "default": "",
+          "title": "System",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "AssetCategory": {
+      "enum": [
+        "equipment",
+        "device",
+        "controller",
+        "aggregate",
+        "support"
+      ],
+      "title": "AssetCategory",
+      "type": "string"
+    },
+    "AssetSignal": {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "title": "Asset",
+          "type": "string"
+        },
+        "kind": {
+          "const": "asset_signal",
+          "default": "asset_signal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "signal": {
+          "title": "Signal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset",
+        "signal"
+      ],
+      "title": "AssetSignal",
+      "type": "object"
+    },
+    "ChangeClass": {
+      "description": "How an edit reaches a running simulation, from cheapest to most disruptive.",
+      "enum": [
+        "live",
+        "warm",
+        "structural",
+        "reinitialise"
+      ],
+      "title": "ChangeClass",
+      "type": "string"
+    },
+    "ComponentType": {
+      "additionalProperties": false,
+      "properties": {
+        "behaviour": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Behaviour"
+        },
+        "category": {
+          "$ref": "#/$defs/AssetCategory"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "fault_modes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/FaultModeSpec"
+          },
+          "title": "Fault Modes",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "ignition_type_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ignition Type Id"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ParameterSpec"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent"
+        },
+        "point_template": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PointTemplate"
+          },
+          "title": "Point Template",
+          "type": "object"
+        },
+        "ports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PortSpec"
+          },
+          "title": "Ports",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category"
+      ],
+      "title": "ComponentType",
+      "type": "object"
+    },
+    "Conditions": {
+      "additionalProperties": false,
+      "description": "Inputs from outside the facility that engineers change live.",
+      "properties": {
+        "it_load": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ItLoad"
+          },
+          "title": "It Load",
+          "type": "object"
+        },
+        "utility_available": {
+          "default": true,
+          "title": "Utility Available",
+          "type": "boolean"
+        },
+        "weather": {
+          "$ref": "#/$defs/Weather",
+          "default": {
+            "dry_bulb_c": 30.0,
+            "relative_humidity": 70.0,
+            "wet_bulb_c": 25.0
+          }
+        }
+      },
+      "title": "Conditions",
+      "type": "object"
+    },
+    "Connection": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Scalar"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "source": {
+          "$ref": "#/$defs/Endpoint"
+        },
+        "target": {
+          "$ref": "#/$defs/Endpoint"
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "source",
+        "target"
+      ],
+      "title": "Connection",
+      "type": "object"
+    },
+    "ControlBinding": {
+      "additionalProperties": false,
+      "description": "The wiring of a controller: what it reads and what it drives.",
+      "properties": {
+        "controller": {
+          "title": "Controller",
+          "type": "string"
+        },
+        "drives": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Drives",
+          "type": "array"
+        },
+        "function": {
+          "title": "Function",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Scalar"
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "reads": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reads",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "controller",
+        "function"
+      ],
+      "title": "ControlBinding",
+      "type": "object"
+    },
+    "Direction": {
+      "description": "Which way a Port faces in its domain: supplies downstream, takes from upstream, or both.",
+      "enum": [
+        "in",
+        "out",
+        "both"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "Domain": {
+      "description": "What a Connection carries. A Port accepts exactly one domain.",
+      "enum": [
+        "power",
+        "chw",
+        "cw",
+        "air",
+        "water",
+        "fuel",
+        "net",
+        "control",
+        "fire"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "Endpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "node": {
+          "title": "Node",
+          "type": "string"
+        },
+        "port": {
+          "title": "Port",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node",
+        "port"
+      ],
+      "title": "Endpoint",
+      "type": "object"
+    },
+    "FaultKind": {
+      "enum": [
+        "trip",
+        "degrade",
+        "stuck",
+        "sensor",
+        "loss_of_supply",
+        "network"
+      ],
+      "title": "FaultKind",
+      "type": "string"
+    },
+    "FaultModeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/FaultKind"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ParameterSpec"
+          },
+          "title": "Parameters",
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "FaultModeSpec",
+      "type": "object"
+    },
+    "Floor": {
+      "additionalProperties": false,
+      "properties": {
+        "elevation_m": {
+          "default": 0.0,
+          "title": "Elevation M",
+          "type": "number"
+        },
+        "height_m": {
+          "default": 4.5,
+          "title": "Height M",
+          "type": "number"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "index"
+      ],
+      "title": "Floor",
+      "type": "object"
+    },
+    "Instrument": {
+      "additionalProperties": false,
+      "description": "A sensor or status reading on an asset, and the path it reports through.",
+      "properties": {
+        "accuracy": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accuracy"
+        },
+        "asset": {
+          "title": "Asset",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "quantity": {
+          "title": "Quantity",
+          "type": "string"
+        },
+        "range_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range Max"
+        },
+        "range_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range Min"
+        },
+        "reports_via": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reports Via",
+          "type": "array"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "id",
+        "asset",
+        "quantity"
+      ],
+      "title": "Instrument",
+      "type": "object"
+    },
+    "InstrumentSource": {
+      "additionalProperties": false,
+      "properties": {
+        "instrument": {
+          "title": "Instrument",
+          "type": "string"
+        },
+        "kind": {
+          "const": "instrument",
+          "default": "instrument",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instrument"
+      ],
+      "title": "InstrumentSource",
+      "type": "object"
+    },
+    "ItLoad": {
+      "additionalProperties": false,
+      "properties": {
+        "design_kw": {
+          "minimum": 0,
+          "title": "Design Kw",
+          "type": "number"
+        },
+        "fraction": {
+          "maximum": 1.5,
+          "minimum": 0,
+          "title": "Fraction",
+          "type": "number"
+        },
+        "liquid_fraction": {
+          "default": 0.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Liquid Fraction",
+          "type": "number"
+        }
+      },
+      "required": [
+        "design_kw",
+        "fraction"
+      ],
+      "title": "ItLoad",
+      "type": "object"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "properties": {
+        "room": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Room"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        }
+      },
+      "title": "Location",
+      "type": "object"
+    },
+    "ParameterSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "assumed": {
+          "default": false,
+          "title": "Assumed",
+          "type": "boolean"
+        },
+        "change_class": {
+          "$ref": "#/$defs/ChangeClass",
+          "default": "warm"
+        },
+        "default": {
+          "$ref": "#/$defs/Scalar"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "default"
+      ],
+      "title": "ParameterSpec",
+      "type": "object"
+    },
+    "PointBinding": {
+      "additionalProperties": false,
+      "description": "One Point Ignition reads or writes. Ignition compatibility lives here.",
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/Access",
+          "default": "read"
+        },
+        "data_type": {
+          "title": "Data Type",
+          "type": "string"
+        },
+        "ignition_type_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ignition Type Id"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "point_class": {
+          "$ref": "#/$defs/PointClass"
+        },
+        "source": {
+          "$ref": "#/$defs/PointSource",
+          "default": {
+            "kind": "unbound",
+            "reason": ""
+          }
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "path",
+        "data_type",
+        "point_class"
+      ],
+      "title": "PointBinding",
+      "type": "object"
+    },
+    "PointClass": {
+      "description": "What kind of evidence a Point carries, and so what must drive its value.",
+      "enum": [
+        "command",
+        "feedback",
+        "process_value",
+        "equipment_state",
+        "fault_alarm",
+        "energy_integral",
+        "network_state",
+        "static_metadata",
+        "support"
+      ],
+      "title": "PointClass",
+      "type": "string"
+    },
+    "PointSource": {
+      "discriminator": {
+        "mapping": {
+          "aggregate": "#/$defs/Aggregate",
+          "asset_signal": "#/$defs/AssetSignal",
+          "instrument": "#/$defs/InstrumentSource",
+          "static": "#/$defs/StaticValue",
+          "unbound": "#/$defs/Unbound"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AssetSignal"
+        },
+        {
+          "$ref": "#/$defs/InstrumentSource"
+        },
+        {
+          "$ref": "#/$defs/Aggregate"
+        },
+        {
+          "$ref": "#/$defs/StaticValue"
+        },
+        {
+          "$ref": "#/$defs/Unbound"
+        }
+      ]
+    },
+    "PointTemplate": {
+      "additionalProperties": false,
+      "description": "One member point every instance of the type exposes.",
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/Access",
+          "default": "read"
+        },
+        "data_type": {
+          "title": "Data Type",
+          "type": "string"
+        },
+        "point_class": {
+          "$ref": "#/$defs/PointClass"
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "data_type",
+        "point_class"
+      ],
+      "title": "PointTemplate",
+      "type": "object"
+    },
+    "PortSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction",
+          "default": "both"
+        },
+        "domain": {
+          "$ref": "#/$defs/Domain"
+        }
+      },
+      "required": [
+        "domain"
+      ],
+      "title": "PortSpec",
+      "type": "object"
+    },
+    "Room": {
+      "additionalProperties": false,
+      "properties": {
+        "fire_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fire Zone"
+        },
+        "floor": {
+          "title": "Floor",
+          "type": "string"
+        },
+        "h": {
+          "title": "H",
+          "type": "number"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "outdoor": {
+          "default": false,
+          "title": "Outdoor",
+          "type": "boolean"
+        },
+        "w": {
+          "title": "W",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "floor",
+        "name",
+        "kind",
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "Room",
+      "type": "object"
+    },
+    "Scalar": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "Shaft": {
+      "additionalProperties": false,
+      "properties": {
+        "carries": {
+          "items": {
+            "$ref": "#/$defs/Domain"
+          },
+          "title": "Carries",
+          "type": "array"
+        },
+        "floors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Floors",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y",
+        "floors",
+        "carries"
+      ],
+      "title": "Shaft",
+      "type": "object"
+    },
+    "Site": {
+      "additionalProperties": false,
+      "properties": {
+        "floors": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Floor"
+          },
+          "title": "Floors",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "rooms": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Room"
+          },
+          "title": "Rooms",
+          "type": "object"
+        },
+        "shafts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Shaft"
+          },
+          "title": "Shafts",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Site",
+      "type": "object"
+    },
+    "StaticValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "static",
+          "default": "static",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scalar"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "StaticValue",
+      "type": "object"
+    },
+    "Unbound": {
+      "additionalProperties": false,
+      "description": "A point with no source yet. It is served with bad quality until it is bound.",
+      "properties": {
+        "kind": {
+          "const": "unbound",
+          "default": "unbound",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "title": "Unbound",
+      "type": "object"
+    },
+    "Weather": {
+      "additionalProperties": false,
+      "properties": {
+        "dry_bulb_c": {
+          "default": 30.0,
+          "title": "Dry Bulb C",
+          "type": "number"
+        },
+        "relative_humidity": {
+          "default": 70.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Relative Humidity",
+          "type": "number"
+        },
+        "wet_bulb_c": {
+          "default": 25.0,
+          "title": "Wet Bulb C",
+          "type": "number"
+        }
+      },
+      "title": "Weather",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/sheon-sek/graphene-world-sim/schemas/world-model.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Asset"
+      },
+      "title": "Assets",
+      "type": "object"
+    },
+    "component_types": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentType"
+      },
+      "title": "Component Types",
+      "type": "object"
+    },
+    "conditions": {
+      "$ref": "#/$defs/Conditions",
+      "default": {
+        "it_load": {},
+        "utility_available": true,
+        "weather": {
+          "dry_bulb_c": 30.0,
+          "relative_humidity": 70.0,
+          "wet_bulb_c": 25.0
+        }
+      }
+    },
+    "connections": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Connection"
+      },
+      "title": "Connections",
+      "type": "object"
+    },
+    "control_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ControlBinding"
+      },
+      "title": "Control Bindings",
+      "type": "object"
+    },
+    "instruments": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Instrument"
+      },
+      "title": "Instruments",
+      "type": "object"
+    },
+    "point_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/PointBinding"
+      },
+      "title": "Point Bindings",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1",
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "site": {
+      "$ref": "#/$defs/Site"
+    }
+  },
+  "required": [
+    "site"
+  ],
+  "title": "WorldModel",
+  "type": "object"
+}

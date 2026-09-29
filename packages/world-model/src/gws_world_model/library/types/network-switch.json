@@ -1,0 +1,33 @@
+{
+  "behaviour": null,
+  "category": "device",
+  "description": "Port-level view of one of the four physical control-network switches (review A11).",
+  "fault_modes": {
+    "failure": {
+      "description": "The switch stops forwarding traffic on all ports.",
+      "kind": "network"
+    }
+  },
+  "id": "Network Switch",
+  "ignition_type_id": "Network Switch",
+  "name": "Network switch (port view)",
+  "parameters": {
+    "port_count": {
+      "assumed": false,
+      "change_class": "structural",
+      "default": 48,
+      "description": "Number of switch ports (site data: 48-port switches).",
+      "max": 96,
+      "min": 1,
+      "unit": null
+    }
+  },
+  "parent": null,
+  "ports": {
+    "net": {
+      "description": "Network links.",
+      "direction": "both",
+      "domain": "net"
+    }
+  }
+}

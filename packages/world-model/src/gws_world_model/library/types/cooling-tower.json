@@ -1,0 +1,122 @@
+{
+  "behaviour": "GwsLib.CoolingTower",
+  "category": "equipment",
+  "description": "One open cooling-tower cell with a VFD fan. 1,000 kW rejection at 27 degC wet bulb, CW 32 / 37 degC; five cells per Tower Group (plant-design basis).",
+  "fault_modes": {
+    "fan_trip": {
+      "description": "Fan VFD or motor trips; the cell rejects heat by natural draught only.",
+      "kind": "trip"
+    },
+    "fill_fouling": {
+      "description": "Scaled or damaged fill reduces the cell's heat rejection.",
+      "kind": "degrade",
+      "parameters": {
+        "capacity_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.7,
+          "description": "Heat rejection as a fraction of the clean fill.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "Cooling Tower",
+  "ignition_type_id": "Cooling Tower",
+  "name": "Cooling tower cell",
+  "parameters": {
+    "cw_supply_temp_design": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 32.0,
+      "description": "Leaving water temperature at design (site data: plant-design.json basis.capacities).",
+      "max": 45,
+      "min": 15,
+      "unit": "degC"
+    },
+    "dp_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 30.0,
+      "description": "Water-side pressure drop at design flow.",
+      "min": 0,
+      "unit": "kPa"
+    },
+    "fan_power_nominal": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 15.0,
+      "description": "Fan motor power at full speed.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "fan_speed": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Fan speed command as a fraction of full speed.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    },
+    "m_flow_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 47.8,
+      "description": "Design water flow: 1,000 kW over the 5 K CW range (site data: plant-design.json basis.capacities).",
+      "min": 0,
+      "unit": "kg/s"
+    },
+    "q_nominal": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 1000.0,
+      "description": "Heat rejection at design conditions (site data: plant-design.json basis.capacities: Tower Groups).",
+      "min": 0,
+      "unit": "kW"
+    },
+    "v_trip_pu": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Undervoltage trip: the drive stops below this supply voltage.",
+      "max": 1.0,
+      "min": 0.5,
+      "unit": "pu"
+    },
+    "wet_bulb_design": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 27.0,
+      "description": "Design wet-bulb temperature (site data: plant-design.json basis.capacities).",
+      "max": 35,
+      "min": 10,
+      "unit": "degC"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "cw_in": {
+      "description": "Hot condenser water from the chiller.",
+      "direction": "in",
+      "domain": "cw"
+    },
+    "cw_out": {
+      "description": "Cooled condenser water to the pumps.",
+      "direction": "out",
+      "domain": "cw"
+    },
+    "power_in": {
+      "description": "Fan VFD supply.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "water_in": {
+      "description": "Makeup water replacing evaporation and blowdown.",
+      "direction": "in",
+      "domain": "water"
+    }
+  }
+}
