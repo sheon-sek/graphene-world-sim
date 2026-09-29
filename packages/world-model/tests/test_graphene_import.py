@@ -64,7 +64,7 @@ def test_udt_members_bind_to_signals_their_type_exposes(doc: WorldModel) -> None
 
 
 def test_ports_follow_domain_and_direction(doc: WorldModel) -> None:
-    c = doc.connections["chw:Chiller/R_CP1->Chiller/R_C1"]
+    c = doc.connections["chw:Chiller/R_CP1->Chiller/R_CV1"]
     assert (c.source.port, c.target.port) == ("chw_out", "chw_in")
     to_room = next(c for c in doc.connections.values() if c.target.is_room)
     assert to_room.target.port == to_room.domain

@@ -67,6 +67,7 @@ INSTANCES = (
 )
 PLANT_DESIGN = "plant-design.json"
 BINDINGS = Path(__file__).with_name("graphene_bindings.json")
+SUPPLEMENTS = Path(__file__).with_name("graphene_supplement")
 FLOOR_HEIGHT_M = 4.5
 
 
@@ -93,6 +94,34 @@ class Bindings(BaseModel):
     @classmethod
     def load(cls, path: Path = BINDINGS) -> Bindings:
         return cls.model_validate_json(path.read_bytes())
+
+
+class Removal(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    id: str
+    reason: str
+
+
+class Supplement(BaseModel):
+    """Engineering the asset source lacks or gets wrong, added on top of the plant design.
+
+    Each file in `graphene_supplement/` is one reviewed change: equipment the source has no
+    record of (an ATS inside a switchboard), or a correction to its schematic topology (an
+    isolation valve drawn in parallel with the pump it is in series with). Every entry says
+    why in `note` or `reason`.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    note: str
+    assets: list[Asset] = []
+    remove_connections: list[Removal] = []
+    connections: list[Connection] = []
+    instruments: list[Instrument] = []
+    control_bindings: list[ControlBinding] = []
+
+    @classmethod
+    def load_all(cls, directory: Path = SUPPLEMENTS) -> list[Supplement]:
+        return [cls.model_validate_json(p.read_bytes()) for p in sorted(directory.glob("*.json"))]
 
 
 _SOURCE: TypeAdapter[PointSource] = TypeAdapter(PointSource)
@@ -312,14 +341,44 @@ def _conditions(design: dict[str, Any]) -> Conditions:
     return Conditions(it_load=it_load)
 
 
+def _add[T: (Asset, Connection, Instrument, ControlBinding)](
+    kind: str, target: dict[str, T], items: list[T], problems: list[str]
+) -> None:
+    for item in items:
+        if item.id in target:
+            problems.append(f"supplement adds {kind} {item.id} twice")
+        target[item.id] = item
+
+
+def _supplement(
+    supplements: list[Supplement],
+    assets: dict[str, Asset],
+    connections: dict[str, Connection],
+    problems: list[str],
+) -> tuple[dict[str, Instrument], dict[str, ControlBinding]]:
+    instruments: dict[str, Instrument] = {}
+    control_bindings: dict[str, ControlBinding] = {}
+    for sup in supplements:
+        for removal in sup.remove_connections:
+            if connections.pop(removal.id, None) is None:
+                problems.append(f"supplement removes unknown connection {removal.id}")
+        _add("asset", assets, sup.assets, problems)
+        _add("connection", connections, sup.connections, problems)
+        _add("instrument", instruments, sup.instruments, problems)
+        _add("control binding", control_bindings, sup.control_bindings, problems)
+    return instruments, control_bindings
+
+
 def build(
     sources: Sources,
     types: dict[str, ComponentType] | None = None,
     bindings: Bindings | None = None,
+    supplements: list[Supplement] | None = None,
 ) -> WorldModel:
     """The World Model the graphene data describes. Raises ImportProblem listing every gap."""
     library_types = library.load() if types is None else types
     extra = Bindings.load() if bindings is None else bindings
+    added = Supplement.load_all() if supplements is None else supplements
     problems: list[str] = []
     component_types = {
         t.id: t.model_copy(update={"point_template": _templates(t, sources.export)})
@@ -336,6 +395,11 @@ def build(
         raise ImportProblem("\n".join(sorted(set(problems))))
     site = _site(sources.design)
     connections = _connections(sources.design, assets, component_types, site.rooms, problems)
+    instruments, control_bindings = _supplement(added, assets, connections, problems)
+    for key in instruments.keys() & {i.id for i in extra.instruments}:
+        problems.append(f"instrument {key} is defined in the bindings and a supplement")
+    for key in control_bindings.keys() & {b.id for b in extra.control_bindings}:
+        problems.append(f"control binding {key} is defined in the bindings and a supplement")
     if problems:
         raise ImportProblem("\n".join(sorted(set(problems))))
     return WorldModel(
@@ -343,8 +407,8 @@ def build(
         component_types=component_types,
         assets=assets,
         connections=connections,
-        instruments={i.id: i for i in extra.instruments},
-        control_bindings={b.id: b for b in extra.control_bindings},
+        instruments={i.id: i for i in extra.instruments} | instruments,
+        control_bindings={b.id: b for b in extra.control_bindings} | control_bindings,
         point_bindings=_point_bindings(
             sources.export, assets, component_types, _Binder(extra.rules)
         ),

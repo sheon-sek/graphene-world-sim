@@ -3,7 +3,12 @@ name = "gws-runtime"
 version = "0.0.0"
 description = "Simulation runtime: builds models from the World Model and computes behaviour over time."
 requires-python = ">=3.12"
-dependencies = ["gws-world-model"]
+dependencies = [
+    "gws-world-model",
+    "fmpy==0.3.32",
+    "pandapower==3.5.5",
+    "networkx==3.7",
+]
 
 [build-system]
 requires = ["hatchling>=1.25"]

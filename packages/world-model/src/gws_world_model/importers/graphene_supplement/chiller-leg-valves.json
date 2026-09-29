@@ -1,0 +1,143 @@
+{
+  "note": "Chiller legs: each evaporator and condenser isolation valve is in series between its pump and its chiller. The plant design draws both pump and valve feeding the chiller, which would let the pump recirculate through the valve.",
+  "remove_connections": [
+    {
+      "id": "chw:Chiller/R_CP1->Chiller/R_C1",
+      "reason": "Chiller/R_CV1 is drawn in parallel with Chiller/R_CP1; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "cw:Chiller/R_CP5->Chiller/R_C1",
+      "reason": "Chiller/R_CV5 is drawn in parallel with Chiller/R_CP5; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "chw:Chiller/R_CP2->Chiller/R_C2",
+      "reason": "Chiller/R_CV2 is drawn in parallel with Chiller/R_CP2; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "cw:Chiller/R_CP6->Chiller/R_C2",
+      "reason": "Chiller/R_CV6 is drawn in parallel with Chiller/R_CP6; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "chw:Chiller/R_CP3->Chiller/R_C3",
+      "reason": "Chiller/R_CV3 is drawn in parallel with Chiller/R_CP3; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "cw:Chiller/R_CP7->Chiller/R_C3",
+      "reason": "Chiller/R_CV7 is drawn in parallel with Chiller/R_CP7; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "chw:Chiller/R_CP4->~CH-004",
+      "reason": "Chiller/R_CV4 is drawn in parallel with Chiller/R_CP4; the isolation valve sits between the pump and the chiller"
+    },
+    {
+      "id": "cw:Chiller/R_CP8->~CH-004",
+      "reason": "Chiller/R_CV8 is drawn in parallel with Chiller/R_CP8; the isolation valve sits between the pump and the chiller"
+    }
+  ],
+  "connections": [
+    {
+      "id": "chw:Chiller/R_CP1->Chiller/R_CV1",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP1",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV1",
+        "port": "chw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "cw:Chiller/R_CP5->Chiller/R_CV5",
+      "domain": "cw",
+      "source": {
+        "node": "Chiller/R_CP5",
+        "port": "cw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV5",
+        "port": "cw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "chw:Chiller/R_CP2->Chiller/R_CV2",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP2",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV2",
+        "port": "chw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "cw:Chiller/R_CP6->Chiller/R_CV6",
+      "domain": "cw",
+      "source": {
+        "node": "Chiller/R_CP6",
+        "port": "cw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV6",
+        "port": "cw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "chw:Chiller/R_CP3->Chiller/R_CV3",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP3",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV3",
+        "port": "chw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "cw:Chiller/R_CP7->Chiller/R_CV7",
+      "domain": "cw",
+      "source": {
+        "node": "Chiller/R_CP7",
+        "port": "cw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV7",
+        "port": "cw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "chw:Chiller/R_CP4->Chiller/R_CV4",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP4",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV4",
+        "port": "chw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    },
+    {
+      "id": "cw:Chiller/R_CP8->Chiller/R_CV8",
+      "domain": "cw",
+      "source": {
+        "node": "Chiller/R_CP8",
+        "port": "cw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV8",
+        "port": "cw_in"
+      },
+      "label": "pump discharge to isolation valve"
+    }
+  ]
+}
