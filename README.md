@@ -7,8 +7,9 @@ to it exactly as it would to real equipment.
 
 > **The application injects the cause. The simulation engine computes the consequences.**
 
-Status: Phase 0 (foundations). Nothing simulates yet. The plan is tracked as one epic issue per
-phase, with tasks as sub-issues.
+Status: Phase 2 (World Model). The graphene site is imported as World Model revision 1 and can
+be read and edited through the API; nothing simulates yet. The plan is tracked as one epic issue
+per phase, with tasks as sub-issues.
 
 ## Layout
 
@@ -38,12 +39,24 @@ pnpm install
 pnpm web:check
 ```
 
+World Model tools:
+
+```sh
+# Build revision 1 from data/graphene and print its counts and Ignition contract checksum
+uv run python -m gws_world_model.importers.graphene data/graphene /tmp/world-model.json
+# Regenerate the published schema and OpenAPI document after changing the model or the API
+uv run python -m gws_world_model.schema schemas/world-model.schema.json
+uv run python -m gws_api.app docs/api/openapi.json
+```
+
 ## Decisions
 
 - [ADR-0001](docs/adr/0001-layer-boundaries.md): layer boundaries
-- [ADR-0002](docs/adr/0002-simulation-stack.md): simulation stack (proposed, pending the Phase 1 spike)
+- [ADR-0002](docs/adr/0002-simulation-stack.md): simulation stack
 - [ADR-0003](docs/adr/0003-opcua-compatibility-contract.md): OPC UA compatibility contract
 - [ADR-0004](docs/adr/0004-web-and-3d-stack.md): web application and 3D visualisation stack
+- [ADR-0005](docs/adr/0005-world-model-storage.md): World Model documents, revisions and change
+  classes
 
 Asset data comes from `sheon-sek/graphene-demo-twin-2`, which is a source of what exists only.
 None of its simulation, fault, runtime or UI code is used here.
