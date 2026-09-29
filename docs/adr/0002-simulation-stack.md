@@ -1,6 +1,6 @@
 # Simulation stack
 
-Status: proposed (to be accepted or superseded by the Phase 1 spike, #2)
+Status: accepted with amendments (Phase 1 spike, #2; see the amendment section)
 Date: 2026-09-29
 
 ## Context
@@ -87,3 +87,24 @@ needs a new record superseding this one.
 - The runtime depends on OpenModelica in a container image, not on developer machines.
 - Engineering data the asset source lacks (pump curves, pipe sizes, valve Kv, room volumes,
   cable impedances) starts from typed defaults, and the UI flags every assumed value.
+
+## Amendment 1: Phase 1 spike results (2026-09-29)
+
+The spike met all four criteria above. The results are in
+[`docs/spikes/phase1-report.md`](../spikes/phase1-report.md). It changes the decision in four
+places:
+
+1. **FMUs run as Model Exchange under the master's own CVODE**, not through OpenModelica's
+   Co-Simulation wrapper. In OpenModelica 1.25 that wrapper leaks about 11 kB per
+   `fmi2DoStep` and aborts the process. Model Exchange under FMPy's CVODE shows no growth.
+2. **State crosses a rebuild through World Model identity.** Each ComponentType declares a
+   state map (start parameter to internal variable). A snapshot reads those variables, and the
+   rebuilt model receives them as start parameters keyed by asset id. Start parameters must be
+   literal defaults, and loading a state that cannot be set is an error.
+3. **The electrical solver passes one supply voltage per asset.** Equipment models own their
+   protection, such as undervoltage trips and flow switches. The load flow re-solves when a
+   breaker changes or a load moves beyond a deadband, and lags the thermofluid step by one
+   step.
+4. **Structural changes compile in the background and swap at a step boundary.** For one
+   chiller leg and one hall, compilation took 65–104 s and the swap took 0.26 s.
+

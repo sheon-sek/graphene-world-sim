@@ -1,0 +1,320 @@
+{
+  "name": "ChillerLegDH01",
+  "description": "Chiller leg CH-001 (tower group CT-001) serving Data Hall DH01 through FCU/L1_FCU1. Asset paths and topology come from the graphene-demo-twin-2 inventory; sizes are engineering assumptions for the spike.",
+  "assets": [
+    {
+      "id": "Chiller/R_C1",
+      "type": "Chiller",
+      "params": {
+        "per": "Buildings.Fluid.Chillers.Data.ElectricEIR.ElectricEIRChiller_Carrier_19XR_1076kW_5_52COP_Vanes()"
+      },
+      "inputs": {
+        "enable": true,
+        "TChwSet": 280.15
+      }
+    },
+    {
+      "id": "Chiller/R_CP1",
+      "type": "Chiller Pump",
+      "params": {
+        "m_flow_nominal": 31.86,
+        "dp_nominal": 110000
+      },
+      "inputs": {
+        "speed": 1.0
+      }
+    },
+    {
+      "id": "Chiller/R_CV1",
+      "type": "Chiller Valve",
+      "params": {
+        "m_flow_nominal": 31.86
+      },
+      "inputs": {
+        "position": 1.0
+      }
+    },
+    {
+      "id": "Buffer Tank/R_BT1",
+      "type": "Buffer Tank",
+      "params": {
+        "V": 10,
+        "m_flow_nominal": 31.86
+      }
+    },
+    {
+      "id": "FCU/L1_FCU1",
+      "type": "FCU",
+      "params": {
+        "Q_flow_nominal": 1000000,
+        "mWat_flow_nominal": 31.86,
+        "mAir_flow_nominal": 83.0
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    },
+    {
+      "id": "Room/DH01",
+      "type": "Data Hall",
+      "params": {
+        "V": 2880,
+        "mAir_flow_nominal": 83.0
+      },
+      "inputs": {
+        "QIt": 800000
+      }
+    },
+    {
+      "id": "Chiller/R_CP5",
+      "type": "Chiller Pump",
+      "params": {
+        "m_flow_nominal": 47.44,
+        "dp_nominal": 100000
+      },
+      "inputs": {
+        "speed": 1.0
+      }
+    },
+    {
+      "id": "Chiller/R_CV5",
+      "type": "Chiller Valve",
+      "params": {
+        "m_flow_nominal": 47.44
+      },
+      "inputs": {
+        "position": 1.0
+      }
+    },
+    {
+      "id": "Cooling Towers Plant/R_P1_CT1",
+      "type": "Cooling Tower",
+      "params": {
+        "m_flow_nominal": 9.488
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    },
+    {
+      "id": "Cooling Towers Plant/R_P1_CT2",
+      "type": "Cooling Tower",
+      "params": {
+        "m_flow_nominal": 9.488
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    },
+    {
+      "id": "Cooling Towers Plant/R_P1_CT3",
+      "type": "Cooling Tower",
+      "params": {
+        "m_flow_nominal": 9.488
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    },
+    {
+      "id": "Cooling Towers Plant/R_P1_CT4",
+      "type": "Cooling Tower",
+      "params": {
+        "m_flow_nominal": 9.488
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    },
+    {
+      "id": "Cooling Towers Plant/R_P1_CT5",
+      "type": "Cooling Tower",
+      "params": {
+        "m_flow_nominal": 9.488
+      },
+      "inputs": {
+        "fanSpeed": 1.0
+      }
+    }
+  ],
+  "environment": {
+    "TWetBulb": 297.15
+  },
+  "connections": [
+    {
+      "medium": "chw",
+      "from": "Chiller/R_CP1.outlet",
+      "to": "Chiller/R_CV1.inlet"
+    },
+    {
+      "medium": "chw",
+      "from": "Chiller/R_CV1.outlet",
+      "to": "Chiller/R_C1.chw_in"
+    },
+    {
+      "medium": "chw",
+      "from": "Chiller/R_C1.chw_out",
+      "to": "Buffer Tank/R_BT1.inlet"
+    },
+    {
+      "medium": "chw",
+      "from": "Buffer Tank/R_BT1.outlet",
+      "to": "FCU/L1_FCU1.chw_in"
+    },
+    {
+      "medium": "chw",
+      "from": "FCU/L1_FCU1.chw_out",
+      "to": "Chiller/R_CP1.inlet"
+    },
+    {
+      "medium": "air",
+      "from": "FCU/L1_FCU1.air_out",
+      "to": "Room/DH01.air_in"
+    },
+    {
+      "medium": "air",
+      "from": "Room/DH01.air_out",
+      "to": "FCU/L1_FCU1.air_in"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_CP5.outlet",
+      "to": "Chiller/R_CV5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_CV5.outlet",
+      "to": "Chiller/R_C1.cw_in"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_C1.cw_out",
+      "to": "Cooling Towers Plant/R_P1_CT1.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_C1.cw_out",
+      "to": "Cooling Towers Plant/R_P1_CT2.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_C1.cw_out",
+      "to": "Cooling Towers Plant/R_P1_CT3.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_C1.cw_out",
+      "to": "Cooling Towers Plant/R_P1_CT4.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Chiller/R_C1.cw_out",
+      "to": "Cooling Towers Plant/R_P1_CT5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Cooling Towers Plant/R_P1_CT1.outlet",
+      "to": "Chiller/R_CP5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Cooling Towers Plant/R_P1_CT2.outlet",
+      "to": "Chiller/R_CP5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Cooling Towers Plant/R_P1_CT3.outlet",
+      "to": "Chiller/R_CP5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Cooling Towers Plant/R_P1_CT4.outlet",
+      "to": "Chiller/R_CP5.inlet"
+    },
+    {
+      "medium": "cw",
+      "from": "Cooling Towers Plant/R_P1_CT5.outlet",
+      "to": "Chiller/R_CP5.inlet"
+    }
+  ],
+  "electrical": {
+    "note": "Bus and breaker names are spike assumptions; the inventory has no single-line diagram for this leg.",
+    "grid": {
+      "bus": "MV",
+      "vn_kv": 11.0
+    },
+    "buses": [
+      {
+        "id": "MSB",
+        "vn_kv": 0.4
+      },
+      {
+        "id": "MCC-CH1",
+        "vn_kv": 0.4
+      },
+      {
+        "id": "MCC-CT1",
+        "vn_kv": 0.4
+      },
+      {
+        "id": "DB-DH01",
+        "vn_kv": 0.4
+      },
+      {
+        "id": "UPS-DH01",
+        "vn_kv": 0.4
+      }
+    ],
+    "transformers": [
+      {
+        "id": "TX1",
+        "hv": "MV",
+        "lv": "MSB",
+        "sn_mva": 2.5
+      }
+    ],
+    "feeders": [
+      {
+        "id": "CB-MCC-CH1",
+        "from": "MSB",
+        "to": "MCC-CH1",
+        "length_km": 0.08,
+        "parallel": 4
+      },
+      {
+        "id": "CB-MCC-CT1",
+        "from": "MSB",
+        "to": "MCC-CT1",
+        "length_km": 0.08,
+        "parallel": 4
+      },
+      {
+        "id": "CB-DB-DH01",
+        "from": "MSB",
+        "to": "DB-DH01",
+        "length_km": 0.08,
+        "parallel": 4
+      },
+      {
+        "id": "CB-UPS-DH01",
+        "from": "MSB",
+        "to": "UPS-DH01",
+        "length_km": 0.08,
+        "parallel": 4
+      }
+    ],
+    "loads": {
+      "Chiller/R_C1": "MCC-CH1",
+      "Chiller/R_CP1": "MCC-CH1",
+      "Chiller/R_CP5": "MCC-CH1",
+      "Cooling Towers Plant/R_P1_CT1": "MCC-CT1",
+      "Cooling Towers Plant/R_P1_CT2": "MCC-CT1",
+      "Cooling Towers Plant/R_P1_CT3": "MCC-CT1",
+      "Cooling Towers Plant/R_P1_CT4": "MCC-CT1",
+      "Cooling Towers Plant/R_P1_CT5": "MCC-CT1",
+      "FCU/L1_FCU1": "DB-DH01",
+      "Room/DH01": "UPS-DH01"
+    },
+    "power_factor": 0.9
+  }
+}
