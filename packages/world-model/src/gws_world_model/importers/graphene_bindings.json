@@ -1,1 +1,4912 @@
-{"instruments": [], "control_bindings": [], "rules": []}
+{
+  "instruments": [
+    {
+      "id": "CH-001/TS-01",
+      "asset": "Chiller/R_C1",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-001/TS-02",
+      "asset": "Chiller/R_C1",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-001/TS-03",
+      "asset": "Chiller/R_C1",
+      "quantity": "TCwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-001/TS-04",
+      "asset": "Chiller/R_C1",
+      "quantity": "TCwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-001/FM-01",
+      "asset": "Chiller/R_C1",
+      "quantity": "mChw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-001/FM-02",
+      "asset": "Chiller/R_C1",
+      "quantity": "mCw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/TS-01",
+      "asset": "Chiller/R_C2",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/TS-02",
+      "asset": "Chiller/R_C2",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/TS-03",
+      "asset": "Chiller/R_C2",
+      "quantity": "TCwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/TS-04",
+      "asset": "Chiller/R_C2",
+      "quantity": "TCwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/FM-01",
+      "asset": "Chiller/R_C2",
+      "quantity": "mChw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-002/FM-02",
+      "asset": "Chiller/R_C2",
+      "quantity": "mCw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/TS-01",
+      "asset": "Chiller/R_C3",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/TS-02",
+      "asset": "Chiller/R_C3",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/TS-03",
+      "asset": "Chiller/R_C3",
+      "quantity": "TCwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/TS-04",
+      "asset": "Chiller/R_C3",
+      "quantity": "TCwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/FM-01",
+      "asset": "Chiller/R_C3",
+      "quantity": "mChw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-003/FM-02",
+      "asset": "Chiller/R_C3",
+      "quantity": "mCw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/TS-01",
+      "asset": "~CH-004",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/TS-02",
+      "asset": "~CH-004",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/TS-03",
+      "asset": "~CH-004",
+      "quantity": "TCwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/TS-04",
+      "asset": "~CH-004",
+      "quantity": "TCwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/FM-01",
+      "asset": "~CH-004",
+      "quantity": "mChw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CH-004/FM-02",
+      "asset": "~CH-004",
+      "quantity": "mCw_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-001/TS-01",
+      "asset": "~CB-001",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-001/TS-02",
+      "asset": "~CB-001",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-001/FM-01",
+      "asset": "~CB-001",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-002/TS-01",
+      "asset": "~CB-002",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-002/TS-02",
+      "asset": "~CB-002",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-002/FM-01",
+      "asset": "~CB-002",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-003/TS-01",
+      "asset": "~CB-003",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-003/TS-02",
+      "asset": "~CB-003",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-003/FM-01",
+      "asset": "~CB-003",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-004/TS-01",
+      "asset": "~CB-004",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-004/TS-02",
+      "asset": "~CB-004",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-004/FM-01",
+      "asset": "~CB-004",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-005/TS-01",
+      "asset": "~CB-005",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-005/TS-02",
+      "asset": "~CB-005",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-005/FM-01",
+      "asset": "~CB-005",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-006/TS-01",
+      "asset": "~CB-006",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-006/TS-02",
+      "asset": "~CB-006",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-006/FM-01",
+      "asset": "~CB-006",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-007/TS-01",
+      "asset": "~CB-007",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-007/TS-02",
+      "asset": "~CB-007",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-007/FM-01",
+      "asset": "~CB-007",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-008/TS-01",
+      "asset": "~CB-008",
+      "quantity": "TChwEnt",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-008/TS-02",
+      "asset": "~CB-008",
+      "quantity": "TChwLvg",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "CB-008/FM-01",
+      "asset": "~CB-008",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/TS-01",
+      "asset": "Chiller/R_CP9",
+      "quantity": "TChwRet",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/TS-02",
+      "asset": "Chiller/R_CP9",
+      "quantity": "TChwSup",
+      "unit": "°C",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/FM-01",
+      "asset": "Chiller/R_CP9",
+      "quantity": "m_flow",
+      "unit": "m³/h",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/DPS-01",
+      "asset": "Chiller/R_CP9",
+      "quantity": "dpLoop",
+      "unit": "kPa",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/DPS-02",
+      "asset": "Chiller/R_CP9",
+      "quantity": "dpLoop",
+      "unit": "kPa",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/PS-CHWS",
+      "asset": "Chiller/R_CP9",
+      "quantity": "pDis",
+      "unit": "bar",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    },
+    {
+      "id": "HDR/PS-CHWR",
+      "asset": "Chiller/R_CP9",
+      "quantity": "pSuc",
+      "unit": "bar",
+      "reports_via": [
+        "Network Topology/GATEWAY A"
+      ]
+    }
+  ],
+  "control_bindings": [
+    {
+      "id": "PLC-01/chw_staging",
+      "controller": "~PLC-01",
+      "function": "chw_staging",
+      "reads": [
+        "HDR/TS-01",
+        "HDR/TS-02",
+        "HDR/FM-01",
+        "Chiller/R_C1/On_Off",
+        "Chiller/R_C2/On_Off",
+        "Chiller/R_C3/On_Off",
+        "~CH-004:On_Off"
+      ],
+      "drives": [
+        "Chiller/R_C1:enable",
+        "Chiller/R_C2:enable",
+        "Chiller/R_C3:enable",
+        "~CH-004:enable",
+        "Chiller/R_CP1:speed",
+        "Chiller/R_CP2:speed",
+        "Chiller/R_CP3:speed",
+        "Chiller/R_CP4:speed",
+        "Chiller/R_CP5:speed",
+        "Chiller/R_CP6:speed",
+        "Chiller/R_CP7:speed",
+        "Chiller/R_CP8:speed",
+        "Chiller/R_CV1:position",
+        "Chiller/R_CV2:position",
+        "Chiller/R_CV3:position",
+        "Chiller/R_CV4:position",
+        "Chiller/R_CV5:position",
+        "Chiller/R_CV6:position",
+        "Chiller/R_CV7:position",
+        "Chiller/R_CV8:position",
+        "Chiller/R_CV9:position",
+        "Chiller/R_CV10:position",
+        "Chiller/R_CV11:position",
+        "Chiller/R_CV12:position"
+      ],
+      "parameters": {
+        "min_chillers": 1,
+        "max_chillers": 4,
+        "stage_up_delay_s": 5,
+        "stage_down_delay_s": 5,
+        "stage_up_inhibit_s": 2
+      }
+    },
+    {
+      "id": "PLC-01/chw_supply_temp",
+      "controller": "~PLC-01",
+      "function": "chw_supply_temp",
+      "reads": [
+        "HDR/TS-02"
+      ],
+      "drives": [
+        "Chiller/R_C1:TChwSet",
+        "Chiller/R_C2:TChwSet",
+        "Chiller/R_C3:TChwSet",
+        "~CH-004:TChwSet"
+      ],
+      "parameters": {
+        "setpoint_degC": 7.0
+      }
+    },
+    {
+      "id": "PLC-01/dp_pid",
+      "controller": "~PLC-01",
+      "function": "dp_pid",
+      "reads": [
+        "HDR/DPS-01"
+      ],
+      "drives": [
+        "Chiller/R_CP9:speed"
+      ],
+      "parameters": {
+        "setpoint_kPa": 85.0,
+        "min_speed_pct": 30.0
+      }
+    },
+    {
+      "id": "PLC-01/bypass_pid",
+      "controller": "~PLC-01",
+      "function": "bypass_pid",
+      "reads": [
+        "HDR/DPS-02"
+      ],
+      "drives": [
+        "Chiller/R_CV13:position",
+        "Chiller/R_CV14:position",
+        "Chiller/R_CV15:position",
+        "Chiller/R_CV16:position"
+      ],
+      "parameters": {
+        "setpoint_kPa": 65.0
+      }
+    },
+    {
+      "id": "PLC-01/cw_temp",
+      "controller": "~PLC-01",
+      "function": "cw_temp",
+      "reads": [
+        "CH-001/TS-03",
+        "CH-002/TS-03",
+        "CH-003/TS-03",
+        "CH-004/TS-03",
+        "~WX-01:TWetBul"
+      ],
+      "drives": [
+        "Cooling Towers Plant/R_P1_CT1:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT2:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT3:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT4:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT5:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT6:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT7:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT8:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT9:fanSpeed",
+        "Cooling Towers Plant/R_P1_CT10:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT1:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT2:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT3:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT4:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT5:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT6:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT7:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT8:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT9:fanSpeed",
+        "Cooling Towers Plant/R_P2_CT10:fanSpeed"
+      ],
+      "parameters": {
+        "setpoint_degC": 29.0,
+        "approach_degC": 3.0
+      }
+    },
+    {
+      "id": "PLC-01/rotation",
+      "controller": "~PLC-01",
+      "function": "rotation",
+      "reads": [
+        "Chiller/R_C1/Unit Operating Hours",
+        "Chiller/R_C2/Unit Operating Hours",
+        "Chiller/R_C3/Unit Operating Hours",
+        "~CH-004:Unit Operating Hours"
+      ],
+      "drives": [
+        "~PLC-01:lead_chiller"
+      ],
+      "parameters": {
+        "strategy": "BY RUNNING HOURS"
+      }
+    }
+  ],
+  "rules": [
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Chillers|Buffer Tanks|Cooling Towers|Pumps)/([^/]+)/Equipment Name",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "equipment tag, fixed text equal to its folder name"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Equipment\\ Name",
+      "source": {
+        "kind": "static",
+        "value": "COOLING BLOCK 01"
+      },
+      "note": "fixed text"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Flow/Equipment\\ Name",
+      "source": {
+        "kind": "static",
+        "value": "FM-LOOP-01"
+      },
+      "note": "fixed text"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/Equipment\\ Name",
+      "source": {
+        "kind": "static",
+        "value": "PS-LOOP-01"
+      },
+      "note": "fixed text"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/Equipment\\ Name",
+      "source": {
+        "kind": "static",
+        "value": "TS-LOOP-01"
+      },
+      "note": "fixed text"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/(?:Flow|Pressure|Temperature)/Status",
+      "source": {
+        "kind": "static",
+        "value": "NORMAL"
+      },
+      "note": "sensor-set health; instrument health is not a model signal yet (a sensor fault shows as bad quality on the reading itself)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Alarm Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "HasAlarm"
+      },
+      "note": "text rendering of the chiller's alarm roll-up"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Alarm Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "HasAlarm"
+      },
+      "note": "text rendering of the chiller's alarm roll-up"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Buffer Tank Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "running"
+      },
+      "note": "COOLING AVAILABLE while the chiller runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Buffer Tank Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "running"
+      },
+      "note": "COOLING AVAILABLE while the chiller runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Chiller On_Off Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "On_Off"
+      },
+      "note": "text rendering of the chiller's run feedback"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Chiller On_Off Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "On_Off"
+      },
+      "note": "text rendering of the chiller's run feedback"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/(?:Mode|Commands/Requested Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "Auto_Manual"
+      },
+      "note": "chiller auto/manual selection"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/(?:Mode|Commands/Requested Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "Auto_Manual"
+      },
+      "note": "chiller auto/manual selection"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Commands/Start",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "start"
+      },
+      "note": "operator start command to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Commands/Start",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "start"
+      },
+      "note": "operator start command to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Commands/Stop",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "stop"
+      },
+      "note": "operator stop command to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Commands/Stop",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "stop"
+      },
+      "note": "operator stop command to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Commands/Reset",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "reset"
+      },
+      "note": "operator fault reset to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Commands/Reset",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "reset"
+      },
+      "note": "operator fault reset to the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "QEva"
+      },
+      "note": "evaporator cooling delivered"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "QEva"
+      },
+      "note": "evaporator cooling delivered"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/(?:Power|Electrical Power)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "Input Power"
+      },
+      "note": "chiller electrical input"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/(?:Power|Electrical Power)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "Input Power"
+      },
+      "note": "chiller electrical input"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "PLR"
+      },
+      "note": "part-load ratio"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "PLR"
+      },
+      "note": "part-load ratio"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Current State",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "state"
+      },
+      "note": "text of the chiller's operating state"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Current State",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "state"
+      },
+      "note": "text of the chiller's operating state"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "running"
+      },
+      "note": "text rendering of the chiller's running state"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "running"
+      },
+      "note": "text rendering of the chiller's running state"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Sequence State",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "sequenceState"
+      },
+      "note": "role the chiller holds in the plant sequence"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Sequence State",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "sequenceState"
+      },
+      "note": "role the chiller holds in the plant sequence"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Enabled",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "enabled"
+      },
+      "note": "chiller available for staging"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Enabled",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "enabled"
+      },
+      "note": "chiller available for staging"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Ready To Start",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "readyToStart"
+      },
+      "note": "chiller permissives to start"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Ready To Start",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "readyToStart"
+      },
+      "note": "chiller permissives to start"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Ready To Stop",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "readyToStop"
+      },
+      "note": "chiller permissives to stop"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Ready To Stop",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "readyToStop"
+      },
+      "note": "chiller permissives to stop"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Run Hours",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C\\1",
+        "signal": "Unit Operating Hours"
+      },
+      "note": "chiller run hours"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/CH-004/Run Hours",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "Unit Operating Hours"
+      },
+      "note": "chiller run hours"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/(CH-00[1-4])/(?:CHWR Temp|Chilled Water Return Temp)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/TS-01"
+      },
+      "note": "chiller CHW return sensor (the same sensor as Chiller_System …/TS-01)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/(CH-00[1-4])/(?:CHWS Temp|Chilled Water Supply Temp)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/TS-02"
+      },
+      "note": "chiller CHW supply sensor (the same sensor as Chiller_System …/TS-02)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/(CH-00[1-4])/(?:Flow Rate|Chilled Water Flow Rate)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/FM-01"
+      },
+      "note": "chiller CHW flow meter (Chiller_System …/FM-01), m³/h shown in L/s"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Chillers/(CH-00[1-4])/COP",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Chiller System Control/Chillers/\\1/Cooling Load",
+          "Chiller System Control/Chillers/\\1/Power"
+        ]
+      },
+      "note": "COP = cooling load / electrical power of the chiller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Alarm\\ Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "Buffer Tank Temperature Alarm"
+      },
+      "note": "text rendering of the tank's alarm"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "status"
+      },
+      "note": "text of the tank's state"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Mode",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "Chiller Buffer Tank Mode Status"
+      },
+      "note": "tank mode"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Enabled",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "enabled"
+      },
+      "note": "tank in service"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Inlet\\ Temp",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "Chilled Water Supply Inlet Temp"
+      },
+      "note": "tank's own inlet sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Outlet\\ Temp",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "Chilled Water Supply Outlet Temp"
+      },
+      "note": "tank's own outlet sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Flow\\ Rate",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "Chiller Buffer Tank Recharge Pipe Flow Meter"
+      },
+      "note": "tank's own flow meter"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Water\\ Temp",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "T"
+      },
+      "note": "well-mixed tank temperature (GwsLib.BufferTank.T)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Capacity",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "chargeFraction"
+      },
+      "note": "stored cooling as a fraction of capacity"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Level",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "level"
+      },
+      "note": "tank level"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Pressure",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "p"
+      },
+      "note": "tank pressure"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Buffer Tanks/BT-00([1-8])/Average\\ Temp",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 1",
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 2",
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 3",
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 4",
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 5",
+          "Buffer Tank/R_BT\\1/Buffer Tank Stratified Temperature 6"
+        ]
+      },
+      "note": "mean of the tank's six stratified temperature sensors"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Alarm Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT5/HasAlarm"
+        ]
+      },
+      "note": "any alarm in Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1/On_Off",
+          "Cooling Towers Plant/R_P1_CT2/On_Off",
+          "Cooling Towers Plant/R_P1_CT3/On_Off",
+          "Cooling Towers Plant/R_P1_CT4/On_Off",
+          "Cooling Towers Plant/R_P1_CT5/On_Off"
+        ]
+      },
+      "note": "running if any cell of Tower Group CT-001 (R_P1_CT1–CT5) runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Mode",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT2/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT3/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT4/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT5/Auto_Manual"
+        ]
+      },
+      "note": "auto/manual of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Enabled",
+      "source": {
+        "kind": "aggregate",
+        "function": "min",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1:enabled",
+          "Cooling Towers Plant/R_P1_CT2:enabled",
+          "Cooling Towers Plant/R_P1_CT3:enabled",
+          "Cooling Towers Plant/R_P1_CT4:enabled",
+          "Cooling Towers Plant/R_P1_CT5:enabled"
+        ]
+      },
+      "note": "all cells of Tower Group CT-001 (R_P1_CT1–CT5) enabled"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Power",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1/Power",
+          "Cooling Towers Plant/R_P1_CT2/Power",
+          "Cooling Towers Plant/R_P1_CT3/Power",
+          "Cooling Towers Plant/R_P1_CT4/Power",
+          "Cooling Towers Plant/R_P1_CT5/Power"
+        ]
+      },
+      "note": "fan power of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Fan Speed",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT2:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT3:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT4:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT5:fanSpeed"
+        ]
+      },
+      "note": "mean fan speed of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1:PLR",
+          "Cooling Towers Plant/R_P1_CT2:PLR",
+          "Cooling Towers Plant/R_P1_CT3:PLR",
+          "Cooling Towers Plant/R_P1_CT4:PLR",
+          "Cooling Towers Plant/R_P1_CT5:PLR"
+        ]
+      },
+      "note": "mean heat-rejection load of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Basin Level",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1:basinLevel",
+          "Cooling Towers Plant/R_P1_CT2:basinLevel",
+          "Cooling Towers Plant/R_P1_CT3:basinLevel",
+          "Cooling Towers Plant/R_P1_CT4:basinLevel",
+          "Cooling Towers Plant/R_P1_CT5:basinLevel"
+        ]
+      },
+      "note": "mean basin level of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/Run Hours",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1:runHours",
+          "Cooling Towers Plant/R_P1_CT2:runHours",
+          "Cooling Towers Plant/R_P1_CT3:runHours",
+          "Cooling Towers Plant/R_P1_CT4:runHours",
+          "Cooling Towers Plant/R_P1_CT5:runHours"
+        ]
+      },
+      "note": "run hours of Tower Group CT-001 (R_P1_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/CWS Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-001/TS-03"
+      },
+      "note": "CW leaving Tower Group CT-001 (R_P1_CT1–CT5): CH-001's condenser-entering sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-001/CWR Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-001/TS-04"
+      },
+      "note": "CW returning to Tower Group CT-001 (R_P1_CT1–CT5): CH-001's condenser-leaving sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Alarm Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT10/HasAlarm"
+        ]
+      },
+      "note": "any alarm in Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6/On_Off",
+          "Cooling Towers Plant/R_P1_CT7/On_Off",
+          "Cooling Towers Plant/R_P1_CT8/On_Off",
+          "Cooling Towers Plant/R_P1_CT9/On_Off",
+          "Cooling Towers Plant/R_P1_CT10/On_Off"
+        ]
+      },
+      "note": "running if any cell of Tower Group CT-002 (R_P1_CT6–CT10) runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Mode",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT7/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT8/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT9/Auto_Manual",
+          "Cooling Towers Plant/R_P1_CT10/Auto_Manual"
+        ]
+      },
+      "note": "auto/manual of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Enabled",
+      "source": {
+        "kind": "aggregate",
+        "function": "min",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6:enabled",
+          "Cooling Towers Plant/R_P1_CT7:enabled",
+          "Cooling Towers Plant/R_P1_CT8:enabled",
+          "Cooling Towers Plant/R_P1_CT9:enabled",
+          "Cooling Towers Plant/R_P1_CT10:enabled"
+        ]
+      },
+      "note": "all cells of Tower Group CT-002 (R_P1_CT6–CT10) enabled"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Power",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6/Power",
+          "Cooling Towers Plant/R_P1_CT7/Power",
+          "Cooling Towers Plant/R_P1_CT8/Power",
+          "Cooling Towers Plant/R_P1_CT9/Power",
+          "Cooling Towers Plant/R_P1_CT10/Power"
+        ]
+      },
+      "note": "fan power of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Fan Speed",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT7:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT8:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT9:fanSpeed",
+          "Cooling Towers Plant/R_P1_CT10:fanSpeed"
+        ]
+      },
+      "note": "mean fan speed of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6:PLR",
+          "Cooling Towers Plant/R_P1_CT7:PLR",
+          "Cooling Towers Plant/R_P1_CT8:PLR",
+          "Cooling Towers Plant/R_P1_CT9:PLR",
+          "Cooling Towers Plant/R_P1_CT10:PLR"
+        ]
+      },
+      "note": "mean heat-rejection load of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Basin Level",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6:basinLevel",
+          "Cooling Towers Plant/R_P1_CT7:basinLevel",
+          "Cooling Towers Plant/R_P1_CT8:basinLevel",
+          "Cooling Towers Plant/R_P1_CT9:basinLevel",
+          "Cooling Towers Plant/R_P1_CT10:basinLevel"
+        ]
+      },
+      "note": "mean basin level of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/Run Hours",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT6:runHours",
+          "Cooling Towers Plant/R_P1_CT7:runHours",
+          "Cooling Towers Plant/R_P1_CT8:runHours",
+          "Cooling Towers Plant/R_P1_CT9:runHours",
+          "Cooling Towers Plant/R_P1_CT10:runHours"
+        ]
+      },
+      "note": "run hours of Tower Group CT-002 (R_P1_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/CWS Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-002/TS-03"
+      },
+      "note": "CW leaving Tower Group CT-002 (R_P1_CT6–CT10): CH-002's condenser-entering sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-002/CWR Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-002/TS-04"
+      },
+      "note": "CW returning to Tower Group CT-002 (R_P1_CT6–CT10): CH-002's condenser-leaving sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Alarm Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT5/HasAlarm"
+        ]
+      },
+      "note": "any alarm in Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1/On_Off",
+          "Cooling Towers Plant/R_P2_CT2/On_Off",
+          "Cooling Towers Plant/R_P2_CT3/On_Off",
+          "Cooling Towers Plant/R_P2_CT4/On_Off",
+          "Cooling Towers Plant/R_P2_CT5/On_Off"
+        ]
+      },
+      "note": "running if any cell of Tower Group CT-003 (R_P2_CT1–CT5) runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Mode",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT2/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT3/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT4/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT5/Auto_Manual"
+        ]
+      },
+      "note": "auto/manual of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Enabled",
+      "source": {
+        "kind": "aggregate",
+        "function": "min",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1:enabled",
+          "Cooling Towers Plant/R_P2_CT2:enabled",
+          "Cooling Towers Plant/R_P2_CT3:enabled",
+          "Cooling Towers Plant/R_P2_CT4:enabled",
+          "Cooling Towers Plant/R_P2_CT5:enabled"
+        ]
+      },
+      "note": "all cells of Tower Group CT-003 (R_P2_CT1–CT5) enabled"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Power",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1/Power",
+          "Cooling Towers Plant/R_P2_CT2/Power",
+          "Cooling Towers Plant/R_P2_CT3/Power",
+          "Cooling Towers Plant/R_P2_CT4/Power",
+          "Cooling Towers Plant/R_P2_CT5/Power"
+        ]
+      },
+      "note": "fan power of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Fan Speed",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT2:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT3:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT4:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT5:fanSpeed"
+        ]
+      },
+      "note": "mean fan speed of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1:PLR",
+          "Cooling Towers Plant/R_P2_CT2:PLR",
+          "Cooling Towers Plant/R_P2_CT3:PLR",
+          "Cooling Towers Plant/R_P2_CT4:PLR",
+          "Cooling Towers Plant/R_P2_CT5:PLR"
+        ]
+      },
+      "note": "mean heat-rejection load of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Basin Level",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1:basinLevel",
+          "Cooling Towers Plant/R_P2_CT2:basinLevel",
+          "Cooling Towers Plant/R_P2_CT3:basinLevel",
+          "Cooling Towers Plant/R_P2_CT4:basinLevel",
+          "Cooling Towers Plant/R_P2_CT5:basinLevel"
+        ]
+      },
+      "note": "mean basin level of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/Run Hours",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1:runHours",
+          "Cooling Towers Plant/R_P2_CT2:runHours",
+          "Cooling Towers Plant/R_P2_CT3:runHours",
+          "Cooling Towers Plant/R_P2_CT4:runHours",
+          "Cooling Towers Plant/R_P2_CT5:runHours"
+        ]
+      },
+      "note": "run hours of Tower Group CT-003 (R_P2_CT1–CT5)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/CWS Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-003/TS-03"
+      },
+      "note": "CW leaving Tower Group CT-003 (R_P2_CT1–CT5): CH-003's condenser-entering sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-003/CWR Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-003/TS-04"
+      },
+      "note": "CW returning to Tower Group CT-003 (R_P2_CT1–CT5): CH-003's condenser-leaving sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Alarm Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT10/HasAlarm"
+        ]
+      },
+      "note": "any alarm in Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6/On_Off",
+          "Cooling Towers Plant/R_P2_CT7/On_Off",
+          "Cooling Towers Plant/R_P2_CT8/On_Off",
+          "Cooling Towers Plant/R_P2_CT9/On_Off",
+          "Cooling Towers Plant/R_P2_CT10/On_Off"
+        ]
+      },
+      "note": "running if any cell of Tower Group CT-004 (R_P2_CT6–CT10) runs"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Mode",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT7/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT8/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT9/Auto_Manual",
+          "Cooling Towers Plant/R_P2_CT10/Auto_Manual"
+        ]
+      },
+      "note": "auto/manual of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Enabled",
+      "source": {
+        "kind": "aggregate",
+        "function": "min",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6:enabled",
+          "Cooling Towers Plant/R_P2_CT7:enabled",
+          "Cooling Towers Plant/R_P2_CT8:enabled",
+          "Cooling Towers Plant/R_P2_CT9:enabled",
+          "Cooling Towers Plant/R_P2_CT10:enabled"
+        ]
+      },
+      "note": "all cells of Tower Group CT-004 (R_P2_CT6–CT10) enabled"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Power",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6/Power",
+          "Cooling Towers Plant/R_P2_CT7/Power",
+          "Cooling Towers Plant/R_P2_CT8/Power",
+          "Cooling Towers Plant/R_P2_CT9/Power",
+          "Cooling Towers Plant/R_P2_CT10/Power"
+        ]
+      },
+      "note": "fan power of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Fan Speed",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT7:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT8:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT9:fanSpeed",
+          "Cooling Towers Plant/R_P2_CT10:fanSpeed"
+        ]
+      },
+      "note": "mean fan speed of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6:PLR",
+          "Cooling Towers Plant/R_P2_CT7:PLR",
+          "Cooling Towers Plant/R_P2_CT8:PLR",
+          "Cooling Towers Plant/R_P2_CT9:PLR",
+          "Cooling Towers Plant/R_P2_CT10:PLR"
+        ]
+      },
+      "note": "mean heat-rejection load of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Basin Level",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6:basinLevel",
+          "Cooling Towers Plant/R_P2_CT7:basinLevel",
+          "Cooling Towers Plant/R_P2_CT8:basinLevel",
+          "Cooling Towers Plant/R_P2_CT9:basinLevel",
+          "Cooling Towers Plant/R_P2_CT10:basinLevel"
+        ]
+      },
+      "note": "mean basin level of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/Run Hours",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT6:runHours",
+          "Cooling Towers Plant/R_P2_CT7:runHours",
+          "Cooling Towers Plant/R_P2_CT8:runHours",
+          "Cooling Towers Plant/R_P2_CT9:runHours",
+          "Cooling Towers Plant/R_P2_CT10:runHours"
+        ]
+      },
+      "note": "run hours of Tower Group CT-004 (R_P2_CT6–CT10)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/CWS Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-004/TS-03"
+      },
+      "note": "CW leaving Tower Group CT-004 (R_P2_CT6–CT10): CH-004's condenser-entering sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Towers/CT\\-004/CWR Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "CH-004/TS-04"
+      },
+      "note": "CW returning to Tower Group CT-004 (R_P2_CT6–CT10): CH-004's condenser-leaving sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/CHW\\ Differential\\ Pressure\\ SP",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "block_chw_dp_set"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/CHWS\\ Temperature\\ SP",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "chw_supply_temp_set"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/CWS\\ Temperature\\ SP",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "cw_supply_temp_set"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Chiller\\ Load\\ Limit",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "chiller_load_limit"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Pump\\ Minimum\\ Speed",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "pump_min_speed"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Tower\\ Approach\\ SP",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "tower_approach_set"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Enabled",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "block_enabled"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Loop\\ Enable",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "loop_enable"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/Mode",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "block_mode"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Cooling\\ Blocks/CB\\-001/System\\ Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "system_status"
+      },
+      "note": "plant cooling-block setting held by the plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CHWR\\-01/Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP9",
+        "signal": "On_Off"
+      },
+      "note": "pump run feedback"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CHWR\\-01/Speed",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP9",
+        "signal": "speed"
+      },
+      "note": "pump speed (GwsLib.Pump.speed)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CHWR\\-01/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP9",
+        "signal": "frequency"
+      },
+      "note": "pump VFD output frequency"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CHWR\\-01/Flow",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/FM-01"
+      },
+      "note": "CHW header flow meter at the pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CHWR\\-01/Suction\\ P",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/PS-CHWR"
+      },
+      "note": "CHW return pressure at the pump suction"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CWS\\-01/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Chiller/R_CP5/On_Off",
+          "Chiller/R_CP6/On_Off",
+          "Chiller/R_CP7/On_Off",
+          "Chiller/R_CP8/On_Off"
+        ]
+      },
+      "note": "any condenser pump running (A1)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CWS\\-01/Speed",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Chiller/R_CP5:speed",
+          "Chiller/R_CP6:speed",
+          "Chiller/R_CP7:speed",
+          "Chiller/R_CP8:speed"
+        ]
+      },
+      "note": "mean condenser pump speed (A1)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CWS\\-01/Frequency",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Chiller/R_CP5:frequency",
+          "Chiller/R_CP6:frequency",
+          "Chiller/R_CP7:frequency",
+          "Chiller/R_CP8:frequency"
+        ]
+      },
+      "note": "mean condenser pump VFD frequency (A1)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CWS\\-01/Flow",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "CH-001/FM-02",
+          "CH-002/FM-02",
+          "CH-003/FM-02",
+          "CH-004/FM-02"
+        ]
+      },
+      "note": "total condenser water flow, sum of the chillers' CW flow meters (A1)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Pumps/P\\-CWS\\-01/Discharge\\ P",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Chiller/R_CP5:pDis",
+          "Chiller/R_CP6:pDis",
+          "Chiller/R_CP7:pDis",
+          "Chiller/R_CP8:pDis"
+        ]
+      },
+      "note": "mean condenser pump discharge pressure (A1)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/CHWS\\ TS",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/TS-02"
+      },
+      "note": "CHW supply header sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/CHWR\\ TS",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/TS-01"
+      },
+      "note": "CHW return header sensor"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/CWS\\ TS",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-03",
+          "CH-002/TS-03",
+          "CH-003/TS-03",
+          "CH-004/TS-03"
+        ]
+      },
+      "note": "mean CW supply temperature; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/CWR\\ TS",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-04",
+          "CH-002/TS-04",
+          "CH-003/TS-04",
+          "CH-004/TS-04"
+        ]
+      },
+      "note": "mean CW return temperature; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Flow/CHW[SR] FM",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/FM-01"
+      },
+      "note": "CHW header flow meter (closed loop: supply = return)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Flow/CW[SR] FM",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "CH-001/FM-02",
+          "CH-002/FM-02",
+          "CH-003/FM-02",
+          "CH-004/FM-02"
+        ]
+      },
+      "note": "total CW flow; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/CHWS\\ PS",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/PS-CHWS"
+      },
+      "note": "CHW supply pressure at P-CHWR-01 discharge"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/CHWR\\ PS",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/PS-CHWR"
+      },
+      "note": "CHW return pressure at P-CHWR-01 suction"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/CWS\\ PS",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Chiller/R_CP5:pDis",
+          "Chiller/R_CP6:pDis",
+          "Chiller/R_CP7:pDis",
+          "Chiller/R_CP8:pDis"
+        ]
+      },
+      "note": "mean condenser pump discharge; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/CWR\\ PS",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Chiller/R_CP5:pSuc",
+          "Chiller/R_CP6:pSuc",
+          "Chiller/R_CP7:pSuc",
+          "Chiller/R_CP8:pSuc"
+        ]
+      },
+      "note": "mean condenser pump suction; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Data Halls/DH([1-4]) Temperature",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Environment Monitoring/Level 1/DH0\\1/Avg Cold Aisle Temp"
+        ]
+      },
+      "note": "hall temperature = the hall's mean cold-aisle temperature"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Data Halls/DH([5-8]) Temperature",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Environment Monitoring/Level 2/DH0\\1/Avg Cold Aisle Temp"
+        ]
+      },
+      "note": "hall temperature = the hall's mean cold-aisle temperature"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Data\\ Halls/Current\\ Heat\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH01:P",
+          "~IT-DH02:P",
+          "~IT-DH03:P",
+          "~IT-DH04:P",
+          "~IT-DH05:P",
+          "~IT-DH06:P",
+          "~IT-DH07:P",
+          "~IT-DH08:P"
+        ]
+      },
+      "note": "all IT power becomes heat in the halls"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Data\\ Halls/Energy\\ Consumption",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH01:E",
+          "~IT-DH02:E",
+          "~IT-DH03:E",
+          "~IT-DH04:E",
+          "~IT-DH05:E",
+          "~IT-DH06:E",
+          "~IT-DH07:E",
+          "~IT-DH08:E"
+        ]
+      },
+      "note": "IT energy of all halls"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Outside\\ Temperature",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "TDryBul"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Wet\\ Bulb\\ Temperature",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "TWetBul"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Dew\\ Point",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "TDewPoi"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Outside\\ Humidity",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "relHum"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Outside\\ Pressure",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "pAtm"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Wind\\ Speed",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "winSpe"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Wind\\ Direction",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "winDir"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Wind\\ Direction\\ Text",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "winDir"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Total\\ Precipitation",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "precipitation"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Weather/Station\\ Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~WX-01",
+        "signal": "status"
+      },
+      "note": "weather station reading"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Controls/DP\\ PID/Process\\ Variable\\ \\(PV\\)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/DPS-01"
+      },
+      "note": "DP loop reads header DPS-01"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Controls/Bypass\\ PID/Process\\ Variable\\ \\(PV\\)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/DPS-02"
+      },
+      "note": "bypass loop reads header DPS-02"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/(?:DP PID Mode|DP PID/Mode)|Differential Pressure Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "dp_pid_mode"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/DP PID/Control Variable|Control Variable)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "dp_pid_output"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/DP PID/Manual Output)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "dp_pid_manual_output"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/DP PID/Setpoint \\(SP\\)|Setpoint \\(SP\\))",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "chw_dp_set"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/(?:Bypass PID Mode|Bypass PID/Mode))",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "bypass_pid_mode"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Bypass PID/Control Variable)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "bypass_pid_output"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Bypass PID/Manual Output)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "bypass_pid_manual_output"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Bypass PID/Setpoint \\(SP\\))",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "bypass_dp_set"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Demo Cooling Demand|Plant Load)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "plant_load"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Last Command)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "last_command"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:(?:Controls/)?Maximum Chillers)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "max_chillers"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:(?:Controls/)?Minimum Chillers)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "min_chillers"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Selected Lead|Rotation Schedule/Current Lead)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "lead_chiller"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Staging Command Pending)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "staging_pending"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Controls/Staging Strategy)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "staging_strategy"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Buffer Tank Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "buffer_tank_mode"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Chiller Loop Status)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "loop_status"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Flow Rate Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "flow_mode"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Minimum DP)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "min_dp_set"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Minimum Flow Rate)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "min_flow_set"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Next To Start)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "next_to_start"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Next To Stop)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "next_to_stop"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Operating Mode)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "operating_mode"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Required Chillers)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "required_chillers"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Running Available)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "running_available"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Stage Up Wait Time)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "stage_up_delay"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Stage Down Wait Time)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "stage_down_delay"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Stage Up Inhibit Wait Time)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "stage_up_inhibit_delay"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:System Normal)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "system_normal"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Total Cooling Load \\(Demand\\))",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "cooling_load_demand"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Alarms/Latest Message)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "latest_alarm_message"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Alarms/Unacknowledged Count)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "alarms_unacknowledged"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Rotation Schedule/Last Rotation)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "last_rotation"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Rotation Schedule/Last Scheduled Key)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "last_rotation_key"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Rotation Schedule/Monitor Status)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "rotation_status"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Rotation Schedule/Rotation Count)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "rotation_count"
+      },
+      "note": "plant controller"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Rotation Schedule/(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/Enabled",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "rotation_\\1_enabled"
+      },
+      "note": "rotation schedule, operator setting"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Rotation Schedule/(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/Time",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~PLC-01",
+        "signal": "rotation_\\1_time"
+      },
+      "note": "rotation schedule, operator setting"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/CHWS\\ Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/TS-02"
+      },
+      "note": "CHW supply header temperature"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/CHWR\\ Temp",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/TS-01"
+      },
+      "note": "CHW return header temperature"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/CWS\\ Temp",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-03",
+          "CH-002/TS-03",
+          "CH-003/TS-03",
+          "CH-004/TS-03"
+        ]
+      },
+      "note": "mean CW supply temperature; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/CWR\\ Temp",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-04",
+          "CH-002/TS-04",
+          "CH-003/TS-04",
+          "CH-004/TS-04"
+        ]
+      },
+      "note": "mean CW return temperature; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/(?:Differential Pressure|Process Variable \\(PV\\))",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/DPS-01"
+      },
+      "note": "CHW loop DP sensor the DP loop reads"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Average\\ DP",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "HDR/DPS-01",
+          "HDR/DPS-02"
+        ]
+      },
+      "note": "mean of the two header DP sensors (no time averaging)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Average\\ Flow\\ Rate",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/FM-01"
+      },
+      "note": "CHW header flow (time averaging is not modelled)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Flow\\ Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Chiller System Control/Chillers/CH-001/Flow Rate",
+          "Chiller System Control/Chillers/CH-002/Flow Rate",
+          "Chiller System Control/Chillers/CH-003/Flow Rate",
+          "Chiller System Control/Chillers/CH-004/Flow Rate"
+        ]
+      },
+      "note": "total CHW flow of the chillers"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Total\\ Cooling\\ Load\\ \\(Supply\\)",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Chiller System Control/Chillers/CH-001/Cooling Load",
+          "Chiller System Control/Chillers/CH-002/Cooling Load",
+          "Chiller System Control/Chillers/CH-003/Cooling Load",
+          "Chiller System Control/Chillers/CH-004/Cooling Load"
+        ]
+      },
+      "note": "total cooling delivered by the chillers"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Total\\ Electrical\\ Power\\ Input",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Chiller System Control/Chillers/CH-001/Power",
+          "Chiller System Control/Chillers/CH-002/Power",
+          "Chiller System Control/Chillers/CH-003/Power",
+          "Chiller System Control/Chillers/CH-004/Power"
+        ]
+      },
+      "note": "total chiller electrical input"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Coefficient\\ of\\ Performance",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Chiller System Control/Total Cooling Load (Supply)",
+          "Chiller System Control/Chillers/CH-001/Power",
+          "Chiller System Control/Chillers/CH-002/Power",
+          "Chiller System Control/Chillers/CH-003/Power",
+          "Chiller System Control/Chillers/CH-004/Power"
+        ]
+      },
+      "note": "plant COP = total cooling / total chiller power"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Running\\ Chillers",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Chiller/R_C1/On_Off",
+          "Chiller/R_C2/On_Off",
+          "Chiller/R_C3/On_Off",
+          "~CH-004:On_Off"
+        ]
+      },
+      "note": "number of chillers running (sum of 0/1 run feedbacks)"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Alarms/Active\\ Count",
+      "source": {
+        "kind": "aggregate",
+        "function": "count_true",
+        "inputs": [
+          "Chiller/R_C1/HasAlarm",
+          "Chiller/R_C2/HasAlarm",
+          "Chiller/R_C3/HasAlarm",
+          "~CH-004:HasAlarm",
+          "Cooling Towers Plant/R_P1_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT5/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT10/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT5/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT10/HasAlarm",
+          "Buffer Tank/R_BT1/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT2/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT3/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT4/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT5/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT6/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT7/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT8/Buffer Tank Temperature Alarm"
+        ]
+      },
+      "note": "plant equipment in alarm: chillers, tower cells, buffer tanks"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Alarms/Critical\\ Count",
+      "source": {
+        "kind": "aggregate",
+        "function": "count_true",
+        "inputs": [
+          "Chiller/R_C1/System Failure_Trip",
+          "Chiller/R_C2/System Failure_Trip",
+          "Chiller/R_C3/System Failure_Trip",
+          "~CH-004:System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT1/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT2/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT3/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT4/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT5/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT6/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT7/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT8/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT9/System Failure_Trip",
+          "Cooling Towers Plant/R_P1_CT10/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT1/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT2/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT3/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT4/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT5/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT6/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT7/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT8/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT9/System Failure_Trip",
+          "Cooling Towers Plant/R_P2_CT10/System Failure_Trip"
+        ]
+      },
+      "note": "chillers and tower cells tripped"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Alarms/Warning\\ Count",
+      "source": {
+        "kind": "aggregate",
+        "function": "count_true",
+        "inputs": [
+          "Chiller/R_C1/General Alarm",
+          "Chiller/R_C2/General Alarm",
+          "Chiller/R_C3/General Alarm",
+          "~CH-004:General Alarm",
+          "Cooling Towers Plant/R_P1_CT1/General Alarm",
+          "Cooling Towers Plant/R_P1_CT2/General Alarm",
+          "Cooling Towers Plant/R_P1_CT3/General Alarm",
+          "Cooling Towers Plant/R_P1_CT4/General Alarm",
+          "Cooling Towers Plant/R_P1_CT5/General Alarm",
+          "Cooling Towers Plant/R_P1_CT6/General Alarm",
+          "Cooling Towers Plant/R_P1_CT7/General Alarm",
+          "Cooling Towers Plant/R_P1_CT8/General Alarm",
+          "Cooling Towers Plant/R_P1_CT9/General Alarm",
+          "Cooling Towers Plant/R_P1_CT10/General Alarm",
+          "Cooling Towers Plant/R_P2_CT1/General Alarm",
+          "Cooling Towers Plant/R_P2_CT2/General Alarm",
+          "Cooling Towers Plant/R_P2_CT3/General Alarm",
+          "Cooling Towers Plant/R_P2_CT4/General Alarm",
+          "Cooling Towers Plant/R_P2_CT5/General Alarm",
+          "Cooling Towers Plant/R_P2_CT6/General Alarm",
+          "Cooling Towers Plant/R_P2_CT7/General Alarm",
+          "Cooling Towers Plant/R_P2_CT8/General Alarm",
+          "Cooling Towers Plant/R_P2_CT9/General Alarm",
+          "Cooling Towers Plant/R_P2_CT10/General Alarm",
+          "Buffer Tank/R_BT1/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT2/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT3/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT4/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT5/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT6/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT7/Buffer Tank Temperature Alarm",
+          "Buffer Tank/R_BT8/Buffer Tank Temperature Alarm"
+        ]
+      },
+      "note": "non-trip alarms: general alarms and buffer tank temperature alarms"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/(CH-00[1-4])/(TS-0[1-4])/Temperature",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/\\2"
+      },
+      "note": "chiller temperature sensor"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/(CH-00[1-4])/(FM-0[12])/Flow Rate",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/\\2"
+      },
+      "note": "chiller flow meter (FM-01 CHW, FM-02 CW)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/MV-01/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV1",
+        "signal": "position"
+      },
+      "note": "evaporator isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/MV-02/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV5",
+        "signal": "position"
+      },
+      "note": "condenser isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/CHWS-001/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP1",
+        "signal": "frequency"
+      },
+      "note": "primary CHW pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/CHWR-001/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP5",
+        "signal": "frequency"
+      },
+      "note": "condenser pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/WCC-001/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C1",
+        "signal": "QEva"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/WCC-001/Electrical Power",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C1",
+        "signal": "Input Power"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-001/WCC-001/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C1",
+        "signal": "PLR"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/MV-01/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV2",
+        "signal": "position"
+      },
+      "note": "evaporator isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/MV-02/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV6",
+        "signal": "position"
+      },
+      "note": "condenser isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/CHWS-002/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP2",
+        "signal": "frequency"
+      },
+      "note": "primary CHW pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/CHWR-002/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP6",
+        "signal": "frequency"
+      },
+      "note": "condenser pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/WCC-002/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C2",
+        "signal": "QEva"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/WCC-002/Electrical Power",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C2",
+        "signal": "Input Power"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-002/WCC-002/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C2",
+        "signal": "PLR"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/MV-01/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV3",
+        "signal": "position"
+      },
+      "note": "evaporator isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/MV-02/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV7",
+        "signal": "position"
+      },
+      "note": "condenser isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/CHWS-003/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP3",
+        "signal": "frequency"
+      },
+      "note": "primary CHW pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/CHWR-003/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP7",
+        "signal": "frequency"
+      },
+      "note": "condenser pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/WCC-003/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C3",
+        "signal": "QEva"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/WCC-003/Electrical Power",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C3",
+        "signal": "Input Power"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-003/WCC-003/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_C3",
+        "signal": "PLR"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/MV-01/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV4",
+        "signal": "position"
+      },
+      "note": "evaporator isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/MV-02/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV8",
+        "signal": "position"
+      },
+      "note": "condenser isolation valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/CHWS-004/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP4",
+        "signal": "frequency"
+      },
+      "note": "primary CHW pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/CHWR-004/Frequency",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CP8",
+        "signal": "frequency"
+      },
+      "note": "condenser pump VFD (A1)"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/WCC-004/Cooling Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "QEva"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/WCC-004/Electrical Power",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "Input Power"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Chillers/CH-004/WCC-004/Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CH-004",
+        "signal": "PLR"
+      },
+      "note": "the water-cooled chiller itself"
+    },
+    {
+      "pattern": "Chiller_System/Header Motorized Valves/MV-001/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV9",
+        "signal": "position"
+      },
+      "note": "header motorized valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Header Motorized Valves/MV-002/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV10",
+        "signal": "position"
+      },
+      "note": "header motorized valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Header Motorized Valves/MV-003/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV11",
+        "signal": "position"
+      },
+      "note": "header motorized valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Header Motorized Valves/MV-004/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV12",
+        "signal": "position"
+      },
+      "note": "header motorized valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Bypass Valves/BV-001/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV13",
+        "signal": "position"
+      },
+      "note": "supply/return bypass valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Bypass Valves/BV-002/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV14",
+        "signal": "position"
+      },
+      "note": "supply/return bypass valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Bypass Valves/BV-003/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV15",
+        "signal": "position"
+      },
+      "note": "supply/return bypass valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Bypass Valves/BV-004/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Chiller/R_CV16",
+        "signal": "position"
+      },
+      "note": "supply/return bypass valve (A2)"
+    },
+    {
+      "pattern": "Chiller_System/Ceiling Cooling Units/CCU-00([1-8])/Temperature",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CCU-00\\1",
+        "signal": "TRetAir"
+      },
+      "note": "unit return air = its hall's air"
+    },
+    {
+      "pattern": "Chiller_System/Cooling Blocks/(CB-00[1-8])/(TS-0[12])/Temperature",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/\\2"
+      },
+      "note": "cooling block branch temperature sensor"
+    },
+    {
+      "pattern": "Chiller_System/Cooling Blocks/(CB-00[1-8])/FM-01/Flow Rate",
+      "source": {
+        "kind": "instrument",
+        "instrument": "\\1/FM-01"
+      },
+      "note": "cooling block branch flow meter"
+    },
+    {
+      "pattern": "Chiller_System/Cooling Blocks/CB-00([1-8])/MV-01/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CB-00\\1",
+        "signal": "valve1Position"
+      },
+      "note": "branch valve inside the cooling block"
+    },
+    {
+      "pattern": "Chiller_System/Cooling Blocks/CB-00([1-8])/MV-02/Position",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~CB-00\\1",
+        "signal": "valve2Position"
+      },
+      "note": "branch valve inside the cooling block"
+    },
+    {
+      "pattern": "Chiller_System/Cooling Blocks/CB-00([1-8])/BT-01/Temperature",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "Buffer Tank/R_BT\\1",
+        "signal": "T"
+      },
+      "note": "the export reads BT-00k here; the tank sits on a chiller leg (A3)"
+    },
+    {
+      "pattern": "Chiller_System/Main Headers/(TS-0[12]|FM-01|DPS-0[12])/(?:Temperature|Flow Rate|Differential Pressure)",
+      "source": {
+        "kind": "instrument",
+        "instrument": "HDR/\\1"
+      },
+      "note": "CHW header sensor at P-CHWR-01"
+    },
+    {
+      "pattern": "Chiller_System/Main\\ Headers/TS\\-03/Temperature",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-04",
+          "CH-002/TS-04",
+          "CH-003/TS-04",
+          "CH-004/TS-04"
+        ]
+      },
+      "note": "CW return header; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller_System/Main\\ Headers/TS\\-04/Temperature",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "CH-001/TS-03",
+          "CH-002/TS-03",
+          "CH-003/TS-03",
+          "CH-004/TS-03"
+        ]
+      },
+      "note": "CW supply header; no common CW header in the model: each chiller has its own Tower Group and condenser pump"
+    },
+    {
+      "pattern": "Chiller_System/Main\\ Headers/TS\\-05/Temperature",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "HDR/TS-02",
+          "Chiller_System/Main Headers/TS-04/Temperature"
+        ]
+      },
+      "note": "the export defines TS-05 as the mean of CHW supply and CW supply; no physical location is known"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/Avg Cold Aisle Temp",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 1/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 2/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 3/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 7/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 8/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 9/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 13/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 14/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 15/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 19/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 20/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 21/Temperature"
+        ]
+      },
+      "note": "mean of the hall's cold-aisle sensors, as the export's expression"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/Max Cold Aisle Temp",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 1/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 2/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 3/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 4/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 5/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 6/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 7/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 8/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 9/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 10/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 11/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 12/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 13/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 14/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 15/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 16/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 17/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 18/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 19/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 20/Temperature",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 21/Temperature"
+        ]
+      },
+      "note": "max of the hall's 21 cold-aisle sensors"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/Avg Cold Aisle Humidity",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 1/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 2/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 3/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 7/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 8/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 9/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 13/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 14/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 15/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 19/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 20/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 21/Humidity"
+        ]
+      },
+      "note": "mean of the hall's cold-aisle sensors, as the export's expression"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/Max Cold Aisle Humidity",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 1/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 2/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 3/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 4/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 5/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 6/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 7/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 8/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 9/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 10/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 11/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 12/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 13/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 14/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 15/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 16/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 17/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 18/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 19/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 20/Humidity",
+          "Environment Monitoring/\\1/\\2/Environment Monitoring 21/Humidity"
+        ]
+      },
+      "note": "max of the hall's 21 cold-aisle sensors"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/IT Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IT-\\2",
+        "signal": "P"
+      },
+      "note": "the hall's IT load"
+    },
+    {
+      "pattern": "Environment Monitoring/(Level [12])/(DH0[1-8])/PUE",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Data Halls/\\2/Facility Load",
+          "Dashboard/Data Halls/\\2/IT Load"
+        ]
+      },
+      "note": "hall PUE"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH01/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH01:P",
+          "CRAC/L1_CRAC1:P",
+          "FCU/L1_FCU1:PFan",
+          "PAHU/L1_PAHU1:P",
+          "~CCU-001:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH02/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH02:P",
+          "CRAC/L1_CRAC2:P",
+          "FCU/L1_FCU2:PFan",
+          "PAHU/L1_PAHU2:P",
+          "~CCU-002:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH03/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH03:P",
+          "CRAC/L1_CRAC3:P",
+          "FCU/L1_FCU3:PFan",
+          "PAHU/L1_PAHU3:P",
+          "~CCU-003:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH04/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH04:P",
+          "CRAC/L1_CRAC4:P",
+          "FCU/L1_FCU4:PFan",
+          "PAHU/L1_PAHU4:P",
+          "~CCU-004:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH05/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH05:P",
+          "CRAC/R_CRAC1:P",
+          "FWU/R_FWU1:PFan",
+          "PAHU/R_PAHU1:P",
+          "~CCU-005:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH06/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH06:P",
+          "CRAC/R_CRAC2:P",
+          "FWU/R_FWU2:PFan",
+          "PAHU/R_PAHU2:P",
+          "~CCU-006:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH07/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH07:P",
+          "CRAC/R_CRAC3:P",
+          "FWU/R_FWU3:PFan",
+          "PAHU/R_PAHU3:P",
+          "~CCU-007:PFan"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data\\ Halls/DH08/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH08:P",
+          "CRAC/R_CRAC4:P",
+          "FWU/R_FWU4:PFan",
+          "PAHU/R_PAHU4:P",
+          "~CCU-008:PFan",
+          "TIW/CDU-01:P",
+          "TIW/CDU-02:P",
+          "TIW/CDU-03:P"
+        ]
+      },
+      "note": "nearest honest hall facility load: IT load plus the air units serving the hall (A5/A6); UPS losses and the shared plant are not attributed"
+    },
+    {
+      "pattern": "Dashboard/Data Halls/(DH0[1-8])/IT Load",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IT-\\1",
+        "signal": "P"
+      },
+      "note": "the hall's IT load"
+    },
+    {
+      "pattern": "Dashboard/Data Halls/(DH0[1-8])/PUE",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Data Halls/\\1/Facility Load",
+          "Dashboard/Data Halls/\\1/IT Load"
+        ]
+      },
+      "note": "hall PUE"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level [12]/Data Halls/(DH0[1-8])/IT Energy",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IT-\\1",
+        "signal": "E"
+      },
+      "note": "the hall's IT energy"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 1/Data\\ Halls/IT\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Level 1/Data Halls/DH01/IT Energy",
+          "Dashboard/Energy/Floors/Level 1/Data Halls/DH02/IT Energy",
+          "Dashboard/Energy/Floors/Level 1/Data Halls/DH03/IT Energy",
+          "Dashboard/Energy/Floors/Level 1/Data Halls/DH04/IT Energy"
+        ]
+      },
+      "note": "IT energy of the floor's halls"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 1/Total\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Level 1/Data Halls/IT Energy",
+          "Dashboard/Energy/Floors/Level 1/Non-IT Energy"
+        ]
+      },
+      "note": "IT + non-IT energy of the floor"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 2/Data\\ Halls/IT\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Level 2/Data Halls/DH05/IT Energy",
+          "Dashboard/Energy/Floors/Level 2/Data Halls/DH06/IT Energy",
+          "Dashboard/Energy/Floors/Level 2/Data Halls/DH07/IT Energy",
+          "Dashboard/Energy/Floors/Level 2/Data Halls/DH08/IT Energy"
+        ]
+      },
+      "note": "IT energy of the floor's halls"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 2/Total\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Level 2/Data Halls/IT Energy",
+          "Dashboard/Energy/Floors/Level 2/Non-IT Energy"
+        ]
+      },
+      "note": "IT + non-IT energy of the floor"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 1/Non\\-IT\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 1_DB_22/Wh_Im",
+          "Meter/Meter11/Wh_Im",
+          "Meter/Meter17/Wh_Im"
+        ]
+      },
+      "note": "L1 lighting (DB_22), L1 air units (Meter11), other L1 rooms (Meter17) (A16)"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Level\\ 2/Non\\-IT\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB B_14/Wh_Im",
+          "Meter/Meter13/Wh_Im"
+        ]
+      },
+      "note": "L2 & roof-room lighting (MSB B_14), DH08 CDUs (Meter13) (A16)"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Ground/Total\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_6/Wh_Im",
+          "Meter/Meter12/Wh_Im",
+          "Meter/Meter15/Wh_Im",
+          "Meter/Meter16/Wh_Im",
+          "Meter/Meter18/Wh_Im",
+          "Meter/Meter19/Wh_Im"
+        ]
+      },
+      "note": "Ground lighting (MSB A_6), ground air units, diesel fuel, genset aux, water plant, outdoor lighting (A16); UPS losses are not metered separately"
+    },
+    {
+      "pattern": "Dashboard/Energy/Floors/Roof/Total\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_4/Wh_Im",
+          "Meter/Level 2_MSB A_5/Wh_Im",
+          "Meter/Level 2_MSB B_12/Wh_Im",
+          "Meter/Level 2_MSB B_13/Wh_Im",
+          "Meter/Level 2_MSB A_7/Wh_Im",
+          "Meter/Level 2_MSB B_15/Wh_Im",
+          "Meter/Meter10/Wh_Im"
+        ]
+      },
+      "note": "chiller feeders, tower & pump MCCs, roof air units (A8, A16)"
+    },
+    {
+      "pattern": "Dashboard/Energy/Building/Total\\ IT\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Level 1/Data Halls/IT Energy",
+          "Dashboard/Energy/Floors/Level 2/Data Halls/IT Energy"
+        ]
+      },
+      "note": "IT energy of all halls"
+    },
+    {
+      "pattern": "Dashboard/Energy/Building/Total\\ Energy",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Energy/Floors/Ground/Total Energy",
+          "Dashboard/Energy/Floors/Level 1/Total Energy",
+          "Dashboard/Energy/Floors/Level 2/Total Energy",
+          "Dashboard/Energy/Floors/Roof/Total Energy"
+        ]
+      },
+      "note": "sum of the floors"
+    },
+    {
+      "pattern": "Dashboard/Total\\ Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_1/Ptot",
+          "Meter/Level 2_MSB B_9/Ptot"
+        ]
+      },
+      "note": "MSB A and B main bus meters (all load, utility or genset)"
+    },
+    {
+      "pattern": "Dashboard/Total\\ IT\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "~IT-DH01:P",
+          "~IT-DH02:P",
+          "~IT-DH03:P",
+          "~IT-DH04:P",
+          "~IT-DH05:P",
+          "~IT-DH06:P",
+          "~IT-DH07:P",
+          "~IT-DH08:P"
+        ]
+      },
+      "note": "IT load of all halls"
+    },
+    {
+      "pattern": "Dashboard/Total\\ Facility\\ Load\\ 2",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total Facility Load"
+        ]
+      },
+      "note": "same quantity in MW"
+    },
+    {
+      "pattern": "Dashboard/Total\\ IT\\ Load\\ 2",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total IT Load"
+        ]
+      },
+      "note": "same quantity in MW"
+    },
+    {
+      "pattern": "Dashboard/Facility\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total Facility Load"
+        ]
+      },
+      "note": "site facility load, shown in MW"
+    },
+    {
+      "pattern": "Dashboard/IT\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total IT Load"
+        ]
+      },
+      "note": "site IT load, shown in MW"
+    },
+    {
+      "pattern": "Dashboard/PUE(?: \\((?:New|Daily|Monthly|Annually)\\))?",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Total Facility Load",
+          "Dashboard/Total IT Load"
+        ]
+      },
+      "note": "PUE = facility load / IT load; period averaging (daily, monthly, annual) is not modelled"
+    },
+    {
+      "pattern": "Dashboard/(?:Plant Efficiency(?: \\(Daily\\))?|Chilled-water Plant Efficiency|TSE(?: \\(Daily\\))?)",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Chiller System Control/Total Electrical Power Input",
+          "Chiller System Control/Total Cooling Load (Supply)"
+        ]
+      },
+      "note": "nearest honest: chiller power / cooling delivered (kW/kW; ×3.517 gives kW/RT). Pumps and towers are not in the numerator because ratio takes one; daily averaging is not modelled"
+    },
+    {
+      "pattern": "Dashboard/WUE(?: \\((?:Daily|Monthly)\\))?",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Cold Water and Sanitary System/G_V1:m_flow",
+          "Dashboard/Total IT Load"
+        ]
+      },
+      "note": "site water intake (municipal supply valve G_V1, A14) / IT load; period averaging is not modelled"
+    },
+    {
+      "pattern": "Dashboard/IT\\ Energy\\ Usage",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Energy/Building/Total IT Energy"
+        ]
+      },
+      "note": "building IT energy, shown in MWh"
+    },
+    {
+      "pattern": "Dashboard/Wh_Im",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/SPPA Incomer 1/Wh_Im",
+          "Meter/SPPA Incomer 2/Wh_Im",
+          "Meter/SPPA Incomer 3/Wh_Im",
+          "Meter/SPPA Incomer 4/Wh_Im"
+        ]
+      },
+      "note": "energy imported through the four utility incomers"
+    },
+    {
+      "pattern": "Dashboard/Transformer\\ Efficiency",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Total Facility Load",
+          "Meter/SPPA Incomer 1/Ptot",
+          "Meter/SPPA Incomer 2/Ptot",
+          "Meter/SPPA Incomer 3/Ptot",
+          "Meter/SPPA Incomer 4/Ptot"
+        ]
+      },
+      "note": "main-bus load / utility incomer power (valid while on utility)"
+    },
+    {
+      "pattern": "Dashboard/IT\\ Power\\ Chain\\ Efficiency",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Total IT Load",
+          "Meter/Level 2_MSB A_2/Ptot",
+          "Meter/Level 2_MSB A_3/Ptot",
+          "Meter/Level 2_MSB B_10/Ptot",
+          "Meter/Level 2_MSB B_11/Ptot"
+        ]
+      },
+      "note": "IT load / power into the UPS feeders"
+    },
+    {
+      "pattern": "Dashboard/UPS\\ Load\\ Factor",
+      "source": {
+        "kind": "aggregate",
+        "function": "mean",
+        "inputs": [
+          "UPS/UPS 1:loadFraction",
+          "UPS/UPS 2:loadFraction",
+          "UPS/UPS 3:loadFraction",
+          "UPS/UPS 4:loadFraction",
+          "UPS/UPS 5:loadFraction",
+          "UPS/UPS 6:loadFraction",
+          "UPS/UPS 7:loadFraction",
+          "UPS/UPS 8:loadFraction",
+          "UPS/UPS 9:loadFraction",
+          "UPS/UPS 10:loadFraction",
+          "UPS/UPS 11:loadFraction",
+          "UPS/UPS 12:loadFraction",
+          "UPS/UPS 13:loadFraction",
+          "UPS/UPS 14:loadFraction",
+          "UPS/UPS 15:loadFraction",
+          "UPS/UPS 16:loadFraction",
+          "UPS/UPS 17:loadFraction",
+          "UPS/UPS 18:loadFraction",
+          "UPS/UPS 19:loadFraction",
+          "UPS/UPS 20:loadFraction",
+          "UPS/UPS 21:loadFraction",
+          "UPS/UPS 22:loadFraction",
+          "UPS/UPS 23:loadFraction",
+          "UPS/UPS 24:loadFraction"
+        ]
+      },
+      "note": "mean load of the 24 hall UPS"
+    },
+    {
+      "pattern": "Dashboard/Central\\ Cooling",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_4/Wh_Im",
+          "Meter/Level 2_MSB A_5/Wh_Im",
+          "Meter/Level 2_MSB B_12/Wh_Im",
+          "Meter/Level 2_MSB B_13/Wh_Im",
+          "Meter/Level 2_MSB A_7/Wh_Im",
+          "Meter/Level 2_MSB B_15/Wh_Im"
+        ]
+      },
+      "note": "chiller feeders and tower & pump MCCs (cumulative)"
+    },
+    {
+      "pattern": "Dashboard/Heat\\ Rejection",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Meter1/Wh_Im",
+          "Meter/Meter2/Wh_Im",
+          "Meter/Meter3/Wh_Im",
+          "Meter/Meter4/Wh_Im"
+        ]
+      },
+      "note": "Tower Group sub-meters Meter1–4 (A16)"
+    },
+    {
+      "pattern": "Dashboard/Ventilation",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_8/Wh_Im",
+          "Meter/Level 2_MSB B_16/Wh_Im"
+        ]
+      },
+      "note": "airside MCC feeders"
+    },
+    {
+      "pattern": "Dashboard/Office\\ Lighting",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Meter/Meter17/Wh_Im"
+        ]
+      },
+      "note": "BMS & office lighting sub-meter"
+    },
+    {
+      "pattern": "Dashboard/Others",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Meter14/Wh_Im",
+          "Meter/Meter15/Wh_Im",
+          "Meter/Meter16/Wh_Im",
+          "Meter/Meter18/Wh_Im",
+          "Meter/Meter19/Wh_Im"
+        ]
+      },
+      "note": "lifts, diesel fuel, genset aux, water plant, external lighting"
+    },
+    {
+      "pattern": "Dashboard/GFA",
+      "source": {
+        "kind": "static",
+        "value": 19516.0
+      },
+      "note": "gross floor area: sum of the indoor room areas in the site layout (plant-design rooms)"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/GFA",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/GFA"
+        ]
+      },
+      "note": "site GFA"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Demo\\ Inputs/Facility\\ Power",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total Facility Load 2"
+        ]
+      },
+      "note": "site facility load"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Demo\\ Inputs/Diesel\\ Consumption\\ Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Diesel/Tank 1/Flowmeter - Flowmeter A",
+          "Diesel/Tank 2/Flowmeter - Flowmeter A",
+          "Diesel/Tank 3/Flowmeter - Flowmeter A"
+        ]
+      },
+      "note": "diesel flow to the gensets (L/min shown as L/day)"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Scope\\ 1/Diesel\\ Used\\ YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Diesel/Tank 1/Flow Totalizer - Flowmeter A",
+          "Diesel/Tank 2/Flow Totalizer - Flowmeter A",
+          "Diesel/Tank 3/Flow Totalizer - Flowmeter A"
+        ]
+      },
+      "note": "diesel totalisers (cumulative, not reset at year start)"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Scope\\ 2/Grid\\ Energy\\ YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/SPPA Incomer 1/Wh_Im",
+          "Meter/SPPA Incomer 2/Wh_Im",
+          "Meter/SPPA Incomer 3/Wh_Im",
+          "Meter/SPPA Incomer 4/Wh_Im"
+        ]
+      },
+      "note": "utility import (cumulative, not reset at year start)"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Scope\\ 1/Total\\ Emissions\\ YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 1/Diesel Emissions YTD",
+          "Dashboard/Carbon Footprint/Scope 1/Refrigerant Emissions YTD"
+        ]
+      },
+      "note": "scope 1 parts"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Scope\\ 3/Total\\ Emissions\\ YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 3/Capital Goods Emissions YTD",
+          "Dashboard/Carbon Footprint/Scope 3/Fuel and Energy Related Emissions YTD"
+        ]
+      },
+      "note": "scope 3 parts"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/Total\\ GHG\\ Emissions\\ YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 1/Total Emissions YTD",
+          "Dashboard/Carbon Footprint/Scope 2/Total Emissions YTD",
+          "Dashboard/Carbon Footprint/Scope 3/Total Emissions YTD"
+        ]
+      },
+      "note": "all scopes"
+    },
+    {
+      "pattern": "Dashboard/Scope ([123]) Total Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope \\1/Total Emissions YTD"
+        ]
+      },
+      "note": "copy of the carbon footprint total"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Intensity\\ \\(YTD\\)",
+      "source": {
+        "kind": "aggregate",
+        "function": "ratio",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Total GHG Emissions YTD",
+          "Dashboard/GFA"
+        ]
+      },
+      "note": "total emissions / GFA (t shown as kg)"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/(?:Demo Inputs/(?:Capital Goods|Fuel and Energy Related|Refrigerant) Emission Rate|Demo Inputs/Elapsed (?:Days|Hours) YTD|Demo Inputs/Year Start|Scope 1/Diesel Emission Factor|Scope 2/Grid Emission Factor)",
+      "source": {
+        "kind": "unbound",
+        "reason": "demo carbon-accounting input with no value in the export; bind a StaticValue when the owner supplies it"
+      },
+      "note": "demo artefact"
+    },
+    {
+      "pattern": "Dashboard/Carbon\\ Footprint/(?:Scope 1/(?:Diesel|Refrigerant) Emissions YTD|Scope 2/Total Emissions YTD|Scope 3/(?:Capital Goods|Fuel and Energy Related) Emissions YTD|Realtime/(?:Carbon|Scope 2) Emission Rate)",
+      "source": {
+        "kind": "unbound",
+        "reason": "emission = factor × activity; no aggregate function multiplies, and the factors have no value"
+      },
+      "note": "demo artefact"
+    },
+    {
+      "pattern": "Other/IT\\ Load",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Total IT Load"
+        ]
+      },
+      "note": "site IT load"
+    },
+    {
+      "pattern": "Other/Cooling",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_4/Ptot",
+          "Meter/Level 2_MSB A_5/Ptot",
+          "Meter/Level 2_MSB B_12/Ptot",
+          "Meter/Level 2_MSB B_13/Ptot",
+          "Meter/Level 2_MSB A_7/Ptot",
+          "Meter/Level 2_MSB B_15/Ptot",
+          "Meter/Level 2_MSB A_8/Ptot",
+          "Meter/Level 2_MSB B_16/Ptot"
+        ]
+      },
+      "note": "cooling power: chillers, tower & pump MCCs, airside MCCs"
+    },
+    {
+      "pattern": "Other/Lighting",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "Meter/Level 2_MSB A_6/Ptot",
+          "Meter/Level 2_MSB B_14/Ptot",
+          "Meter/Level 1_DB_22/Ptot",
+          "Meter/Meter17/Ptot",
+          "Meter/Meter19/Ptot"
+        ]
+      },
+      "note": "lighting meters (A16)"
+    },
+    {
+      "pattern": "Other/Power\\ Losses",
+      "source": {
+        "kind": "aggregate",
+        "function": "sum",
+        "inputs": [
+          "UPS/UPS 1:PLoss",
+          "UPS/UPS 2:PLoss",
+          "UPS/UPS 3:PLoss",
+          "UPS/UPS 4:PLoss",
+          "UPS/UPS 5:PLoss",
+          "UPS/UPS 6:PLoss",
+          "UPS/UPS 7:PLoss",
+          "UPS/UPS 8:PLoss",
+          "UPS/UPS 9:PLoss",
+          "UPS/UPS 10:PLoss",
+          "UPS/UPS 11:PLoss",
+          "UPS/UPS 12:PLoss",
+          "UPS/UPS 13:PLoss",
+          "UPS/UPS 14:PLoss",
+          "UPS/UPS 15:PLoss",
+          "UPS/UPS 16:PLoss",
+          "UPS/UPS 17:PLoss",
+          "UPS/UPS 18:PLoss",
+          "UPS/UPS 19:PLoss",
+          "UPS/UPS 20:PLoss",
+          "UPS/UPS 21:PLoss",
+          "UPS/UPS 22:PLoss",
+          "UPS/UPS 23:PLoss",
+          "UPS/UPS 24:PLoss",
+          "UPS/UPS 25:PLoss"
+        ]
+      },
+      "note": "UPS conversion losses (transformer losses not modelled)"
+    },
+    {
+      "pattern": "Other/Gateway\\ 1\\ Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Network Topology/GATEWAY A/Status"
+        ]
+      },
+      "note": "GATEWAY A status"
+    },
+    {
+      "pattern": "Other/Gateway\\ 2\\ Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Network Topology/GATEWAY B/Status"
+        ]
+      },
+      "note": "GATEWAY B status"
+    },
+    {
+      "pattern": "Other/Maintenance\\ Schedule",
+      "source": {
+        "kind": "static",
+        "value": 1812384000000
+      },
+      "note": "next maintenance date (2027-06-07), operator setting"
+    },
+    {
+      "pattern": "Other/Maintenance\\ Due",
+      "source": {
+        "kind": "static",
+        "value": false
+      },
+      "note": "true once the date passes Maintenance Schedule (2027-06-07); no aggregate compares with the clock"
+    },
+    {
+      "pattern": "CRAC/HasAlarm_G",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "CRAC/G_CRAC1/HasAlarm",
+          "CRAC/G_CRAC2/HasAlarm",
+          "CRAC/G_CRAC3/HasAlarm",
+          "CRAC/G_CRAC4/HasAlarm",
+          "CRAC/G_CRAC5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under CRAC/G_* (true if any input is true)"
+    },
+    {
+      "pattern": "CRAC/HasAlarm_L1",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "CRAC/L1_CRAC1/HasAlarm",
+          "CRAC/L1_CRAC2/HasAlarm",
+          "CRAC/L1_CRAC3/HasAlarm",
+          "CRAC/L1_CRAC4/HasAlarm",
+          "CRAC/L1_CRAC5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under CRAC/L1_* (true if any input is true)"
+    },
+    {
+      "pattern": "CRAC/HasAlarm_R",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "CRAC/R_CRAC1/HasAlarm",
+          "CRAC/R_CRAC2/HasAlarm",
+          "CRAC/R_CRAC3/HasAlarm",
+          "CRAC/R_CRAC4/HasAlarm",
+          "CRAC/R_CRAC5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under CRAC/R_* (true if any input is true)"
+    },
+    {
+      "pattern": "Chiller/HasAlarm_R",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Chiller/R_C1/HasAlarm",
+          "Chiller/R_C2/HasAlarm",
+          "Chiller/R_C3/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Chiller/R_* (true if any input is true)"
+    },
+    {
+      "pattern": "Cold\\ Water\\ and\\ Sanitary\\ System/HasAlarm_G",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cold Water and Sanitary System/G_T1/HasAlarm",
+          "Cold Water and Sanitary System/G_T2/HasAlarm",
+          "Cold Water and Sanitary System/G_TP1/HasAlarm",
+          "Cold Water and Sanitary System/G_TP2/HasAlarm",
+          "Cold Water and Sanitary System/G_TP3/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Cold Water and Sanitary System/G_* (true if any input is true)"
+    },
+    {
+      "pattern": "Cold\\ Water\\ and\\ Sanitary\\ System/HasAlarm_R",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cold Water and Sanitary System/R_BP1/HasAlarm",
+          "Cold Water and Sanitary System/R_BP2/HasAlarm",
+          "Cold Water and Sanitary System/R_T1/HasAlarm",
+          "Cold Water and Sanitary System/R_T2/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Cold Water and Sanitary System/R_* (true if any input is true)"
+    },
+    {
+      "pattern": "Cooling\\ Towers\\ Plant/HasAlarm_R_P1",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P1_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT10/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT5/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P1_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P1_P1/HasAlarm",
+          "Cooling Towers Plant/R_P1_P10/HasAlarm",
+          "Cooling Towers Plant/R_P1_P2/HasAlarm",
+          "Cooling Towers Plant/R_P1_P3/HasAlarm",
+          "Cooling Towers Plant/R_P1_P4/HasAlarm",
+          "Cooling Towers Plant/R_P1_P5/HasAlarm",
+          "Cooling Towers Plant/R_P1_P6/HasAlarm",
+          "Cooling Towers Plant/R_P1_P7/HasAlarm",
+          "Cooling Towers Plant/R_P1_P8/HasAlarm",
+          "Cooling Towers Plant/R_P1_P9/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Cooling Towers Plant/R_P1_* (true if any input is true)"
+    },
+    {
+      "pattern": "Cooling\\ Towers\\ Plant/HasAlarm_R_P2",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Cooling Towers Plant/R_P2_CT1/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT10/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT2/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT3/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT4/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT5/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT6/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT7/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT8/HasAlarm",
+          "Cooling Towers Plant/R_P2_CT9/HasAlarm",
+          "Cooling Towers Plant/R_P2_P1/HasAlarm",
+          "Cooling Towers Plant/R_P2_P10/HasAlarm",
+          "Cooling Towers Plant/R_P2_P2/HasAlarm",
+          "Cooling Towers Plant/R_P2_P3/HasAlarm",
+          "Cooling Towers Plant/R_P2_P4/HasAlarm",
+          "Cooling Towers Plant/R_P2_P5/HasAlarm",
+          "Cooling Towers Plant/R_P2_P6/HasAlarm",
+          "Cooling Towers Plant/R_P2_P7/HasAlarm",
+          "Cooling Towers Plant/R_P2_P8/HasAlarm",
+          "Cooling Towers Plant/R_P2_P9/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Cooling Towers Plant/R_P2_* (true if any input is true)"
+    },
+    {
+      "pattern": "Diesel/HasAlarm",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Diesel/Tank 1/HasAlarm",
+          "Diesel/Tank 2/HasAlarm",
+          "Diesel/Tank 3/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Diesel/* (true if any input is true)"
+    },
+    {
+      "pattern": "FCU/HasAlarm_L1",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "FCU/L1_FCU1/HasAlarm",
+          "FCU/L1_FCU2/HasAlarm",
+          "FCU/L1_FCU3/HasAlarm",
+          "FCU/L1_FCU4/HasAlarm",
+          "FCU/L1_FCU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under FCU/L1_* (true if any input is true)"
+    },
+    {
+      "pattern": "FWU/HasAlarm_G",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "FWU/G_FWU1/HasAlarm",
+          "FWU/G_FWU2/HasAlarm",
+          "FWU/G_FWU3/HasAlarm",
+          "FWU/G_FWU4/HasAlarm",
+          "FWU/G_FWU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under FWU/G_* (true if any input is true)"
+    },
+    {
+      "pattern": "FWU/HasAlarm_R",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "FWU/R_FWU1/HasAlarm",
+          "FWU/R_FWU2/HasAlarm",
+          "FWU/R_FWU3/HasAlarm",
+          "FWU/R_FWU4/HasAlarm",
+          "FWU/R_FWU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under FWU/R_* (true if any input is true)"
+    },
+    {
+      "pattern": "Genset/HasAlarm",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Genset/Genset 1/HasAlarm",
+          "Genset/Genset 2/HasAlarm",
+          "Genset/Genset 3/HasAlarm",
+          "Genset/Genset 4/HasAlarm",
+          "Genset/Genset 5/HasAlarm",
+          "Genset/Genset 6/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Genset/* (true if any input is true)"
+    },
+    {
+      "pattern": "Meter/HasAlarm_Level\\ 1",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Meter/Level 1_DB_18/HasAlarm",
+          "Meter/Level 1_DB_19/HasAlarm",
+          "Meter/Level 1_DB_20/HasAlarm",
+          "Meter/Level 1_DB_21/HasAlarm",
+          "Meter/Level 1_DB_22/HasAlarm",
+          "Meter/Level 1_DB_23/HasAlarm",
+          "Meter/Level 1_DB_24/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Meter/Level 1* (true if any input is true)"
+    },
+    {
+      "pattern": "Meter/HasAlarm_Level\\ 1_DB",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Meter/Level 1_DB_18/HasAlarm",
+          "Meter/Level 1_DB_19/HasAlarm",
+          "Meter/Level 1_DB_20/HasAlarm",
+          "Meter/Level 1_DB_21/HasAlarm",
+          "Meter/Level 1_DB_22/HasAlarm",
+          "Meter/Level 1_DB_23/HasAlarm",
+          "Meter/Level 1_DB_24/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Meter/Level 1_DB* (true if any input is true)"
+    },
+    {
+      "pattern": "Meter/HasAlarm_Level\\ 2",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Meter/Level 2_MSB A_1/HasAlarm",
+          "Meter/Level 2_MSB A_2/HasAlarm",
+          "Meter/Level 2_MSB A_3/HasAlarm",
+          "Meter/Level 2_MSB A_4/HasAlarm",
+          "Meter/Level 2_MSB A_5/HasAlarm",
+          "Meter/Level 2_MSB A_6/HasAlarm",
+          "Meter/Level 2_MSB A_7/HasAlarm",
+          "Meter/Level 2_MSB A_8/HasAlarm",
+          "Meter/Level 2_MSB B_10/HasAlarm",
+          "Meter/Level 2_MSB B_11/HasAlarm",
+          "Meter/Level 2_MSB B_12/HasAlarm",
+          "Meter/Level 2_MSB B_13/HasAlarm",
+          "Meter/Level 2_MSB B_14/HasAlarm",
+          "Meter/Level 2_MSB B_15/HasAlarm",
+          "Meter/Level 2_MSB B_16/HasAlarm",
+          "Meter/Level 2_MSB B_9/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Meter/Level 2* (true if any input is true)"
+    },
+    {
+      "pattern": "Meter/HasAlarm_Level\\ 2_MSB\\ A",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Meter/Level 2_MSB A_1/HasAlarm",
+          "Meter/Level 2_MSB A_2/HasAlarm",
+          "Meter/Level 2_MSB A_3/HasAlarm",
+          "Meter/Level 2_MSB A_4/HasAlarm",
+          "Meter/Level 2_MSB A_5/HasAlarm",
+          "Meter/Level 2_MSB A_6/HasAlarm",
+          "Meter/Level 2_MSB A_7/HasAlarm",
+          "Meter/Level 2_MSB A_8/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Meter/Level 2_MSB A* (true if any input is true)"
+    },
+    {
+      "pattern": "Meter/HasAlarm_Level\\ 2_MSB\\ B",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "Meter/Level 2_MSB B_10/HasAlarm",
+          "Meter/Level 2_MSB B_11/HasAlarm",
+          "Meter/Level 2_MSB B_12/HasAlarm",
+          "Meter/Level 2_MSB B_13/HasAlarm",
+          "Meter/Level 2_MSB B_14/HasAlarm",
+          "Meter/Level 2_MSB B_15/HasAlarm",
+          "Meter/Level 2_MSB B_16/HasAlarm",
+          "Meter/Level 2_MSB B_9/HasAlarm"
+        ]
+      },
+      "note": "any alarm under Meter/Level 2_MSB B* (true if any input is true)"
+    },
+    {
+      "pattern": "PAHU/HasAlarm_G",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "PAHU/G_PAHU1/HasAlarm",
+          "PAHU/G_PAHU2/HasAlarm",
+          "PAHU/G_PAHU3/HasAlarm",
+          "PAHU/G_PAHU4/HasAlarm",
+          "PAHU/G_PAHU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under PAHU/G_* (true if any input is true)"
+    },
+    {
+      "pattern": "PAHU/HasAlarm_L1",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "PAHU/L1_PAHU1/HasAlarm",
+          "PAHU/L1_PAHU2/HasAlarm",
+          "PAHU/L1_PAHU3/HasAlarm",
+          "PAHU/L1_PAHU4/HasAlarm",
+          "PAHU/L1_PAHU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under PAHU/L1_* (true if any input is true)"
+    },
+    {
+      "pattern": "PAHU/HasAlarm_R",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "PAHU/R_PAHU1/HasAlarm",
+          "PAHU/R_PAHU2/HasAlarm",
+          "PAHU/R_PAHU3/HasAlarm",
+          "PAHU/R_PAHU4/HasAlarm",
+          "PAHU/R_PAHU5/HasAlarm"
+        ]
+      },
+      "note": "any alarm under PAHU/R_* (true if any input is true)"
+    },
+    {
+      "pattern": "UPS/HasAlarm",
+      "source": {
+        "kind": "aggregate",
+        "function": "max",
+        "inputs": [
+          "UPS/UPS 1/HasAlarm",
+          "UPS/UPS 10/HasAlarm",
+          "UPS/UPS 11/HasAlarm",
+          "UPS/UPS 12/HasAlarm",
+          "UPS/UPS 13/HasAlarm",
+          "UPS/UPS 14/HasAlarm",
+          "UPS/UPS 15/HasAlarm",
+          "UPS/UPS 16/HasAlarm",
+          "UPS/UPS 17/HasAlarm",
+          "UPS/UPS 18/HasAlarm",
+          "UPS/UPS 19/HasAlarm",
+          "UPS/UPS 2/HasAlarm",
+          "UPS/UPS 20/HasAlarm",
+          "UPS/UPS 21/HasAlarm",
+          "UPS/UPS 22/HasAlarm",
+          "UPS/UPS 23/HasAlarm",
+          "UPS/UPS 24/HasAlarm",
+          "UPS/UPS 25/HasAlarm",
+          "UPS/UPS 3/HasAlarm",
+          "UPS/UPS 4/HasAlarm",
+          "UPS/UPS 5/HasAlarm",
+          "UPS/UPS 6/HasAlarm",
+          "UPS/UPS 7/HasAlarm",
+          "UPS/UPS 8/HasAlarm",
+          "UPS/UPS 9/HasAlarm"
+        ]
+      },
+      "note": "any alarm under UPS/* (true if any input is true)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Ground/Zone (\\d)/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~G-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Ground/Zone (\\d)/(HD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~G-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (HD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Ground/Zone (\\d)/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~G-Z\\1-\\2",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Ground/Zone (\\d)/(AV\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~G-Z\\1-\\2",
+        "signal": "operated"
+      },
+      "note": "fire device (AV) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Ground/Zone (\\d)/(FP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~G-Z\\1-\\2",
+        "signal": "running"
+      },
+      "note": "fire device (FP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Zone (\\d)/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Common Area/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-CA-\\1",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Support Area/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-SA-\\1",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Zone (\\d)/(HD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (HD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Zone (\\d)/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-Z\\1-\\2",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Common Area/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-CA-\\1",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Zone (\\d)/(AV\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-Z\\1-\\2",
+        "signal": "operated"
+      },
+      "note": "fire device (AV) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 1/Support Area/(FP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L1-SA-\\1",
+        "signal": "running"
+      },
+      "note": "fire device (FP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Zone (\\d)/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Common Area/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-CA-\\1",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Support Area/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-SA-\\1",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Zone (\\d)/(HD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (HD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Zone (\\d)/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-Z\\1-\\2",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Common Area/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-CA-\\1",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Zone (\\d)/(AV\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-Z\\1-\\2",
+        "signal": "operated"
+      },
+      "note": "fire device (AV) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Level\\ 2/Support Area/(FP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~L2-SA-\\1",
+        "signal": "running"
+      },
+      "note": "fire device (FP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Roof/Zone (\\d)/(SD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~R-Z\\1-\\2",
+        "signal": "alarm"
+      },
+      "note": "fire device (SD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Roof/Support Area/(HD\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~R-SA-\\1",
+        "signal": "alarm"
+      },
+      "note": "fire device (HD) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Roof/Support Area/(CP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~R-SA-\\1",
+        "signal": "activated"
+      },
+      "note": "fire device (CP) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Roof/Zone (\\d)/(AV\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~R-Z\\1-\\2",
+        "signal": "operated"
+      },
+      "note": "fire device (AV) in its zone (A18)"
+    },
+    {
+      "pattern": "Fire\\ Protection\\ System/Roof/Support Area/(FP\\d)",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~R-SA-\\1",
+        "signal": "running"
+      },
+      "note": "fire device (FP) in its zone (A18)"
+    },
+    {
+      "pattern": "Lift Monitoring System/Lift ([1-3])/Direction",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~LIFT-\\1",
+        "signal": "direction"
+      },
+      "note": "lift state (A18)"
+    },
+    {
+      "pattern": "Lift Monitoring System/Lift ([1-3])/Door\\ Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~LIFT-\\1",
+        "signal": "doorState"
+      },
+      "note": "lift state (A18)"
+    },
+    {
+      "pattern": "Lift Monitoring System/Lift ([1-3])/Lift\\ Level",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~LIFT-\\1",
+        "signal": "level"
+      },
+      "note": "lift state (A18)"
+    },
+    {
+      "pattern": "Lift Monitoring System/Lift ([1-3])/Moving\\ Until",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~LIFT-\\1",
+        "signal": "movingUntil"
+      },
+      "note": "lift state (A18)"
+    },
+    {
+      "pattern": "IPS/(?:Device Status|Insulation Value|Load Percentage|Load Status|No CT|PE Connection|Short CT|Transformer Temp)",
+      "source": {
+        "kind": "unbound",
+        "reason": "IPS panel measurement (isolation transformer, CT and PE monitor); the panel is not an asset, only its circuits are"
+      },
+      "note": "no honest source"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/.+",
+      "source": {
+        "kind": "unbound",
+        "reason": "demo-rack RCMS425 residual-current monitor has no asset"
+      },
+      "note": "no honest source"
+    }
+  ]
+}

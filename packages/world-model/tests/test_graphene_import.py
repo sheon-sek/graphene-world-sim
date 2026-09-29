@@ -80,3 +80,23 @@ def test_missing_library_type_is_reported(sources: Sources) -> None:
     types = {k: v for k, v in library.load().items() if k != "Chiller"}
     with pytest.raises(ImportProblem, match="no library type 'Chiller'"):
         build(sources, types, Bindings())
+
+
+PLANT_VIEWS = (
+    "Chiller System Control/",
+    "Chiller_System/",
+    "Dashboard/",
+    "Other/",
+    "Environment Monitoring/",
+)
+
+
+def test_every_plant_view_point_is_bound(doc: WorldModel) -> None:
+    unbound = [
+        p.path
+        for p in doc.point_bindings.values()
+        if p.source.kind == "unbound"
+        and p.path.startswith(PLANT_VIEWS)
+        and not p.path.startswith("Dashboard/Carbon Footprint/")  # demo inputs, no values
+    ]
+    assert unbound == []
