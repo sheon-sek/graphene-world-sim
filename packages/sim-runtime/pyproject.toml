@@ -1,0 +1,13 @@
+[project]
+name = "gws-runtime"
+version = "0.0.0"
+description = "Simulation runtime: builds models from the World Model and computes behaviour over time."
+requires-python = ">=3.12"
+dependencies = ["gws-world-model"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gws_runtime"]
