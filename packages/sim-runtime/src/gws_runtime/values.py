@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Protocol
 
 type Value = float | bool | str | None
 
@@ -44,3 +45,15 @@ def split_ref(reference: str) -> tuple[str, str]:
     if not sep or not asset or not signal:
         raise ValueError(f"not an <asset>:<signal> reference: {reference!r}")
     return asset, signal
+
+
+class StateView(Protocol):
+    """Read access to the true state the models computed at the current step."""
+
+    def get(self, asset: str, signal: str) -> float | bool | None:
+        """The value in SI units, or None when no model computes this signal."""
+        ...
+
+    def unit(self, asset: str, signal: str) -> str | None:
+        """The SI unit of a signal (`K`, `W`, `Pa`, `kg/s`, `1`), or None when unknown."""
+        ...

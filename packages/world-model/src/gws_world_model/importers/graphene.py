@@ -54,6 +54,7 @@ from gws_world_model.model import (
     PointSource,
     PointTemplate,
     Room,
+    Scalar,
     Shaft,
     Site,
     Unbound,
@@ -114,6 +115,8 @@ class Supplement(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
     note: str
     assets: list[Asset] = []
+    asset_parameters: dict[str, dict[str, Scalar]] = {}
+    """Parameter values for assets the plant design has, by asset id (merged over theirs)."""
     remove_connections: list[Removal] = []
     connections: list[Connection] = []
     instruments: list[Instrument] = []
@@ -363,6 +366,12 @@ def _supplement(
             if connections.pop(removal.id, None) is None:
                 problems.append(f"supplement removes unknown connection {removal.id}")
         _add("asset", assets, sup.assets, problems)
+        for asset_id, values in sup.asset_parameters.items():
+            if asset_id not in assets:
+                problems.append(f"supplement sets parameters of unknown asset {asset_id}")
+                continue
+            merged = {**assets[asset_id].parameters, **values}
+            assets[asset_id] = assets[asset_id].model_copy(update={"parameters": merged})
         _add("connection", connections, sup.connections, problems)
         _add("instrument", instruments, sup.instruments, problems)
         _add("control binding", control_bindings, sup.control_bindings, problems)
