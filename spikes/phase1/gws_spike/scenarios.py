@@ -84,9 +84,7 @@ def warm(
 
 
 def isolated(fn: Callable[..., Any], *args: Any) -> Any:
-    """Run fn in a fresh process. The OpenModelica FMU runtime keeps a process-wide memory
-    pool that is not released by fmi2FreeInstance, so many instantiate/free cycles in one
-    process eventually abort; one process per plant instance avoids it."""
+    """Run fn in a fresh process, so each scenario starts from a clean FMU runtime."""
     ctx = multiprocessing.get_context("spawn")
     with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as pool:
         return pool.submit(fn, *args).result()

@@ -4,7 +4,11 @@ Each macro step:
 1. read every asset's electrical demand from the FMU and load the pandapower buses,
 2. solve the power flow (breaker states included),
 3. write each powered asset's bus voltage into its ``V_pu`` input,
-4. advance the FMU by one step.
+4. advance the thermofluid model by one step.
+
+The FMU runs as Model Exchange under FMPy's CVODE, not as OpenModelica's Co-Simulation
+wrapper: in OpenModelica 1.25 the Co-Simulation doStep leaks about 11 kB per call and aborts
+after a few hundred thousand steps (see the spike report).
 
 The electrical side lags the thermal side by one step (explicit Gauss-Seidel coupling).
 Faults act on exactly one asset or one breaker; nothing here knows what any other asset
@@ -16,13 +20,14 @@ from __future__ import annotations
 import math
 import shutil
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
 import pandapower as pp
 from fmpy import extract, read_model_description
-from fmpy.fmi2 import FMU2Slave
+from fmpy.fmi2 import FMU2Model
+from fmpy.sundials import CVodeSolver
 
 from gws_spike.generate import TYPES, ident
 
@@ -76,6 +81,76 @@ def build_network(spec: dict[str, Any]) -> tuple[pp.pandapowerNet, dict[str, int
     return net, buses, breakers
 
 
+class _NoInput:
+    """Inputs are written directly between steps and are constant within a step."""
+
+    def apply(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+    def nextEvent(self, time: float) -> float:  # noqa: N802 - FMPy's interface
+        return math.inf
+
+
+class _Integrator:
+    """Integrates a Model Exchange FMU between communication points, handling events."""
+
+    def __init__(self, fmu: FMU2Model, md: Any, start_time: float) -> None:
+        self.fmu = fmu
+        self.needs_completed = md.modelExchange.needsCompletedIntegratorStep
+        self.solver = CVodeSolver(
+            nx=md.numberOfContinuousStates,
+            nz=md.numberOfEventIndicators,
+            get_x=fmu.getContinuousStates,
+            set_x=fmu.setContinuousStates,
+            get_dx=fmu.getDerivatives,
+            get_z=fmu.getEventIndicators,
+            get_nominals=fmu.getNominalsOfContinuousStates,
+            set_time=fmu.setTime,
+            input=_NoInput(),
+            startTime=start_time,
+            maxStep=60.0,
+            relativeTolerance=1e-6,
+        )
+        self.next_time_event = math.inf
+
+    def _event_iteration(self) -> None:
+        more = True
+        while more:
+            more, terminate, _, _, defined, next_time = self.fmu.newDiscreteStates()
+            if terminate:
+                raise RuntimeError("model requested termination")
+        self.next_time_event = next_time if defined else math.inf
+
+    def initialise(self) -> None:
+        self._event_iteration()
+        self.fmu.enterContinuousTimeMode()
+
+    def discontinuity(self, time: float, write: Callable[[], None] | None = None) -> None:
+        """An event at ``time``: apply ``write`` (input changes; FMI 2 only accepts discrete
+        inputs in Event Mode), settle discrete states and restart the solver."""
+        self.fmu.enterEventMode()
+        if write is not None:
+            write()
+        self._event_iteration()
+        self.fmu.enterContinuousTimeMode()
+        self.solver.reset(time)
+
+    def advance(self, time: float, until: float) -> float:
+        while time < until - 1e-9:
+            target = min(until, self.next_time_event)
+            state_event, _, time = self.solver.step(time, target)
+            self.fmu.setTime(time)
+            step_event = False
+            if self.needs_completed:
+                step_event, terminate = self.fmu.completedIntegratorStep()
+                if terminate:
+                    raise RuntimeError("model requested termination")
+            time_event = abs(time - self.next_time_event) < 1e-9
+            if state_event or step_event or time_event:
+                self.discontinuity(time)
+        return time
+
+
 @dataclass
 class Fault:
     target: str
@@ -102,10 +177,10 @@ class Plant:
             for v in md.modelVariables
             if v.causality == "parameter" and v.variability in ("fixed", "tunable")
         }
-        self.fmu = FMU2Slave(
+        self.fmu = FMU2Model(
             guid=md.guid,
             unzipDirectory=self._dir,
-            modelIdentifier=md.coSimulation.modelIdentifier,
+            modelIdentifier=md.modelExchange.modelIdentifier,
             instanceName=point_map["model"],
         )
         self.fmu.instantiate(loggingOn=False)
@@ -120,6 +195,9 @@ class Plant:
                 self.fmu.setReal([self.vr[name]], [value])
         self.fmu.enterInitializationMode()
         self.fmu.exitInitializationMode()
+        self._integrator = _Integrator(self.fmu, md, start_time)
+        self._integrator.initialise()
+        self._applied: dict[str, Any] = {}
         self.time = start_time
 
         spec = fragment["electrical"]
@@ -209,10 +287,16 @@ class Plant:
         for asset, bus in self.bus_of.items():
             if TYPES[self.types[asset]].motor:
                 values[f"{ident(asset)}_V_pu"] = volts[bus]
-        for name, value in values.items():
-            self._write(name, value)
-        self.fmu.doStep(self.time, dt)
-        self.time += dt
+        changed = {k: v for k, v in values.items() if self._applied.get(k) != v}
+        if changed:
+
+            def write() -> None:
+                for name, value in changed.items():
+                    self._write(name, value)
+
+            self._integrator.discontinuity(self.time, write)
+            self._applied.update(changed)
+        self.time = self._integrator.advance(self.time, self.time + dt)
         self.volts = volts
 
     # --- state transfer ------------------------------------------------------------------
