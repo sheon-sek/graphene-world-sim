@@ -46,7 +46,7 @@ def test_published_openapi_is_current() -> None:
 def test_summary_counts_the_head_revision(client: TestClient) -> None:
     body = client.get(f"{API}/summary").json()
     assert body["revision"] == 1
-    assert body["counts"]["assets"] == 748
+    assert body["counts"]["assets"] == 756
     assert body["counts"]["point_bindings"] == 8811
 
 

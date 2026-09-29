@@ -1,0 +1,67 @@
+{
+  "behaviour": "GwsLib.Electrical.UtilitySupply",
+  "category": "equipment",
+  "description": "Utility supply through one site transformer: the grid behind it and the transformer itself. The asset source only has the meter on its LV side (SPPA Incomer n); the transformer is added by the graphene supplement electrical.json.",
+  "fault_modes": {
+    "loss_of_supply": {
+      "description": "The utility feed to this transformer is lost (grid outage or HV trip).",
+      "kind": "loss_of_supply"
+    }
+  },
+  "id": "Utility Supply",
+  "ignition_type_id": null,
+  "name": "Utility supply and transformer",
+  "parameters": {
+    "s_rated": {
+      "assumed": false,
+      "change_class": "warm",
+      "default": 5000.0,
+      "description": "Transformer rating (site data: plant-design.json basis.capacities: Utility, 4 x 5 MVA).",
+      "min": 0,
+      "unit": "kVA"
+    },
+    "vk_percent": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 6.0,
+      "description": "Transformer short-circuit voltage.",
+      "max": 30,
+      "min": 0,
+      "unit": "%"
+    },
+    "vkr_percent": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1.0,
+      "description": "Real part of the short-circuit voltage (copper losses).",
+      "max": 30,
+      "min": 0,
+      "unit": "%"
+    },
+    "vm_pu": {
+      "assumed": true,
+      "change_class": "live",
+      "default": 1.0,
+      "description": "Grid voltage at the HV terminals, per unit.",
+      "max": 1.2,
+      "min": 0.8,
+      "unit": "1"
+    },
+    "voltage_hv": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 11.0,
+      "description": "Utility (HV) side voltage.",
+      "min": 0,
+      "unit": "kV"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_out": {
+      "description": "Transformer LV terminals to the incomer.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

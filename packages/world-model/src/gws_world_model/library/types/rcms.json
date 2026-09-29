@@ -1,8 +1,12 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Electrical.Feeder",
   "category": "device",
   "description": "Residual-current monitored circuit on the L1 DB.",
   "fault_modes": {
+    "breaker_trip": {
+      "description": "The circuit breaker at this metered position trips and opens the circuit until it is reset.",
+      "kind": "trip"
+    },
     "earth_leakage": {
       "description": "Insulation of the monitored circuit deteriorates and residual current flows to earth.",
       "kind": "degrade",

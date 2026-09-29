@@ -1,5 +1,5 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Electrical.Genset",
   "category": "equipment",
   "description": "3,750 kVA / 3,000 kW prime diesel genset, three per side (N+1), transferring through the ATS within 15 s (plant-design basis).",
   "fault_modes": {
@@ -19,11 +19,11 @@
       }
     },
     "fail_to_start": {
-      "description": "The engine fails to start (over-crank) and locks out until reset.",
+      "description": "The engine fails to start (over-crank at the end of its start time) and locks out until reset.",
       "kind": "trip"
     },
     "shutdown": {
-      "description": "A running genset shuts down on a protection (oil pressure, coolant, short circuit).",
+      "description": "A running genset shuts down on a protection (oil pressure, coolant, short circuit) and locks out until reset.",
       "kind": "trip"
     }
   },
@@ -46,6 +46,22 @@
       "description": "Fuel consumption at prime power (about 0.27 L/kWh).",
       "min": 0,
       "unit": "kg/s"
+    },
+    "overload_limit": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1.1,
+      "description": "Output, as a fraction of available power, above which the overload protection times out.",
+      "min": 1,
+      "unit": "1"
+    },
+    "overload_time": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 10.0,
+      "description": "Time above the overload limit before the genset shuts down and locks out.",
+      "min": 0,
+      "unit": "s"
     },
     "p_prime": {
       "assumed": false,

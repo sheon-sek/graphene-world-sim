@@ -1,0 +1,25 @@
+{
+  "note": "Control network (review A11, #17). The plant design's `gateways` table says GATEWAY A carries the Cooling, Airside and Water field devices and GATEWAY B the Electrical, Environment and Life Safety ones; the design has no net connections for that equipment, and its types have no `net` port. So each gateway is marked `role: gateway` and lists the systems it `serves`: an asset of such a system with no net connection of its own reports through that gateway, and is fresh only while the gateway is up. Assets of other systems (Support, Demo Rack, IT) have no reporting path in the data and are treated as always reachable. Network Switches/* are the port-level views of the four physical switches in Network Topology/*; `device` names the one each view shows, so failing either fails the one switch.",
+  "asset_parameters": {
+    "Network Topology/GATEWAY A": {
+      "role": "gateway",
+      "serves": "Cooling, Airside, Water"
+    },
+    "Network Topology/GATEWAY B": {
+      "role": "gateway",
+      "serves": "Electrical, Environment, Life Safety"
+    },
+    "Network Switches/MAIN CORE SWITCH A": {
+      "device": "Network Topology/MAIN CORE SWITCH A"
+    },
+    "Network Switches/MAIN CORE SWITCH B": {
+      "device": "Network Topology/MAIN CORE SWITCH B"
+    },
+    "Network Switches/SERVER DISTRIBUTION SWITCH A": {
+      "device": "Network Topology/SERVER DISTRIBUTION SWITCH A"
+    },
+    "Network Switches/SERVER DISTRIBUTION SWITCH B": {
+      "device": "Network Topology/SERVER DISTRIBUTION SWITCH B"
+    }
+  }
+}

@@ -1,8 +1,12 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Electrical.Feeder",
   "category": "device",
   "description": "Branch circuit monitor on a UPS output into a hall's racks (review A7).",
   "fault_modes": {
+    "breaker_trip": {
+      "description": "The circuit breaker at this metered position trips and opens the circuit until it is reset.",
+      "kind": "trip"
+    },
     "measurement_error": {
       "description": "Meter reads wrong (CT fault or calibration drift): readings scaled by a gain error.",
       "kind": "sensor",

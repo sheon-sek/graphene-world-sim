@@ -1,5 +1,5 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Branch",
   "category": "equipment",
   "description": "The chilled-water branch serving one Data Hall (riser tee, strainer and balancing valve) that feeds the hall's air units and CDUs. Unexported: observed through its Chiller_System folder.",
   "fault_modes": {

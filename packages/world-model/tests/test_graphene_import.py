@@ -31,14 +31,14 @@ def doc(sources: Sources) -> WorldModel:
 
 def test_library_files_are_named_by_type_id() -> None:
     types = library.load()
-    assert len(types) == 60
+    assert len(types) == 62
     assert library.slug("Production/GPM96") == "production-gpm96"
 
 
 def test_every_asset_and_connection_is_imported(doc: WorldModel) -> None:
-    assert len(doc.assets) == 748
+    assert len(doc.assets) == 756
     assert sum(a.exported for a in doc.assets.values()) == 639
-    assert len(doc.connections) == 760
+    assert len(doc.connections) == 768
     assert len(doc.site.rooms) == 33
     assert [f.id for f in doc.site.floors] == ["Ground", "Level 1", "Level 2", "Roof"]
 
