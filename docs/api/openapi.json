@@ -1,0 +1,3182 @@
+{
+  "components": {
+    "schemas": {
+      "Access": {
+        "enum": [
+          "read",
+          "read_write"
+        ],
+        "title": "Access",
+        "type": "string"
+      },
+      "Aggregate": {
+        "additionalProperties": false,
+        "description": "A value computed from other points (a KPI, a hall average).",
+        "properties": {
+          "function": {
+            "enum": [
+              "sum",
+              "mean",
+              "max",
+              "min",
+              "ratio",
+              "count_true",
+              "first"
+            ],
+            "title": "Function",
+            "type": "string"
+          },
+          "inputs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Inputs",
+            "type": "array"
+          },
+          "kind": {
+            "const": "aggregate",
+            "default": "aggregate",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "function",
+          "inputs"
+        ],
+        "title": "Aggregate",
+        "type": "object"
+      },
+      "ApplyDraft": {
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "ApplyDraft",
+        "type": "object"
+      },
+      "Asset": {
+        "additionalProperties": false,
+        "properties": {
+          "exported": {
+            "default": true,
+            "title": "Exported",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location",
+            "default": {}
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Scalar"
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "role": {
+            "default": "",
+            "title": "Role",
+            "type": "string"
+          },
+          "system": {
+            "default": "",
+            "title": "System",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name"
+        ],
+        "title": "Asset",
+        "type": "object"
+      },
+      "AssetCategory": {
+        "enum": [
+          "equipment",
+          "device",
+          "controller",
+          "aggregate",
+          "support"
+        ],
+        "title": "AssetCategory",
+        "type": "string"
+      },
+      "AssetSignal": {
+        "additionalProperties": false,
+        "properties": {
+          "asset": {
+            "title": "Asset",
+            "type": "string"
+          },
+          "kind": {
+            "const": "asset_signal",
+            "default": "asset_signal",
+            "title": "Kind",
+            "type": "string"
+          },
+          "signal": {
+            "title": "Signal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset",
+          "signal"
+        ],
+        "title": "AssetSignal",
+        "type": "object"
+      },
+      "ChangeClass": {
+        "description": "How an edit reaches a running simulation, from cheapest to most disruptive.",
+        "enum": [
+          "live",
+          "warm",
+          "structural",
+          "reinitialise"
+        ],
+        "title": "ChangeClass",
+        "type": "string"
+      },
+      "ChangeOut": {
+        "properties": {
+          "change_class": {
+            "$ref": "#/components/schemas/ChangeClass"
+          },
+          "collection": {
+            "title": "Collection",
+            "type": "string"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection",
+          "key",
+          "kind",
+          "fields",
+          "change_class",
+          "reason"
+        ],
+        "title": "ChangeOut",
+        "type": "object"
+      },
+      "Collection": {
+        "enum": [
+          "component_types",
+          "assets",
+          "connections",
+          "instruments",
+          "control_bindings",
+          "point_bindings"
+        ],
+        "type": "string"
+      },
+      "ComponentType": {
+        "additionalProperties": false,
+        "properties": {
+          "behaviour": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Behaviour"
+          },
+          "category": {
+            "$ref": "#/components/schemas/AssetCategory"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "fault_modes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FaultModeSpec-Output"
+            },
+            "title": "Fault Modes",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ignition_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ignition Type Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterSpec"
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "point_template": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PointTemplate"
+            },
+            "title": "Point Template",
+            "type": "object"
+          },
+          "ports": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PortSpec"
+            },
+            "title": "Ports",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category"
+        ],
+        "title": "ComponentType",
+        "type": "object"
+      },
+      "Conditions": {
+        "additionalProperties": false,
+        "description": "Inputs from outside the facility that engineers change live.",
+        "properties": {
+          "it_load": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ItLoad"
+            },
+            "title": "It Load",
+            "type": "object"
+          },
+          "utility_available": {
+            "default": true,
+            "title": "Utility Available",
+            "type": "boolean"
+          },
+          "weather": {
+            "$ref": "#/components/schemas/Weather",
+            "default": {
+              "dry_bulb_c": 30.0,
+              "relative_humidity": 70.0,
+              "wet_bulb_c": 25.0
+            }
+          }
+        },
+        "title": "Conditions",
+        "type": "object"
+      },
+      "Connection": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "$ref": "#/components/schemas/Domain"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Scalar"
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Endpoint"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Endpoint"
+          }
+        },
+        "required": [
+          "id",
+          "domain",
+          "source",
+          "target"
+        ],
+        "title": "Connection",
+        "type": "object"
+      },
+      "ControlBinding": {
+        "additionalProperties": false,
+        "description": "The wiring of a controller: what it reads and what it drives.",
+        "properties": {
+          "controller": {
+            "title": "Controller",
+            "type": "string"
+          },
+          "drives": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Drives",
+            "type": "array"
+          },
+          "function": {
+            "title": "Function",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Scalar"
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "reads": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reads",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "controller",
+          "function"
+        ],
+        "title": "ControlBinding",
+        "type": "object"
+      },
+      "Delete": {
+        "additionalProperties": false,
+        "properties": {
+          "collection": {
+            "$ref": "#/components/schemas/Collection"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "op": {
+            "const": "delete",
+            "default": "delete",
+            "title": "Op",
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection",
+          "key"
+        ],
+        "title": "Delete",
+        "type": "object"
+      },
+      "DiffOut": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ChangeOut"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChangeClass"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "overall",
+          "changes"
+        ],
+        "title": "DiffOut",
+        "type": "object"
+      },
+      "Direction": {
+        "description": "Which way a Port faces in its domain: supplies downstream, takes from upstream, or both.",
+        "enum": [
+          "in",
+          "out",
+          "both"
+        ],
+        "title": "Direction",
+        "type": "string"
+      },
+      "Domain": {
+        "description": "What a Connection carries. A Port accepts exactly one domain.",
+        "enum": [
+          "power",
+          "chw",
+          "cw",
+          "air",
+          "water",
+          "fuel",
+          "net",
+          "control",
+          "fire"
+        ],
+        "title": "Domain",
+        "type": "string"
+      },
+      "DraftOut": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "base": {
+            "title": "Base",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/Operation-Output"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "base",
+          "created_at",
+          "updated_at",
+          "author",
+          "operations"
+        ],
+        "title": "DraftOut",
+        "type": "object"
+      },
+      "Endpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "node": {
+            "title": "Node",
+            "type": "string"
+          },
+          "port": {
+            "title": "Port",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node",
+          "port"
+        ],
+        "title": "Endpoint",
+        "type": "object"
+      },
+      "FaultKind": {
+        "enum": [
+          "trip",
+          "degrade",
+          "stuck",
+          "sensor",
+          "loss_of_supply",
+          "network"
+        ],
+        "title": "FaultKind",
+        "type": "string"
+      },
+      "FaultModeSpec-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FaultKind"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterSpec"
+            },
+            "title": "Parameters",
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "FaultModeSpec",
+        "type": "object"
+      },
+      "FaultModeSpec-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FaultKind"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterSpec"
+            },
+            "title": "Parameters",
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "FaultModeSpec",
+        "type": "object"
+      },
+      "Floor": {
+        "additionalProperties": false,
+        "properties": {
+          "elevation_m": {
+            "default": 0.0,
+            "title": "Elevation M",
+            "type": "number"
+          },
+          "height_m": {
+            "default": 4.5,
+            "title": "Height M",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "index"
+        ],
+        "title": "Floor",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Instrument": {
+        "additionalProperties": false,
+        "description": "A sensor or status reading on an asset, and the path it reports through.",
+        "properties": {
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy"
+          },
+          "asset": {
+            "title": "Asset",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "range_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Max"
+          },
+          "range_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range Min"
+          },
+          "reports_via": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reports Via",
+            "type": "array"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "id",
+          "asset",
+          "quantity"
+        ],
+        "title": "Instrument",
+        "type": "object"
+      },
+      "InstrumentSource": {
+        "additionalProperties": false,
+        "properties": {
+          "instrument": {
+            "title": "Instrument",
+            "type": "string"
+          },
+          "kind": {
+            "const": "instrument",
+            "default": "instrument",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instrument"
+        ],
+        "title": "InstrumentSource",
+        "type": "object"
+      },
+      "IssueOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          }
+        },
+        "required": [
+          "severity",
+          "path",
+          "message"
+        ],
+        "title": "IssueOut",
+        "type": "object"
+      },
+      "ItLoad": {
+        "additionalProperties": false,
+        "properties": {
+          "design_kw": {
+            "minimum": 0.0,
+            "title": "Design Kw",
+            "type": "number"
+          },
+          "fraction": {
+            "maximum": 1.5,
+            "minimum": 0.0,
+            "title": "Fraction",
+            "type": "number"
+          },
+          "liquid_fraction": {
+            "default": 0.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Liquid Fraction",
+            "type": "number"
+          }
+        },
+        "required": [
+          "design_kw",
+          "fraction"
+        ],
+        "title": "ItLoad",
+        "type": "object"
+      },
+      "Location": {
+        "additionalProperties": false,
+        "properties": {
+          "room": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Room"
+          },
+          "x": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X"
+          },
+          "y": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y"
+          }
+        },
+        "title": "Location",
+        "type": "object"
+      },
+      "NewDraft": {
+        "properties": {
+          "author": {
+            "default": "anonymous",
+            "title": "Author",
+            "type": "string"
+          },
+          "base": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base"
+          }
+        },
+        "title": "NewDraft",
+        "type": "object"
+      },
+      "Operation-Input": {
+        "discriminator": {
+          "mapping": {
+            "delete": "#/components/schemas/Delete",
+            "put": "#/components/schemas/Put",
+            "set_conditions": "#/components/schemas/SetConditions-Input",
+            "set_site": "#/components/schemas/SetSite-Input"
+          },
+          "propertyName": "op"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Put"
+          },
+          {
+            "$ref": "#/components/schemas/Delete"
+          },
+          {
+            "$ref": "#/components/schemas/SetConditions-Input"
+          },
+          {
+            "$ref": "#/components/schemas/SetSite-Input"
+          }
+        ]
+      },
+      "Operation-Output": {
+        "discriminator": {
+          "mapping": {
+            "delete": "#/components/schemas/Delete",
+            "put": "#/components/schemas/Put",
+            "set_conditions": "#/components/schemas/SetConditions-Output",
+            "set_site": "#/components/schemas/SetSite-Output"
+          },
+          "propertyName": "op"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Put"
+          },
+          {
+            "$ref": "#/components/schemas/Delete"
+          },
+          {
+            "$ref": "#/components/schemas/SetConditions-Output"
+          },
+          {
+            "$ref": "#/components/schemas/SetSite-Output"
+          }
+        ]
+      },
+      "Page_PointBinding_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PointBinding-Output"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "Page[PointBinding]",
+        "type": "object"
+      },
+      "ParameterSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "assumed": {
+            "default": false,
+            "title": "Assumed",
+            "type": "boolean"
+          },
+          "change_class": {
+            "$ref": "#/components/schemas/ChangeClass",
+            "default": "warm"
+          },
+          "default": {
+            "$ref": "#/components/schemas/Scalar"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "default"
+        ],
+        "title": "ParameterSpec",
+        "type": "object"
+      },
+      "PointBinding-Input": {
+        "additionalProperties": false,
+        "description": "One Point Ignition reads or writes. Ignition compatibility lives here.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/Access",
+            "default": "read"
+          },
+          "data_type": {
+            "title": "Data Type",
+            "type": "string"
+          },
+          "ignition_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ignition Type Id"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "point_class": {
+            "$ref": "#/components/schemas/PointClass"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PointSource-Input",
+            "default": {
+              "kind": "unbound",
+              "reason": ""
+            }
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "path",
+          "data_type",
+          "point_class"
+        ],
+        "title": "PointBinding",
+        "type": "object"
+      },
+      "PointBinding-Output": {
+        "additionalProperties": false,
+        "description": "One Point Ignition reads or writes. Ignition compatibility lives here.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/Access",
+            "default": "read"
+          },
+          "data_type": {
+            "title": "Data Type",
+            "type": "string"
+          },
+          "ignition_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ignition Type Id"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "point_class": {
+            "$ref": "#/components/schemas/PointClass"
+          },
+          "source": {
+            "$ref": "#/components/schemas/PointSource-Output",
+            "default": {
+              "kind": "unbound",
+              "reason": ""
+            }
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "path",
+          "data_type",
+          "point_class"
+        ],
+        "title": "PointBinding",
+        "type": "object"
+      },
+      "PointClass": {
+        "description": "What kind of evidence a Point carries, and so what must drive its value.",
+        "enum": [
+          "command",
+          "feedback",
+          "process_value",
+          "equipment_state",
+          "fault_alarm",
+          "energy_integral",
+          "network_state",
+          "static_metadata",
+          "support"
+        ],
+        "title": "PointClass",
+        "type": "string"
+      },
+      "PointSource-Input": {
+        "discriminator": {
+          "mapping": {
+            "aggregate": "#/components/schemas/Aggregate",
+            "asset_signal": "#/components/schemas/AssetSignal",
+            "instrument": "#/components/schemas/InstrumentSource",
+            "static": "#/components/schemas/StaticValue",
+            "unbound": "#/components/schemas/Unbound"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AssetSignal"
+          },
+          {
+            "$ref": "#/components/schemas/InstrumentSource"
+          },
+          {
+            "$ref": "#/components/schemas/Aggregate"
+          },
+          {
+            "$ref": "#/components/schemas/StaticValue"
+          },
+          {
+            "$ref": "#/components/schemas/Unbound"
+          }
+        ]
+      },
+      "PointSource-Output": {
+        "discriminator": {
+          "mapping": {
+            "aggregate": "#/components/schemas/Aggregate",
+            "asset_signal": "#/components/schemas/AssetSignal",
+            "instrument": "#/components/schemas/InstrumentSource",
+            "static": "#/components/schemas/StaticValue",
+            "unbound": "#/components/schemas/Unbound"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AssetSignal"
+          },
+          {
+            "$ref": "#/components/schemas/InstrumentSource"
+          },
+          {
+            "$ref": "#/components/schemas/Aggregate"
+          },
+          {
+            "$ref": "#/components/schemas/StaticValue"
+          },
+          {
+            "$ref": "#/components/schemas/Unbound"
+          }
+        ]
+      },
+      "PointTemplate": {
+        "additionalProperties": false,
+        "description": "One member point every instance of the type exposes.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/Access",
+            "default": "read"
+          },
+          "data_type": {
+            "title": "Data Type",
+            "type": "string"
+          },
+          "point_class": {
+            "$ref": "#/components/schemas/PointClass"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "data_type",
+          "point_class"
+        ],
+        "title": "PointTemplate",
+        "type": "object"
+      },
+      "PortSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/Direction",
+            "default": "both"
+          },
+          "domain": {
+            "$ref": "#/components/schemas/Domain"
+          }
+        },
+        "required": [
+          "domain"
+        ],
+        "title": "PortSpec",
+        "type": "object"
+      },
+      "Put": {
+        "additionalProperties": false,
+        "description": "Add an entity, or replace it whole. Its key is its `id` (`path` for point bindings).",
+        "properties": {
+          "collection": {
+            "$ref": "#/components/schemas/Collection"
+          },
+          "op": {
+            "const": "put",
+            "default": "put",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "additionalProperties": true,
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "required": [
+          "collection",
+          "value"
+        ],
+        "title": "Put",
+        "type": "object"
+      },
+      "RevisionOut": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          }
+        },
+        "required": [
+          "number",
+          "parent",
+          "created_at",
+          "author",
+          "message",
+          "content_hash"
+        ],
+        "title": "RevisionOut",
+        "type": "object"
+      },
+      "Room": {
+        "additionalProperties": false,
+        "properties": {
+          "fire_zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fire Zone"
+          },
+          "floor": {
+            "title": "Floor",
+            "type": "string"
+          },
+          "h": {
+            "title": "H",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "outdoor": {
+            "default": false,
+            "title": "Outdoor",
+            "type": "boolean"
+          },
+          "w": {
+            "title": "W",
+            "type": "number"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "floor",
+          "name",
+          "kind",
+          "x",
+          "y",
+          "w",
+          "h"
+        ],
+        "title": "Room",
+        "type": "object"
+      },
+      "Scalar": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "SetConditions-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "op": {
+            "const": "set_conditions",
+            "default": "set_conditions",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Conditions"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "SetConditions",
+        "type": "object"
+      },
+      "SetConditions-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "op": {
+            "const": "set_conditions",
+            "default": "set_conditions",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Conditions"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "SetConditions",
+        "type": "object"
+      },
+      "SetSite-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "op": {
+            "const": "set_site",
+            "default": "set_site",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Site-Input"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "SetSite",
+        "type": "object"
+      },
+      "SetSite-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "op": {
+            "const": "set_site",
+            "default": "set_site",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Site-Output"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "SetSite",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "error",
+          "warning"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "Shaft": {
+        "additionalProperties": false,
+        "properties": {
+          "carries": {
+            "items": {
+              "$ref": "#/components/schemas/Domain"
+            },
+            "title": "Carries",
+            "type": "array"
+          },
+          "floors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Floors",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "x",
+          "y",
+          "floors",
+          "carries"
+        ],
+        "title": "Shaft",
+        "type": "object"
+      },
+      "Site-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "floors": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Floor"
+            },
+            "title": "Floors",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rooms": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Room"
+            },
+            "title": "Rooms",
+            "type": "object"
+          },
+          "shafts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Shaft"
+            },
+            "title": "Shafts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Site",
+        "type": "object"
+      },
+      "Site-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "floors": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Floor"
+            },
+            "title": "Floors",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rooms": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Room"
+            },
+            "title": "Rooms",
+            "type": "object"
+          },
+          "shafts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Shaft"
+            },
+            "title": "Shafts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Site",
+        "type": "object"
+      },
+      "StaticValue": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "static",
+            "default": "static",
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Scalar"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "StaticValue",
+        "type": "object"
+      },
+      "Summary": {
+        "properties": {
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "content_hash",
+          "site",
+          "counts"
+        ],
+        "title": "Summary",
+        "type": "object"
+      },
+      "Unbound": {
+        "additionalProperties": false,
+        "description": "A point with no source yet. It is served with bad quality until it is bound.",
+        "properties": {
+          "kind": {
+            "const": "unbound",
+            "default": "unbound",
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "Unbound",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationOut": {
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueOut"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "issues"
+        ],
+        "title": "ValidationOut",
+        "type": "object"
+      },
+      "Weather": {
+        "additionalProperties": false,
+        "properties": {
+          "dry_bulb_c": {
+            "default": 30.0,
+            "title": "Dry Bulb C",
+            "type": "number"
+          },
+          "relative_humidity": {
+            "default": 70.0,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Relative Humidity",
+            "type": "number"
+          },
+          "wet_bulb_c": {
+            "default": 25.0,
+            "title": "Wet Bulb C",
+            "type": "number"
+          }
+        },
+        "title": "Weather",
+        "type": "object"
+      },
+      "WorldModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Asset"
+            },
+            "title": "Assets",
+            "type": "object"
+          },
+          "component_types": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentType"
+            },
+            "title": "Component Types",
+            "type": "object"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/Conditions",
+            "default": {
+              "it_load": {},
+              "utility_available": true,
+              "weather": {
+                "dry_bulb_c": 30.0,
+                "relative_humidity": 70.0,
+                "wet_bulb_c": 25.0
+              }
+            }
+          },
+          "connections": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Connection"
+            },
+            "title": "Connections",
+            "type": "object"
+          },
+          "control_bindings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ControlBinding"
+            },
+            "title": "Control Bindings",
+            "type": "object"
+          },
+          "instruments": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Instrument"
+            },
+            "title": "Instruments",
+            "type": "object"
+          },
+          "point_bindings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PointBinding-Output"
+            },
+            "title": "Point Bindings",
+            "type": "object"
+          },
+          "schema_version": {
+            "const": "1",
+            "default": "1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "site": {
+            "$ref": "#/components/schemas/Site-Output"
+          }
+        },
+        "required": [
+          "site"
+        ],
+        "title": "WorldModel",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Graphene World Sim API",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/world-model/assets": {
+      "get": {
+        "operationId": "assets_api_world_model_assets_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "room",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Room"
+            }
+          },
+          {
+            "in": "query",
+            "name": "system",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "System"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Asset"
+                  },
+                  "title": "Response Assets Api World Model Assets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assets",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/assets/{asset_id}": {
+      "get": {
+        "operationId": "asset_api_world_model_assets__asset_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Asset",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/conditions": {
+      "get": {
+        "operationId": "conditions_api_world_model_conditions_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conditions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Conditions",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/connections": {
+      "get": {
+        "operationId": "connections_api_world_model_connections_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          },
+          {
+            "description": "Asset id or `room:<id>` at either end.",
+            "in": "query",
+            "name": "node",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Asset id or `room:<id>` at either end.",
+              "title": "Node"
+            }
+          },
+          {
+            "in": "query",
+            "name": "domain",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Domain"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Connection"
+                  },
+                  "title": "Response Connections Api World Model Connections Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connections",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/connections/{connection_id}": {
+      "get": {
+        "operationId": "connection_api_world_model_connections__connection_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Connection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connection",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/control-bindings": {
+      "get": {
+        "operationId": "control_bindings_api_world_model_control_bindings_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ControlBinding"
+                  },
+                  "title": "Response Control Bindings Api World Model Control Bindings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Control Bindings",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts": {
+      "get": {
+        "operationId": "drafts_api_world_model_drafts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DraftOut"
+                  },
+                  "title": "Response Drafts Api World Model Drafts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Drafts",
+        "tags": [
+          "world-model"
+        ]
+      },
+      "post": {
+        "operationId": "create_draft_api_world_model_drafts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/NewDraft"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Draft",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}": {
+      "delete": {
+        "operationId": "discard_draft_api_world_model_drafts__draft_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Discard Draft",
+        "tags": [
+          "world-model"
+        ]
+      },
+      "get": {
+        "operationId": "draft_api_world_model_drafts__draft_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}/apply": {
+      "post": {
+        "operationId": "apply_draft_api_world_model_drafts__draft_id__apply_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "The draft's base is no longer the head revision."
+          },
+          "422": {
+            "description": "The draft does not validate; `detail` lists the issues."
+          }
+        },
+        "summary": "Apply Draft",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}/diff": {
+      "get": {
+        "operationId": "draft_diff_api_world_model_drafts__draft_id__diff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft Diff",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}/document": {
+      "get": {
+        "operationId": "draft_document_api_world_model_drafts__draft_id__document_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft Document",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}/operations": {
+      "post": {
+        "operationId": "add_operations_api_world_model_drafts__draft_id__operations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/Operation-Input"
+                },
+                "title": "Operations",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Operations",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/drafts/{draft_id}/validation": {
+      "get": {
+        "operationId": "draft_validation_api_world_model_drafts__draft_id__validation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft Validation",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/instruments": {
+      "get": {
+        "operationId": "instruments_api_world_model_instruments_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Instrument"
+                  },
+                  "title": "Response Instruments Api World Model Instruments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Instruments",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/points": {
+      "get": {
+        "operationId": "points_api_world_model_points_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          },
+          {
+            "description": "Export path prefix, e.g. `Chiller/`.",
+            "in": "query",
+            "name": "prefix",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Export path prefix, e.g. `Chiller/`.",
+              "title": "Prefix",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PointBinding_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Points",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/revisions": {
+      "get": {
+        "operationId": "revisions_api_world_model_revisions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RevisionOut"
+                  },
+                  "title": "Response Revisions Api World Model Revisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Revisions",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/revisions/{number}": {
+      "get": {
+        "operationId": "revision_api_world_model_revisions__number__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/revisions/{number}/document": {
+      "get": {
+        "operationId": "document_api_world_model_revisions__number__document_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorldModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Document",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/revisions/{old}/diff/{new}": {
+      "get": {
+        "operationId": "revision_diff_api_world_model_revisions__old__diff__new__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "old",
+            "required": true,
+            "schema": {
+              "title": "Old",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "new",
+            "required": true,
+            "schema": {
+              "title": "New",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revision Diff",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/site": {
+      "get": {
+        "operationId": "site_api_world_model_site_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Site",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/summary": {
+      "get": {
+        "operationId": "summary_api_world_model_summary_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Summary",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/types": {
+      "get": {
+        "operationId": "types_api_world_model_types_get",
+        "parameters": [
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ComponentType"
+                  },
+                  "title": "Response Types Api World Model Types Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Types",
+        "tags": [
+          "world-model"
+        ]
+      }
+    },
+    "/api/world-model/types/{type_id}": {
+      "get": {
+        "operationId": "component_type_api_world_model_types__type_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type_id",
+            "required": true,
+            "schema": {
+              "title": "Type Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Revision number; the head when omitted.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Revision number; the head when omitted.",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComponentType"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Component Type",
+        "tags": [
+          "world-model"
+        ]
+      }
+    }
+  }
+}
