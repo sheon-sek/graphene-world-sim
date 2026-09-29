@@ -1,0 +1,13 @@
+[project]
+name = "gws-opcua"
+version = "0.0.0"
+description = "OPC UA exposure of simulated points, driven only by point bindings."
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gws_opcua"]

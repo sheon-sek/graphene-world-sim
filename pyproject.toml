@@ -1,0 +1,52 @@
+[project]
+name = "graphene-world-sim"
+version = "0.0.0"
+description = "Workspace root: runtime-configurable World Model and simulation engine exposed over OPC UA"
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+gws-world-model = { workspace = true }
+gws-runtime = { workspace = true }
+gws-opcua = { workspace = true }
+gws-api = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "gws-world-model",
+    "gws-runtime",
+    "gws-opcua",
+    "gws-api",
+    "mypy==1.18.2",
+    "pytest==8.4.2",
+    "ruff==0.13.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.mypy]
+strict = true
+mypy_path = [
+    "packages/world-model/src",
+    "packages/sim-runtime/src",
+    "packages/opcua-server/src",
+    "packages/api/src",
+]
+packages = ["gws_world_model", "gws_runtime", "gws_opcua", "gws_api"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "packages"]
+addopts = "-q"
+
+[tool.ruff.lint.isort]
+known-first-party = ["gws_world_model", "gws_runtime", "gws_opcua", "gws_api"]

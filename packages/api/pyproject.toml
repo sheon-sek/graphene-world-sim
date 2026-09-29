@@ -1,0 +1,13 @@
+[project]
+name = "gws-api"
+version = "0.0.0"
+description = "HTTP API for the World Model and the runtime, used by the web application."
+requires-python = ">=3.12"
+dependencies = ["gws-world-model", "gws-runtime"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gws_api"]
