@@ -50,7 +50,7 @@ reading's unit as differences (a 2 K bias on a degF point reads 3.6 degF).
 from __future__ import annotations
 
 import random
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -172,7 +172,16 @@ class _NoState:
 
 
 class Instrumentation:
-    def __init__(self, doc: WorldModel, network: ControlNetwork, seed: int) -> None:
+    def __init__(
+        self,
+        doc: WorldModel,
+        network: ControlNetwork,
+        seed: int,
+        scope: Collection[str] | None = None,
+    ) -> None:
+        """`scope` limits each update to the instruments on those assets and the points bound
+        to them or to those instruments (others are evaluated only when an aggregate needs
+        them); None updates the whole site."""
         self.doc = doc
         self.network = network
         self.seed = seed
@@ -192,6 +201,20 @@ class Instrumentation:
             if isinstance(binding.source, AssetSignal):
                 asset, member = binding.source.asset, binding.source.signal
                 self._signal_of[path] = (asset, self._model_signal(asset, member), member)
+        wanted = None if scope is None else frozenset(scope)
+        self._instrument_ids = sorted(
+            i for i, inst in doc.instruments.items() if wanted is None or inst.asset in wanted
+        )
+        self._paths = sorted(
+            path
+            for path, b in doc.point_bindings.items()
+            if wanted is None
+            or (isinstance(b.source, AssetSignal) and b.source.asset in wanted)
+            or (
+                isinstance(b.source, InstrumentSource)
+                and doc.instruments[b.source.instrument].asset in wanted
+            )
+        )
 
     def _model_signal(self, asset: str, member: str) -> str:
         a = self.doc.assets.get(asset)
@@ -388,7 +411,7 @@ class Instrumentation:
             return self._measure(t, binding.path, asset, (signal, member), binding.unit, last)
         if isinstance(source, InstrumentSource):
             inst = self.doc.instruments[source.instrument]
-            reading = self._readings[inst.id]
+            reading = self._reading(inst.id)
             value = reading.value
             if _numeric(value) and binding.unit and inst.unit:
                 assert isinstance(value, int | float)
@@ -412,7 +435,7 @@ class Instrumentation:
         if reference in self.doc.point_bindings:
             return self._point(t, reference), self.doc.point_bindings[reference].unit, False
         if reference in self.doc.instruments:
-            return self._readings[reference], self.doc.instruments[reference].unit, False
+            return self._reading(reference), self.doc.instruments[reference].unit, False
         asset, signal = split_ref(reference)
         sample = self._measure(t, reference, asset, (signal,), None, self._refs.get(reference))
         self._refs[reference] = sample
@@ -491,20 +514,27 @@ class Instrumentation:
         self._t = t
         self._state = state
         self._readings = {
-            iid: self._instrument(t, self.doc.instruments[iid])
-            for iid in sorted(self.doc.instruments)
+            iid: self._instrument(t, self.doc.instruments[iid]) for iid in self._instrument_ids
         }
         self._current = {}
         self._visiting = set()
-        for path in sorted(self.doc.point_bindings):
+        for path in self._paths:
             self._point(t, path)
         self._points = self._current
         self._current = {}
 
     # --- queries ---------------------------------------------------------------------------
 
+    def _reading(self, instrument: str) -> Sample:
+        """An instrument's reading this update, measured on demand when outside the scope."""
+        sample = self._readings.get(instrument)
+        if sample is None:
+            sample = self._instrument(self._t, self.doc.instruments[instrument])
+            self._readings[instrument] = sample
+        return sample
+
     def reading(self, instrument: str) -> Sample:
-        return self._readings[instrument]
+        return self._reading(instrument)
 
     def points(self) -> dict[str, Sample]:
         return dict(self._points)

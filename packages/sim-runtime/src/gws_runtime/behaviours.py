@@ -81,12 +81,20 @@ class FaultAction:
     - `rebuild`: fault parameter -> (Modelica parameter, exponent): the parameter is multiplied
       by the fault parameter raised to the exponent. Applied warm: the partition is
       re-instantiated with the scaled parameter and its state carried over.
+    - `offset`: see below.
+
+    A sensor fault mode acts on instrumentation; an `offset` action adds its effect on the
+    equipment's own control.
     """
 
     override: Mapping[str, float | bool] = field(default_factory=dict)
     freeze: tuple[str, ...] = ()
     scale: Mapping[str, str] = field(default_factory=dict)
     rebuild: Mapping[str, tuple[str, float]] = field(default_factory=dict)
+    offset: Mapping[str, tuple[str, float]] = field(default_factory=dict)
+    """Input -> (fault parameter, sign): the input is shifted by sign × the parameter. For a
+    sensor inside the equipment that its own control loop uses: the equipment controls its
+    reading to the set point, so the true value misses the set point by the error."""
     latching: bool = False
     """A latching trip stays active after it clears until the asset is reset."""
 
@@ -249,6 +257,9 @@ BEHAVIOURS: dict[str, Behaviour] = {
                 rebuild={"capacity_fraction": ("per.QEva_flow_nominal", 1.0)}
             ),
             "condenser_fouling": FaultAction(rebuild={"cop_fraction": ("per.COP_nominal", 1.0)}),
+            # The chiller controls its leaving temperature on this sensor: reading high by b,
+            # it delivers water b colder than its set point.
+            "chw_temp_sensor": FaultAction(offset={"TChwSet": ("bias", -1.0)}),
         },
         points={
             "On_Off": "running",

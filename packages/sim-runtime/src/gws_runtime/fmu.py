@@ -67,6 +67,14 @@ class FmuUnit:
             if v.causality == "parameter" and v.variability in ("fixed", "tunable")
         }
         self._outputs = [v.name for v in partition.outputs]
+        self.input_starts: dict[str, Scalar] = {
+            v.name: (str(v.start).lower() in ("true", "1"))
+            if v.type == "Boolean"
+            else float(v.start)
+            for v in md.modelVariables
+            if v.causality == "input" and v.start is not None
+        }
+        """Each input's compiled start value: the command before anything writes one."""
         self.fmu = FMU2Model(
             guid=md.guid,
             unzipDirectory=self._dir,
@@ -129,13 +137,28 @@ class FmuUnit:
     def outputs(self) -> dict[str, Scalar]:
         return self.read(self._outputs)
 
-    def state(self) -> dict[str, float]:
-        """The partition's physical state as start parameters for a new instance."""
-        out: dict[str, float] = {}
+    def state(self) -> dict[str, dict[str, float]]:
+        """The partition's physical state: owner (asset id, `room:<id>`, `return:<pump>`) ->
+        start parameter -> value. Keyed by World Model identity, so it carries over to a
+        recompiled partition. Air humidity is not carried: it restarts from its default."""
+        out: dict[str, dict[str, float]] = {}
         for owner, params in self.partition.state.items():
             values = self.read(params.values())
-            for p, var in params.items():
-                out[self.partition.start[owner][p]] = float(values[var])
+            out[owner] = {p: float(values[var]) for p, var in params.items()}
+        return out
+
+    @staticmethod
+    def start_parameters(
+        partition: Partition, state: Mapping[str, Mapping[str, float]]
+    ) -> dict[str, float]:
+        """FMU parameters that start a new instance of `partition` from `state`. Owners or
+        parameters the partition does not have are ignored."""
+        out: dict[str, float] = {}
+        for owner, params in state.items():
+            names = partition.start.get(owner, {})
+            for p, value in params.items():
+                if p in names:
+                    out[names[p]] = value
         return out
 
     # --- stepping --------------------------------------------------------------------------

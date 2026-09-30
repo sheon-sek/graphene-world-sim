@@ -558,7 +558,7 @@
         "~CH-004:TChwSet"
       ],
       "parameters": {
-        "setpoint_degC": 7.0
+        "setpoint_degC": 14.0
       }
     },
     {

@@ -59,6 +59,11 @@ def room_key(room: str) -> str:
     return f"{ROOM_PREFIX}{room}"
 
 
+def return_key(pump: str) -> str:
+    """How a loop's return header appears in state: by the loop's first pump, `return:<id>`."""
+    return f"return:{pump}"
+
+
 @dataclass(frozen=True, slots=True)
 class Variable:
     """A top-level FMU input or output and what it means."""
@@ -82,7 +87,7 @@ class Partition:
     inputs: tuple[Variable, ...]
     outputs: tuple[Variable, ...]
     state: dict[str, dict[str, str]]
-    """Asset (or `room:<id>`) -> start parameter -> FMU variable to read it from."""
+    """Asset (`room:<id>`, `return:<pump>`) -> start parameter -> FMU variable holding it."""
     start: dict[str, dict[str, str]]
     """Asset (or `room:<id>`) -> start parameter -> FMU parameter to write it to."""
     power: dict[str, str]
@@ -423,8 +428,9 @@ def _generate(
             decls.append(f"  output Real {hdr}_T;")
             eqs.append(f"  {hdr}_T = {hdr}.T;")
             outputs.extend(Variable(f"{hdr}_T", p, "TRet", "real", "K") for p in h.pumps)
-            state[hdr] = {"T_start": f"{hdr}.vol.T"}
-            start[hdr] = {"T_start": f"{hdr}.T_start"}
+            key = return_key(pump)
+            state[key] = {"T_start": f"{hdr}.vol.T"}
+            start[key] = {"T_start": f"{hdr}.T_start"}
         else:
             inlet = next(i for i, _ in b.units[pump].behaviour.passages)
             decls.append(f'  GwsLib.Expansion exp{n} "pressure reference {why}";')

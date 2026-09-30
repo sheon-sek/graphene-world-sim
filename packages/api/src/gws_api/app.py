@@ -8,17 +8,18 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from gws_api import world_model
+from gws_api import runtime, world_model
 from gws_world_model.store import SqliteStore
 
 TITLE = "Graphene World Sim API"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 
 def create_app(store: SqliteStore | None = None) -> FastAPI:
     app = FastAPI(title=TITLE, version=VERSION)
     app.state.store = store if store is not None else SqliteStore()
     app.include_router(world_model.router, prefix="/api")
+    app.include_router(runtime.router, prefix="/api")
     return app
 
 

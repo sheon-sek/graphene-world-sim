@@ -30,6 +30,11 @@
           "max": 20,
           "min": -20,
           "unit": "K"
+        },
+        "signal": {
+          "default": "TSupAir,Supply Air Temperature",
+          "change_class": "live",
+          "description": "Model signals or point members the faulty sensor measures."
         }
       }
     },
