@@ -1,9 +1,6 @@
-/** Placeholder shell. The Engineering and Operations workspaces arrive in Phase 5 (#6). */
+import { HeroPage } from "./hero/HeroPage";
+
+/** Until the workspaces land (#19), the application opens on the hero data hall (#73). */
 export function App() {
-  return (
-    <main>
-      <h1>Graphene World Simulator</h1>
-      <p>The web application is built in Phase 5.</p>
-    </main>
-  );
+  return <HeroPage />;
 }
