@@ -96,12 +96,18 @@ def test_a_session_is_served_with_timestamps_scope_and_commands(
             assert attached["session"] == sid and attached["points"] == 8811
             frame = http.post(f"{API}/runtime/sessions/{sid}/step", json={"steps": 3}).json()
 
+            expected = frame["points"][IT_LOAD]["value"]
+
             async def published() -> bool:
-                return bool((await _read(client, IT_LOAD)).StatusCode.is_good())
+                # Attaching publishes the t=0 frame first; wait for the stepped one.
+                value = await _read(client, IT_LOAD)
+                return bool(
+                    value.StatusCode.is_good()
+                    and value.Value.Value == pytest.approx(expected, rel=1e-5)
+                )
 
             await _eventually(published)
             load = await _read(client, IT_LOAD)
-            assert load.Value.Value == pytest.approx(frame["points"][IT_LOAD]["value"], rel=1e-5)
             now = datetime.now(UTC)
             assert load.SourceTimestamp is not None
             assert abs(load.SourceTimestamp - now) < timedelta(seconds=30)
