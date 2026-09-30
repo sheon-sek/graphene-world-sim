@@ -34,6 +34,48 @@ jobs:
           node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @gws/web api:check
       - run: pnpm --filter @gws/web typecheck
       - run: pnpm --filter @gws/web test
       - run: pnpm --filter @gws/web build
+
+  # The Phase 5 gate (#58): add, configure, connect, run, fault, observe and recover on the
+  # DH01 slice, in a browser, against the real API and runtime. Compiling the slice needs the
+  # OpenModelica toolchain of ADR-0002; the FMU cache is content-addressed, so a restored
+  # cache serves every partition whose generated source has not changed.
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      GWS_OMC_IMAGE: gws-omc:1.25
+      GWS_FMU_CACHE: ${{ github.workspace }}/.fmu-cache
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          python-version: "3.12"
+      - run: uv sync --locked
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .fmu-cache
+          key: fmu-${{ hashFiles('packages/sim-runtime/src/gws_runtime/**/*.py', 'packages/sim-runtime/src/gws_runtime/modelica/**', 'packages/world-model/src/**/*.py', 'data/graphene/**', 'apps/web/e2e/**', 'spikes/phase1/Dockerfile') }}
+          restore-keys: fmu-
+      - run: docker build -t gws-omc:1.25 spikes/phase1
+      - run: pnpm --filter @gws/web build
+      - run: pnpm --filter @gws/web exec playwright install --with-deps chromium
+      - run: pnpm web:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7

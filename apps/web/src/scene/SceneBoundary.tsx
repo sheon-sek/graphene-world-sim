@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { fallBackToWebGL } from "./renderer";
+import { fallBackToWebGL } from "./backend";
 
 /** Catches a failure inside the 3D view: retries on WebGL2, or shows why it stopped. */
 export class SceneBoundary extends Component<{ children: ReactNode }, { error: string | null }> {

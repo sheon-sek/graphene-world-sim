@@ -106,3 +106,9 @@ def test_history_propagation_and_diagnostics(client: TestClient) -> None:
     diagnostics = client.get(f"{API}/sessions/{sid}/diagnostics").json()
     assert diagnostics["timings"]["steps"] == 25 and diagnostics["real_time_factor"] > 0
     assert "UPS/UPS 1" in diagnostics["not_modelled"] and diagnostics["last_error"] is None
+
+
+def test_presets_name_the_slice(client: TestClient) -> None:
+    [preset] = client.get(f"{API}/presets").json()
+    assert preset["id"] == "dh01-slice" and "FCU/L1_FCU1" in preset["scope"]
+    assert preset["conditions"] == {"it_fraction": {"DH01": 0.3}}

@@ -25,6 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.websockets import WebSocketDisconnect
 
 from gws_api.history import History
+from gws_runtime import gate
 from gws_runtime.compiler import CompileError
 from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session
 from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
@@ -252,6 +253,40 @@ def _steps(live: _Live, steps: int) -> dict[str, Any]:
 def _start(live: _Live) -> None:
     if live.task is None or live.task.done():
         live.task = asyncio.get_running_loop().create_task(_runner(live))
+
+
+class Preset(BaseModel):
+    id: str
+    name: str
+    description: str
+    scope: list[str]
+    dt: float
+    room: str
+    conditions: dict[str, Any]
+    """Operating conditions to set after creating the session (`PUT .../conditions`)."""
+
+
+PRESETS = [
+    Preset(
+        id="dh01-slice",
+        name="DH01 cooling slice",
+        description=(
+            "Chiller 1 with its legs, the buffer tanks, the secondary pump, cooling block 1, "
+            "FCU1 and CCU-001, five towers and DH01's IT load at "
+            f"{gate.IT_FRACTION:.0%} of design."
+        ),
+        scope=list(gate.SLICE),
+        dt=gate.DT,
+        room="DH01",
+        conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+    )
+]
+
+
+@router.get("/presets", response_model=list[Preset])
+def presets() -> list[Preset]:
+    """Scopes worth simulating, with the step and conditions they were validated at."""
+    return PRESETS
 
 
 # --- sessions ----------------------------------------------------------------------------------

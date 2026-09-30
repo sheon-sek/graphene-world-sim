@@ -3,7 +3,7 @@ name = "gws-api"
 version = "0.0.0"
 description = "HTTP API for the World Model and the runtime, used by the web application."
 requires-python = ">=3.12"
-dependencies = ["gws-world-model", "gws-runtime", "gws-opcua", "fastapi==0.120.0", "uvicorn==0.37.0"]
+dependencies = ["gws-world-model", "gws-runtime", "gws-opcua", "fastapi==0.120.0", "uvicorn==0.37.0", "websockets==15.0.1"]
 
 [build-system]
 requires = ["hatchling>=1.25"]

@@ -1466,6 +1466,53 @@
         "title": "PortSpec",
         "type": "object"
       },
+      "Preset": {
+        "properties": {
+          "conditions": {
+            "additionalProperties": true,
+            "title": "Conditions",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "dt": {
+            "title": "Dt",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "room": {
+            "title": "Room",
+            "type": "string"
+          },
+          "scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "scope",
+          "dt",
+          "room",
+          "conditions"
+        ],
+        "title": "Preset",
+        "type": "object"
+      },
       "Put": {
         "additionalProperties": false,
         "description": "Add an entity, or replace it whole. Its key is its `id` (`path` for point bindings).",
@@ -2476,6 +2523,32 @@
         "summary": "Attach",
         "tags": [
           "opcua"
+        ]
+      }
+    },
+    "/api/runtime/presets": {
+      "get": {
+        "description": "Scopes worth simulating, with the step and conditions they were validated at.",
+        "operationId": "presets_api_runtime_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Preset"
+                  },
+                  "title": "Response Presets Api Runtime Presets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Presets",
+        "tags": [
+          "runtime"
         ]
       }
     },
