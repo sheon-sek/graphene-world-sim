@@ -121,6 +121,9 @@ class Supplement(BaseModel):
     connections: list[Connection] = []
     instruments: list[Instrument] = []
     control_bindings: list[ControlBinding] = []
+    member_units: dict[str, dict[str, str]] = {}
+    """Units the Ignition export leaves off a UDT's members, by type id, then member path. A
+    unit is only filled in where the export has none."""
 
     @classmethod
     def load_all(cls, directory: Path = SUPPLEMENTS) -> list[Supplement]:
@@ -176,14 +179,22 @@ def _access(point_class: PointClass) -> Access:
     return Access.READ_WRITE if point_class is PointClass.COMMAND else Access.READ
 
 
-def _templates(ctype: ComponentType, export: IgnitionExport) -> dict[str, PointTemplate]:
+def _templates(
+    ctype: ComponentType, export: IgnitionExport, fill: dict[str, str], problems: list[str]
+) -> dict[str, PointTemplate]:
     udt = export.types.get(ctype.ignition_type_id or "")
     if udt is None:
         return {}
+    for member in fill.keys() - udt.members.keys():
+        problems.append(f"supplement sets the unit of {ctype.id} member {member!r}, which it lacks")
     templates = {}
     for member, tag in udt.members.items():
         data_type = tag.get("dataType") or "Int4"
-        unit = tag.get("engUnit") or None
+        if tag.get("engUnit") and member in fill:
+            problems.append(
+                f"supplement sets the unit of {ctype.id} member {member!r}, which has one"
+            )
+        unit = tag.get("engUnit") or fill.get(member) or None
         point_class = classify(
             path=member,
             name=member.rsplit("/", 1)[-1],
@@ -296,19 +307,23 @@ def _point_bindings(
     assets: dict[str, Asset],
     types: dict[str, ComponentType],
     binder: _Binder,
+    member_units: dict[str, dict[str, str]],
 ) -> dict[str, PointBinding]:
     bindings = {}
     for p in export.points.values():
         support = in_support_folder(p.path)
+        unit = p.eng_unit
         if p.asset is not None:
             support = support or types[assets[p.asset].type].category is AssetCategory.SUPPORT
+            if unit is None and p.member is not None:
+                unit = member_units.get(assets[p.asset].type, {}).get(p.member)
         point_class = classify(
             path=p.path,
             name=p.name,
             type_id=p.type_id,
             data_type=p.data_type,
             value_source=p.value_source,
-            unit=p.eng_unit,
+            unit=unit,
             support=support,
         )
         source: PointSource | None
@@ -323,7 +338,7 @@ def _point_bindings(
         bindings[p.path] = PointBinding(
             path=p.path,
             data_type=p.data_type,
-            unit=p.eng_unit,
+            unit=unit,
             point_class=point_class,
             access=_access(point_class),
             ignition_type_id=p.type_id,
@@ -389,8 +404,20 @@ def build(
     extra = Bindings.load() if bindings is None else bindings
     added = Supplement.load_all() if supplements is None else supplements
     problems: list[str] = []
+    member_units: dict[str, dict[str, str]] = {}
+    for sup in added:
+        for type_id, units in sup.member_units.items():
+            if type_id not in library_types:
+                problems.append(f"supplement sets member units of unknown type {type_id!r}")
+            member_units.setdefault(type_id, {}).update(units)
     component_types = {
-        t.id: t.model_copy(update={"point_template": _templates(t, sources.export)})
+        t.id: t.model_copy(
+            update={
+                "point_template": _templates(
+                    t, sources.export, member_units.get(t.id, {}), problems
+                )
+            }
+        )
         for t in library_types.values()
     }
     assets = _assets(sources.design)
@@ -419,7 +446,7 @@ def build(
         instruments={i.id: i for i in extra.instruments} | instruments,
         control_bindings={b.id: b for b in extra.control_bindings} | control_bindings,
         point_bindings=_point_bindings(
-            sources.export, assets, component_types, _Binder(extra.rules)
+            sources.export, assets, component_types, _Binder(extra.rules), member_units
         ),
         conditions=_conditions(sources.design),
     )

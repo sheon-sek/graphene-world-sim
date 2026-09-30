@@ -12,12 +12,15 @@ class with another connection.
 from __future__ import annotations
 
 import sqlite3
+import threading
 import uuid
 import zlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
+from typing import Concatenate
 
 from gws_world_model.changes import Change, diff
 from gws_world_model.model import WorldModel
@@ -98,20 +101,39 @@ def _unpack(blob: bytes) -> WorldModel:
     return WorldModel.model_validate_json(zlib.decompress(blob))
 
 
+type _Method[**P, R] = Callable[Concatenate[SqliteStore, P], R]
+
+
+def _serialised[**P, R](method: _Method[P, R]) -> _Method[P, R]:
+    """Run the method holding the store's lock: one connection is shared by the API's threads."""
+
+    def locked(self: SqliteStore, /, *args: P.args, **kwargs: P.kwargs) -> R:
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return locked
+
+
 class SqliteStore:
+    """Safe to share between threads: every call holds the store's lock."""
+
     def __init__(self, path: str | Path = ":memory:") -> None:
+        self._lock = threading.RLock()
         self._db = sqlite3.connect(str(path), check_same_thread=False)
         self._db.executescript(SCHEMA)
 
+    @_serialised
     def close(self) -> None:
         self._db.close()
 
     # --- revisions ---------------------------------------------------------------------------
 
+    @_serialised
     def head(self) -> int | None:
         row = self._db.execute("SELECT MAX(number) FROM revisions").fetchone()
         return None if row[0] is None else int(row[0])
 
+    @_serialised
     def create_revision(
         self, doc: WorldModel, message: str, author: str = "system"
     ) -> RevisionInfo:
@@ -121,6 +143,7 @@ class SqliteStore:
             raise Invalid(problems)
         return self._append(doc, message, author, self.head())
 
+    @_serialised
     def _append(
         self, doc: WorldModel, message: str, author: str, parent: int | None
     ) -> RevisionInfo:
@@ -133,6 +156,7 @@ class SqliteStore:
             )
         return info
 
+    @_serialised
     def revisions(self) -> list[RevisionInfo]:
         rows = self._db.execute(
             "SELECT number, parent, created_at, author, message, content_hash "
@@ -140,6 +164,7 @@ class SqliteStore:
         )
         return [RevisionInfo(*row) for row in rows]
 
+    @_serialised
     def info(self, number: int) -> RevisionInfo:
         row = self._db.execute(
             "SELECT number, parent, created_at, author, message, content_hash "
@@ -150,6 +175,7 @@ class SqliteStore:
             raise NotFound(f"revision {number}")
         return RevisionInfo(*row)
 
+    @_serialised
     def get(self, number: int) -> WorldModel:
         row = self._db.execute(
             "SELECT document FROM revisions WHERE number = ?", (number,)
@@ -158,11 +184,13 @@ class SqliteStore:
             raise NotFound(f"revision {number}")
         return _unpack(bytes(row[0]))
 
+    @_serialised
     def diff(self, old: int, new: int) -> list[Change]:
         return diff(self.get(old), self.get(new))
 
     # --- drafts ------------------------------------------------------------------------------
 
+    @_serialised
     def create_draft(self, base: int | None = None, author: str = "system") -> Draft:
         base = self.head() if base is None else base
         if base is None:
@@ -177,6 +205,7 @@ class SqliteStore:
             )
         return draft
 
+    @_serialised
     def draft(self, draft_id: str) -> Draft:
         row = self._db.execute(
             "SELECT id, base, created_at, updated_at, author, operations FROM drafts WHERE id = ?",
@@ -187,10 +216,12 @@ class SqliteStore:
         ops = tuple(OPERATIONS.validate_json(row[5]))
         return Draft(row[0], row[1], row[2], row[3], row[4], ops)
 
+    @_serialised
     def drafts(self) -> list[Draft]:
         ids = [row[0] for row in self._db.execute("SELECT id FROM drafts ORDER BY created_at")]
         return [self.draft(i) for i in ids]
 
+    @_serialised
     def add_operations(self, draft_id: str, operations: list[Operation]) -> Draft:
         """Append edits to a draft. They must apply cleanly to the draft's current document."""
         current = self.draft(draft_id)
@@ -203,17 +234,21 @@ class SqliteStore:
             )
         return self.draft(draft_id)
 
+    @_serialised
     def draft_document(self, draft_id: str) -> WorldModel:
         d = self.draft(draft_id)
         return apply(self.get(d.base), list(d.operations))
 
+    @_serialised
     def draft_diff(self, draft_id: str) -> list[Change]:
         d = self.draft(draft_id)
         return diff(self.get(d.base), self.draft_document(draft_id))
 
+    @_serialised
     def draft_issues(self, draft_id: str) -> list[Issue]:
         return validate(self.draft_document(draft_id))
 
+    @_serialised
     def commit(self, draft_id: str, message: str, author: str | None = None) -> RevisionInfo:
         d = self.draft(draft_id)
         if d.base != self.head():
@@ -226,6 +261,7 @@ class SqliteStore:
         self.discard(draft_id)
         return info
 
+    @_serialised
     def discard(self, draft_id: str) -> None:
         self.draft(draft_id)
         with self._db:

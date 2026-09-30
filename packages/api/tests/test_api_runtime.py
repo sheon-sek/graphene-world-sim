@@ -84,3 +84,31 @@ def test_stream_pushes_frames_while_running(client: TestClient) -> None:
     assert steps == sorted(steps) and steps[0] >= 1
     assert client.get(f"{API}/sessions/{sid}").json()["running"] is False
     assert client.delete(f"{API}/sessions/{sid}").status_code == 204
+
+
+def test_history_propagation_and_diagnostics(client: TestClient) -> None:
+    sid = _session(client)
+    client.post(f"{API}/sessions/{sid}/step", json={"steps": 5})
+    client.put(f"{API}/sessions/{sid}/conditions", json={"utility_available": False})
+    client.post(f"{API}/sessions/{sid}/step", json={"steps": 20})
+
+    series = [{"asset": "UPS/UPS 1", "signal": "P_in"}, {"point": "UPS/UPS 1/Frequency"}]
+    history = client.post(f"{API}/sessions/{sid}/history", json={"series": series}).json()
+    assert history["t"][0] == 0.0 and history["t"][-1] == 25.0 and len(history["t"]) == 26
+    assert history["series"][1]["path"] == "UPS/UPS 1/Frequency"
+    bad = client.post(f"{API}/sessions/{sid}/history", json={"series": [{"asset": "UPS/UPS 1"}]})
+    assert bad.status_code == 422
+
+    order = client.get(f"{API}/sessions/{sid}/propagation", params={"since": 5}).json()
+    assert order[0]["asset"] == "UPS/UPS 1" and order[0]["t"] == 6.0
+    assert client.get(f"{API}/sessions/{sid}/alarms", params={"state": "active"}).json() == []
+
+    diagnostics = client.get(f"{API}/sessions/{sid}/diagnostics").json()
+    assert diagnostics["timings"]["steps"] == 25 and diagnostics["real_time_factor"] > 0
+    assert "UPS/UPS 1" in diagnostics["not_modelled"] and diagnostics["last_error"] is None
+
+
+def test_presets_name_the_slice(client: TestClient) -> None:
+    [preset] = client.get(f"{API}/presets").json()
+    assert preset["id"] == "dh01-slice" and "FCU/L1_FCU1" in preset["scope"]
+    assert preset["conditions"] == {"it_fraction": {"DH01": 0.3}}

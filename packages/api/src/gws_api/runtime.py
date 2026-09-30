@@ -6,6 +6,9 @@ not already in the FMU cache, which can take minutes the first time. While a ses
 a background task steps it, paced by its speed, and pushes every frame to the WebSocket
 subscribers of `/stream`. Every call that changes the trajectory is recorded in the session's
 event log, so `/replay` rebuilds the same trajectory.
+
+Every frame a session produces is also kept in its History (the last two hours at a one second
+step), which serves trends, the alarm log and the propagation timeline.
 """
 
 from __future__ import annotations
@@ -13,23 +16,27 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import itertools
-from typing import Annotated, Any
+import time
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, WebSocket
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.websockets import WebSocketDisconnect
 
+from gws_api.history import History
+from gws_runtime import gate
 from gws_runtime.compiler import CompileError
-from gws_runtime.lifecycle import Session
-from gws_runtime.master import RuntimeProblem
+from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session
+from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
+from gws_world_model.model import AssetSignal, InstrumentSource, PointClass
 from gws_world_model.store import NotFound, SqliteStore
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
 
 
 class _Live:
-    """A session with its runner task, lock and stream subscribers."""
+    """A session with its runner task, lock, stream subscribers and history."""
 
     def __init__(self, sid: str, session: Session) -> None:
         self.id = sid
@@ -37,8 +44,44 @@ class _Live:
         self.lock = asyncio.Lock()
         self.task: asyncio.Task[None] | None = None
         self.subscribers: set[asyncio.Queue[dict[str, Any]]] = set()
+        self.history = History()
+        self.last_error: dict[str, Any] | None = None
+        self.created = time.monotonic()
+        self._alarm_points: tuple[Simulation, dict[str, str | None]] | None = None
+        self.record(session.sim.frame().to_json())
+
+    def alarm_points(self) -> dict[str, str | None]:
+        """The scope's fault-alarm points and the asset each belongs to."""
+        sim = self.session.sim
+        if self._alarm_points is None or self._alarm_points[0] is not sim:
+            doc = sim.doc
+            found: dict[str, str | None] = {}
+            for path, b in doc.point_bindings.items():
+                if b.point_class is not PointClass.FAULT_ALARM:
+                    continue
+                src = b.source
+                asset = None
+                if isinstance(src, AssetSignal):
+                    asset = src.asset
+                elif isinstance(src, InstrumentSource):
+                    asset = doc.instruments[src.instrument].asset
+                if asset in sim.scope:
+                    found[path] = asset
+            self._alarm_points = (sim, found)
+        return self._alarm_points[1]
+
+    def context(self, t: float) -> dict[str, Any] | None:
+        """The latest trajectory event at or before `t`: what an alarm most likely follows."""
+        for event in reversed(self.session.events):
+            if event.t <= t and event.kind in TRAJECTORY_EVENTS:
+                return event.to_json()
+        return None
+
+    def record(self, frame: dict[str, Any]) -> None:
+        self.history.record(frame, self.alarm_points, self.context)
 
     def publish(self, frame: dict[str, Any]) -> None:
+        self.record(frame)
         for q in list(self.subscribers):
             if q.full():
                 with contextlib.suppress(asyncio.QueueEmpty):
@@ -161,11 +204,19 @@ def _live(runtime: Registry, sid: str) -> _Live:
     return live
 
 
+def _error(during: str, e: BaseException) -> dict[str, Any]:
+    return {"during": during, "type": type(e).__name__, "message": str(e).strip("'\"")}
+
+
 async def _do(live: _Live, fn: Any, *args: Any, **kwargs: Any) -> Any:
-    """Run a session call off the event loop, one at a time, mapping runtime errors to 422."""
+    """Run a session call off the event loop, one at a time, mapping runtime errors to 422.
+    A model that fails to compile is kept as the session's last error, log excerpt included."""
     async with live.lock:
         try:
             return await run_in_threadpool(fn, *args, **kwargs)
+        except CompileError as e:
+            live.last_error = _error(getattr(fn, "__name__", "call"), e)
+            raise HTTPException(422, live.last_error["message"]) from e
         except (RuntimeProblem, KeyError, ValueError) as e:
             raise HTTPException(422, str(e).strip("'\"")) from e
 
@@ -177,7 +228,12 @@ async def _runner(live: _Live) -> None:
     while session.running:
         began = loop.time()
         async with live.lock:
-            frame = await run_in_threadpool(session.step, 1)
+            try:
+                frame = await run_in_threadpool(session.step, 1)
+            except Exception as e:  # noqa: BLE001 - a failed step stops the run, not the server
+                session.running = False
+                live.last_error = _error("step", e)
+                return
         live.publish(frame.to_json())
         if session.speed > 0:
             await asyncio.sleep(max(session.sim.dt / session.speed - (loop.time() - began), 0.0))
@@ -185,9 +241,52 @@ async def _runner(live: _Live) -> None:
             await asyncio.sleep(0)
 
 
+def _steps(live: _Live, steps: int) -> dict[str, Any]:
+    """Step `steps` times, keeping every frame in the history; the last one is returned for
+    the caller to publish."""
+    for _ in range(steps - 1):
+        live.record(live.session.step(1).to_json())
+    data: dict[str, Any] = live.session.step(1).to_json()
+    return data
+
+
 def _start(live: _Live) -> None:
     if live.task is None or live.task.done():
         live.task = asyncio.get_running_loop().create_task(_runner(live))
+
+
+class Preset(BaseModel):
+    id: str
+    name: str
+    description: str
+    scope: list[str]
+    dt: float
+    room: str
+    conditions: dict[str, Any]
+    """Operating conditions to set after creating the session (`PUT .../conditions`)."""
+
+
+PRESETS = [
+    Preset(
+        id="dh01-slice",
+        name="DH01 cooling slice",
+        description=(
+            "Chiller 1 with its legs, the buffer tanks, the secondary pump, cooling block 1, "
+            "FCU1 and CCU-001, five towers and DH01's IT load at "
+            f"{gate.IT_FRACTION:.0%} of design."
+        ),
+        scope=list(gate.SLICE),
+        dt=gate.DT,
+        room="DH01",
+        conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+    )
+]
+
+
+@router.get("/presets", response_model=list[Preset])
+def presets() -> list[Preset]:
+    """Scopes worth simulating, with the step and conditions they were validated at."""
+    return PRESETS
 
 
 # --- sessions ----------------------------------------------------------------------------------
@@ -256,8 +355,7 @@ async def step(
     live = _live(runtime, sid)
     if live.session.running:
         raise HTTPException(409, "the session is running; pause it to step")
-    frame = await _do(live, live.session.step, (body or StepIn()).steps)
-    data: dict[str, Any] = frame.to_json()
+    data: dict[str, Any] = await _do(live, _steps, live, (body or StepIn()).steps)
     live.publish(data)
     return data
 
@@ -388,6 +486,107 @@ async def conditions(
     await _do(live, live.session.apply, "conditions", {"changes": changes})
     result: dict[str, Any] = live.session.sim.conditions.snapshot()
     return result
+
+
+# --- history, alarms, propagation, diagnostics ------------------------------------------------
+
+
+class SeriesKey(_In):
+    point: str | None = Field(default=None, description="A point path; or `asset` and `signal`.")
+    asset: str | None = None
+    signal: str | None = None
+
+
+class HistoryIn(_In):
+    series: list[SeriesKey] = Field(min_length=1, max_length=64)
+    since: float | None = Field(default=None, description="Simulated seconds; default: all kept.")
+    until: float | None = None
+    max_points: int = Field(default=2000, ge=2, le=20_000)
+
+
+@router.post("/sessions/{sid}/history")
+def history(sid: str, body: HistoryIn, runtime: Runtime) -> dict[str, Any]:
+    """Recorded values of points and state signals, thinned to `max_points` samples. A value is
+    null where the series had none (not published yet, or not a number)."""
+    live = _live(runtime, sid)
+    keys: list[tuple[str, str, str]] = []
+    for k in body.series:
+        if k.point is not None:
+            keys.append(("point", k.point, ""))
+        elif k.asset is not None and k.signal is not None:
+            keys.append(("state", k.asset, k.signal))
+        else:
+            raise HTTPException(422, "each series needs `point`, or `asset` and `signal`")
+    result = live.history.series(keys, body.since, body.until, body.max_points)
+    span = live.history.span
+    result["span"] = list(span) if span else None
+    return result
+
+
+@router.get("/sessions/{sid}/alarms")
+def alarms(
+    sid: str, runtime: Runtime, state: Literal["all", "active"] = "all"
+) -> list[dict[str, Any]]:
+    """Alarms raised by the scope's fault-alarm points, newest first, each with the trajectory
+    event that preceded it."""
+    live = _live(runtime, sid)
+    found = [a.to_json() for a in reversed(live.history.alarms)]
+    return [a for a in found if a["active"]] if state == "active" else found
+
+
+@router.get("/sessions/{sid}/propagation")
+def propagation(
+    sid: str, runtime: Runtime, since: float, until: float | None = None
+) -> list[dict[str, Any]]:
+    """The order in which the consequences of what happened at `since` reached each asset:
+    every asset whose state moved beyond a threshold, at the first step it did."""
+    live = _live(runtime, sid)
+    sim = live.session.sim
+    units: dict[tuple[str, str], str | None] = dict(sim.units)
+    for kind, asset, signal in live.history.columns:
+        if kind == "state" and (asset, signal) not in units:
+            units[(asset, signal)] = ELECTRICAL_UNITS.get(signal)
+    return live.history.propagation(since, units, until)
+
+
+@router.get("/sessions/{sid}/diagnostics")
+def diagnostics(sid: str, runtime: Runtime) -> dict[str, Any]:
+    """How the session is doing: partitions and their solvers, compile and step times, the
+    real-time factor, what the scope leaves out, and the last error."""
+    live = _live(runtime, sid)
+    sim = live.session.sim
+    timings = sim.timings.to_json()
+    mean = timings["mean"].get("total")
+    return {
+        "id": live.id,
+        "t": sim.t,
+        "step": sim.step_count,
+        "dt": sim.dt,
+        "running": live.session.running,
+        "speed": live.session.speed,
+        "real_time_factor": sim.dt / mean if mean else None,
+        "partitions": [
+            {
+                "name": name,
+                "assets": sorted(part.assets),
+                "rooms": sorted(part.rooms),
+                "compile_seconds": sim.compile_seconds.get(name),
+                "solver_steps": getattr(sim.fmus.get(name), "solver_steps", None),
+                "events": getattr(sim.fmus.get(name), "events", None),
+                "step_seconds": timings["mean"].get(name),
+            }
+            for name, part in sorted(sim.partitions.items())
+        ],
+        "timings": timings,
+        "not_modelled": dict(sim.plan.not_modelled),
+        "missing_blocks": list(sim.missing_blocks),
+        "history": {
+            "frames": min(live.history.count, live.history.capacity),
+            "span": live.history.span,
+        },
+        "subscribers": len(live.subscribers),
+        "last_error": live.last_error,
+    }
 
 
 # --- stream ------------------------------------------------------------------------------------

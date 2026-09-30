@@ -1,6 +1,6 @@
 # Web application and 3D visualisation stack
 
-Status: accepted, with the visual quality to be confirmed by the hero data hall prototype (#73)
+Status: accepted. The owner accepted the visual quality of the hero data hall prototype (#73) on 2026-09-30.
 Date: 2026-09-29
 
 ## Context

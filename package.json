@@ -4,6 +4,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "web:dev": "pnpm --filter @gws/web dev",
-    "web:check": "pnpm --filter @gws/web typecheck && pnpm --filter @gws/web test && pnpm --filter @gws/web build"
+    "web:check": "pnpm --filter @gws/web api:check && pnpm --filter @gws/web typecheck && pnpm --filter @gws/web test && pnpm --filter @gws/web build",
+    "web:e2e": "pnpm --filter @gws/web e2e"
   }
 }

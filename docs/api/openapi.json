@@ -774,6 +774,55 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HistoryIn": {
+        "additionalProperties": false,
+        "properties": {
+          "max_points": {
+            "default": 2000,
+            "maximum": 20000.0,
+            "minimum": 2.0,
+            "title": "Max Points",
+            "type": "integer"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesKey"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Series",
+            "type": "array"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Simulated seconds; default: all kept.",
+            "title": "Since"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          }
+        },
+        "required": [
+          "series"
+        ],
+        "title": "HistoryIn",
+        "type": "object"
+      },
       "Instrument": {
         "additionalProperties": false,
         "description": "A sensor or status reading on an asset, and the path it reports through.",
@@ -1417,6 +1466,53 @@
         "title": "PortSpec",
         "type": "object"
       },
+      "Preset": {
+        "properties": {
+          "conditions": {
+            "additionalProperties": true,
+            "title": "Conditions",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "dt": {
+            "title": "Dt",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "room": {
+            "title": "Room",
+            "type": "string"
+          },
+          "scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "scope",
+          "dt",
+          "room",
+          "conditions"
+        ],
+        "title": "Preset",
+        "type": "object"
+      },
       "Put": {
         "additionalProperties": false,
         "description": "Add an entity, or replace it whole. Its key is its `id` (`path` for point bindings).",
@@ -1636,6 +1732,47 @@
             "type": "string"
           }
         ]
+      },
+      "SeriesKey": {
+        "additionalProperties": false,
+        "properties": {
+          "asset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset"
+          },
+          "point": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A point path; or `asset` and `signal`.",
+            "title": "Point"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal"
+          }
+        },
+        "title": "SeriesKey",
+        "type": "object"
       },
       "SessionIn": {
         "additionalProperties": false,
@@ -2389,6 +2526,32 @@
         ]
       }
     },
+    "/api/runtime/presets": {
+      "get": {
+        "description": "Scopes worth simulating, with the step and conditions they were validated at.",
+        "operationId": "presets_api_runtime_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Preset"
+                  },
+                  "title": "Response Presets Api Runtime Presets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Presets",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
     "/api/runtime/sessions": {
       "get": {
         "operationId": "list_sessions_api_runtime_sessions_get",
@@ -2528,6 +2691,68 @@
         ]
       }
     },
+    "/api/runtime/sessions/{sid}/alarms": {
+      "get": {
+        "description": "Alarms raised by the scope's fault-alarm points, newest first, each with the trajectory\nevent that preceded it.",
+        "operationId": "alarms_api_runtime_sessions__sid__alarms_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "active"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Alarms Api Runtime Sessions  Sid  Alarms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Alarms",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
     "/api/runtime/sessions/{sid}/commands": {
       "post": {
         "operationId": "command_api_runtime_sessions__sid__commands_post",
@@ -2625,6 +2850,51 @@
           }
         },
         "summary": "Conditions",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/runtime/sessions/{sid}/diagnostics": {
+      "get": {
+        "description": "How the session is doing: partitions and their solvers, compile and step times, the\nreal-time factor, what the scope leaves out, and the last error.",
+        "operationId": "diagnostics_api_runtime_sessions__sid__diagnostics_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Diagnostics Api Runtime Sessions  Sid  Diagnostics Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Diagnostics",
         "tags": [
           "runtime"
         ]
@@ -2829,6 +3099,61 @@
         ]
       }
     },
+    "/api/runtime/sessions/{sid}/history": {
+      "post": {
+        "description": "Recorded values of points and state signals, thinned to `max_points` samples. A value is\nnull where the series had none (not published yet, or not a number).",
+        "operationId": "history_api_runtime_sessions__sid__history_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response History Api Runtime Sessions  Sid  History Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "History",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
     "/api/runtime/sessions/{sid}/pause": {
       "post": {
         "operationId": "pause_api_runtime_sessions__sid__pause_post",
@@ -2866,6 +3191,79 @@
           }
         },
         "summary": "Pause",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/runtime/sessions/{sid}/propagation": {
+      "get": {
+        "description": "The order in which the consequences of what happened at `since` reached each asset:\nevery asset whose state moved beyond a threshold, at the first step it did.",
+        "operationId": "propagation_api_runtime_sessions__sid__propagation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": true,
+            "schema": {
+              "title": "Since",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "until",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Until"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Propagation Api Runtime Sessions  Sid  Propagation Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Propagation",
         "tags": [
           "runtime"
         ]

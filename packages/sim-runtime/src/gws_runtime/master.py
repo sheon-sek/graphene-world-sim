@@ -32,6 +32,7 @@ only on their own target, and every consequence comes from the models and the co
 from __future__ import annotations
 
 import math
+import time
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -158,6 +159,42 @@ class _View:
         return self.sim.units.get((asset, alias)) or ELECTRICAL_UNITS.get(alias)
 
 
+class _Clock:
+    def __init__(self) -> None:
+        self.began = self.last = time.perf_counter()
+        self.laps: dict[str, float] = {}
+
+    def lap(self, phase: str) -> None:
+        now = time.perf_counter()
+        self.laps[phase] = now - self.last
+        self.last = now
+
+
+@dataclass
+class StepTimings:
+    """Wall-clock seconds per step and per phase (electrical, each partition, instrumentation,
+    controllers): the last step, a moving average, and the slowest step so far."""
+
+    steps: int = 0
+    last: dict[str, float] = field(default_factory=dict)
+    mean: dict[str, float] = field(default_factory=dict)
+    slowest: float = 0.0
+
+    def start(self) -> _Clock:
+        return _Clock()
+
+    def record(self, clock: _Clock) -> None:
+        self.last = {**clock.laps, "total": clock.last - clock.began}
+        k = 1.0 if self.steps == 0 else 0.1
+        for phase, seconds in self.last.items():
+            self.mean[phase] = self.mean.get(phase, seconds) * (1 - k) + seconds * k
+        self.slowest = max(self.slowest, self.last["total"])
+        self.steps += 1
+
+    def to_json(self) -> dict[str, Any]:
+        return {"steps": self.steps, "last": self.last, "mean": self.mean, "slowest": self.slowest}
+
+
 class Simulation:
     """The runtime for one scope of a World Model revision."""
 
@@ -181,9 +218,12 @@ class Simulation:
         self.cache = cache
         self.plan: Plan = plan(doc, self.scope)
         self.partitions: dict[str, Partition] = {p.name: p for p in self.plan.partitions}
-        self.fmu_paths = {
-            name: compile_partition(p, cache)[0] for name, p in self.partitions.items()
-        }
+        self.fmu_paths: dict[str, Path] = {}
+        self.compile_seconds: dict[str, float] = {}
+        """Seconds each partition took to compile when this simulation was built (0: cached)."""
+        for name, p in self.partitions.items():
+            self.fmu_paths[name], self.compile_seconds[name] = compile_partition(p, cache)
+        self.timings = StepTimings()
         self.conditions = conditions or Conditions.from_world(doc.conditions)
         self.electrical = ElectricalNetwork.from_world(doc, self.scope)
         self.network = ControlNetwork.from_world(doc)
@@ -575,6 +615,7 @@ class Simulation:
         self._rebuild[name] = wanted
 
     def step(self) -> Frame:
+        clock = self.timings.start()
         dt = self.dt
         t_next = self.t + dt
         for f in self.faults.expire(self.t):
@@ -594,21 +635,26 @@ class Simulation:
                     self.electrical.set_demand(asset, max(float(value), 0.0))
         self.electrical.step(t_next, dt)
         self._electrical = self.electrical.signals()
+        clock.lap("electrical")
 
         # 3. Thermofluid.
         for name in sorted(self.fmus):
             self._maybe_rebuild(name)
             self.fmus[name].set_inputs(self._inputs_for(name))
             self.fmus[name].advance(t_next)
+            clock.lap(name)
 
         self.t = t_next
         self.step_count += 1
         # 4. True state, network, instrumentation.
         self._publish(dt)
+        clock.lap("instrumentation")
         # 5. Controllers.
         bus = _Bus(self)
         for blk in self.blocks:
             blk.step(self.t, dt, bus)
+        clock.lap("controllers")
+        self.timings.record(clock)
         return self.frame()
 
     def run(self, steps: int) -> Frame:
