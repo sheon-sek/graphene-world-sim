@@ -519,7 +519,8 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     log.write_text(result.stdout + result.stderr, encoding="utf-8")
     built = work / f"{partition.name}.fmu"
     if result.returncode != 0 or not built.exists():
-        raise CompileError(f"OpenModelica failed for {partition.name}; see {log}")
+        tail = "\n".join((result.stdout + result.stderr).strip().splitlines()[-20:])
+        raise CompileError(f"OpenModelica failed for {partition.name}; see {log}\n{tail}")
     target = cache / f"{partition.name}.fmu"
     built.replace(target)
     (cache / f"{partition.name}.json").write_text(

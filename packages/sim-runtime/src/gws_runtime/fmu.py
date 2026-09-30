@@ -52,6 +52,9 @@ class FmuUnit:
     ) -> None:
         self.partition = partition
         self.path = path
+        self.solver_steps = 0
+        """Integrator steps taken so far, and the events (state, step or time) handled."""
+        self.events = 0
         md = read_model_description(str(path))
         self._dir = extract(str(path))
         self._vr = {v.name: v.valueReference for v in md.modelVariables}
@@ -192,6 +195,7 @@ class FmuUnit:
         while time < until - 1e-9:
             target = min(until, self._next_event)
             state_event, _, time = self._solver.step(time, target)
+            self.solver_steps += 1
             self.fmu.setTime(time)
             step_event = False
             if self._needs_completed:
@@ -199,6 +203,7 @@ class FmuUnit:
                 if terminate:
                     raise RuntimeError(f"{self.partition.name} requested termination")
             if state_event or step_event or abs(time - self._next_event) < 1e-9:
+                self.events += 1
                 self._discontinuity(time)
         self.time = until
 
