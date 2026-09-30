@@ -494,8 +494,46 @@ loadModel(Buildings, {{"11.1.0"}}); getErrorString();
 loadFile("{gwslib}"); getErrorString();
 loadFile("{model}.mo"); getErrorString();
 setCommandLineOptions("--fmiFlags=s:cvode"); getErrorString();
+setCompiler("gws-cc"); getErrorString();
 buildModelFMU({model}, version="2.0", fmuType="me", fileNamePrefix="{model}",
   platforms={{"static"}}); getErrorString();
+"""
+
+CC = r"""#!/bin/sh
+# The C compiler OpenModelica builds the FMU with: clang, except for the variable table.
+# OpenModelica writes every variable's name, comment and attributes as one straight-line
+# function in <model>_init_fmu.c, a million lines for a whole site, and clang's time grows
+# faster than the function. This splits it into functions of 5,000 lines and compiles it
+# without optimisation (it runs once, at instantiation).
+for a in "$@"; do
+  case "$a" in *_init_fmu.c) init="$a" ;; esac
+done
+if [ -n "$init" ] && ! grep -q '_read_input_fmu_0(' "$init"; then
+  awk -v N=5000 '
+    /^void [A-Za-z0-9_]+_read_input_fmu\(MODEL_DATA\* modelData\)$/ {
+      name = $2; sub(/\(.*/, "", name); getline; k = 0; n = 0; body = 1
+      print "static void " name "_0(MODEL_DATA* modelData)"; print "{"; next
+    }
+    body && /^}$/ {
+      print "}"; print "void " name "(MODEL_DATA* modelData)"; print "{"
+      for (i = 0; i <= k; i++) print "  " name "_" i "(modelData);"
+      print "}"; body = 0; next
+    }
+    body {
+      print
+      if (++n >= N) {
+        k++; n = 0
+        print "}"; print "static void " name "_" k "(MODEL_DATA* modelData)"; print "{"
+      }
+      next
+    }
+    { print }
+  ' "$init" > "$init.split" && mv "$init.split" "$init"
+fi
+if [ -n "$init" ]; then
+  exec clang "$@" -O0
+fi
+exec clang "$@"
 """
 
 
@@ -513,6 +551,9 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     work = Path(tempfile.mkdtemp(prefix=f"{partition.name}-", dir=cache))
     (work / f"{partition.name}.mo").write_text(partition.source, encoding="utf-8")
     shutil.copy(GWSLIB, work / "GwsLib.mo")
+    cc = work / "gws-cc"
+    cc.write_text(CC, encoding="utf-8")
+    cc.chmod(0o755)
     (work / "build.mos").write_text(
         SCRIPT.format(libdir=LIBDIR, gwslib=work / "GwsLib.mo", model=partition.name),
         encoding="utf-8",
@@ -521,7 +562,9 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     if not LIBDIR.startswith("/opt/"):
         mounts.add(LIBDIR)
         mounts.update(str(p.resolve()) for p in Path(LIBDIR).iterdir() if p.is_symlink())
-    cmd = ["docker", "run", "--rm", "-w", str(work)]
+    # OpenModelica passes the compiler to CMake by name, so the wrapper goes on the PATH.
+    path = f"{work}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    cmd = ["docker", "run", "--rm", "-w", str(work), "-e", f"PATH={path}"]
     for m in sorted(mounts):
         cmd += ["-v", f"{m}:{m}"]
     cmd += [IMAGE, "omc", "build.mos"]
