@@ -50,6 +50,7 @@ from gws_runtime.electrical import ElectricalNetwork
 from gws_runtime.faults import Fault, FaultBook
 from gws_runtime.fmu import FmuUnit, Scalar
 from gws_runtime.instrumentation import Instrumentation
+from gws_runtime.netdevices import DeviceTelemetry
 from gws_runtime.network import ControlNetwork
 from gws_runtime.services import UNITS as SERVICE_UNITS
 from gws_runtime.services import Env, SiteServices
@@ -328,6 +329,7 @@ class Simulation:
         self.services = SiteServices.from_world(doc, self.scope)
         self._services: dict[str, dict[str, float | bool | str]] = {}
         self.network = ControlNetwork.from_world(doc)
+        self.telemetry = DeviceTelemetry.from_world(doc, self.network)
         self.instrumentation = Instrumentation(doc, self.network, seed, self.scope)
         self.blocks: list[Block]
         self.blocks, self.missing_blocks = build(doc, self._in_scope)
@@ -863,6 +865,11 @@ class Simulation:
             for signal in service:
                 if signal in SERVICE_UNITS:
                     self.units[(asset, signal)] = SERVICE_UNITS[signal]
+        for asset, device in self.telemetry.signals(self.t, dt, self.state).items():
+            state.setdefault(asset, {}).update(device)
+            for signal in device:
+                if (device_unit := self.telemetry.unit(signal)) is not None:
+                    self.units[(asset, signal)] = device_unit
         for name in sorted(self.fmus):
             unit = self.fmus[name]
             out = unit.outputs()
@@ -971,6 +978,7 @@ class Simulation:
             "electrical": self.electrical.snapshot(),
             "services": self.services.snapshot(),
             "network": self.network.snapshot(),
+            "telemetry": self.telemetry.snapshot(),
             "instrumentation": self.instrumentation.snapshot(),
             "blocks": {b.binding.id: b.snapshot() for b in self.blocks},
         }
@@ -997,6 +1005,7 @@ class Simulation:
         if "services" in snap:
             self.services.restore(snap["services"])
         self.network.restore_state(snap["network"])
+        self.telemetry.restore(snap.get("telemetry", {}))
         self.instrumentation.restore(snap["instrumentation"])
         for b in self.blocks:
             if b.binding.id in snap["blocks"]:
