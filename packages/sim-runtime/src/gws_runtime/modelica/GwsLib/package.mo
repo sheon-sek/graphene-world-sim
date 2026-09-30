@@ -479,6 +479,61 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
     connect(coi.port_b2, air_out);
   end AirHandler;
 
+  model DXCoil
+    "Variable-speed DX cooling coil whose condensate drains as it forms (Buildings'
+    VariableSpeed without the re-evaporation model)"
+    // Buildings.Fluid.DXSystems.Cooling.AirSource.VariableSpeed with its parent
+    // PartialDXCoolingCoil, except for the water balance. The Buildings evaporation model solves
+    // a wet-bulb iteration whenever the compressor is off, which fails to converge from a
+    // stopped compressor or at a stage change in a whole-site model; and its switch that turns
+    // re-evaporation off leaves a variable without an equation (Buildings 11.1.0). Condensate
+    // left on the coil of a sensible-duty CRAC is small, so here it drains immediately.
+    extends Buildings.Fluid.DXSystems.Cooling.BaseClasses.PartialDXCoil(
+      redeclare Buildings.Fluid.DXSystems.Cooling.BaseClasses.DXCooling dxCoi(
+        redeclare final package Medium = Medium,
+        redeclare Buildings.Fluid.DXSystems.Cooling.AirSource.Data.Generic.DXCoil datCoi,
+        final variableSpeedCoil = true,
+        wetCoi(redeclare Buildings.Fluid.DXSystems.BaseClasses.CapacityAirSource coiCap),
+        dryCoi(redeclare Buildings.Fluid.DXSystems.BaseClasses.CapacityAirSource coiCap)),
+      redeclare final Buildings.Fluid.MixingVolumes.MixingVolumeMoistAir vol(
+        prescribedHeatFlowRate = true),
+      redeclare Buildings.Fluid.DXSystems.Cooling.AirSource.Data.Generic.DXCoil datCoi,
+      use_mCon_flow = false,
+      computeReevaporation = false);
+    parameter Real minSpeRat(final min = 0, final max = 1) "Minimum speed ratio";
+    parameter Real speRatDeaBan = 0.05 "Deadband for minimum speed ratio";
+    Modelica.Blocks.Interfaces.RealInput speRat(final unit = "1") "Speed ratio";
+    Modelica.Blocks.Interfaces.RealOutput QLat_flow(final quantity = "Power", final unit = "W")
+      "Latent heat flow rate";
+  protected
+    Buildings.Fluid.DXSystems.Cooling.BaseClasses.InputPower pwr;
+    Modelica.Blocks.Sources.RealExpression X(final y = XIn[i_x]);
+    Modelica.Blocks.Sources.RealExpression h(final y = hIn);
+    Modelica.Blocks.Sources.RealExpression p(final y = port_a.p);
+    Modelica.Blocks.Logical.Hysteresis deaBan(
+      final uLow = minSpeRat - speRatDeaBan / 2,
+      final uHigh = minSpeRat + speRatDeaBan / 2);
+    Modelica.Blocks.Math.BooleanToInteger onSwi(final integerTrue = 1, final integerFalse = 0);
+  equation
+    connect(p.y, dxCoi.p);
+    connect(dxCoi.SHR, pwr.SHR);
+    connect(pwr.QLat_flow, QLat_flow);
+    connect(X.y, dxCoi.XEvaIn);
+    connect(h.y, dxCoi.hEvaIn);
+    connect(T.y, dxCoi.TEvaIn);
+    connect(TOut, dxCoi.TConIn);
+    connect(dxCoi.mWat_flow, vol.mWat_flow);
+    connect(pwr.P, P);
+    connect(pwr.QSen_flow, QSen_flow);
+    connect(dxCoi.Q_flow, q.Q_flow);
+    connect(dxCoi.EIR, pwr.EIR);
+    connect(dxCoi.Q_flow, pwr.Q_flow);
+    connect(speRat, dxCoi.speRat);
+    connect(speRat, deaBan.u);
+    connect(onSwi.y, dxCoi.stage);
+    connect(deaBan.y, onSwi.u);
+  end DXCoil;
+
   model DXUnit "Direct-expansion CRAC: supply fan and a variable-speed DX coil with an air-cooled condenser"
     parameter Modelica.Units.SI.HeatFlowRate Q_flow_nominal "Rated total cooling (positive)";
     parameter Real COP_nominal = 3;
@@ -562,12 +617,15 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
       dp_nominal = 2 * dpAir_nominal,
       T_start = TRet_start,
       VTrip_pu = VTrip_pu);
-    Buildings.Fluid.DXSystems.Cooling.AirSource.VariableSpeed coi(
+    DXCoil coi(
       redeclare package Medium = MediumA,
       datCoi = dat,
       minSpeRat = 0.1,
       dp_nominal = dpAir_nominal,
-      energyDynamics = Modelica.Fluid.Types.Dynamics.SteadyState);
+      energyDynamics = Modelica.Fluid.Types.Dynamics.FixedInitial,
+      T_start = TRet_start)
+      "The coil's air volume keeps its own temperature, so the coil's outlet is a state rather
+      than an iteration through the coil model at every compressor change";
     Buildings.Controls.Continuous.LimPID con(
       controllerType = Modelica.Blocks.Types.SimpleController.PI,
       k = 0.1,

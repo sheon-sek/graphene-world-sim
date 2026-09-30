@@ -184,11 +184,17 @@ class FmuUnit:
         self._solver.reset(time)
 
     def set_inputs(self, values: Mapping[str, Scalar]) -> None:
-        """Inputs for the next step. Only changed values cause an event."""
+        """Inputs for the next step. A changed Boolean input is an event; a changed Real input
+        is set in continuous time, so the integrator keeps its Jacobian (re-initialising it on
+        every controller move costs one derivative evaluation per state)."""
         changed = {k: v for k, v in values.items() if self.applied.get(k) != v}
-        if changed:
-            self._discontinuity(self.time, changed)
-            self.applied.update(changed)
+        discrete = {k: v for k, v in changed.items() if k in self._bools}
+        for name, value in changed.items():
+            if name not in discrete:
+                self._write(name, value)
+        if discrete:
+            self._discontinuity(self.time, discrete)
+        self.applied.update(changed)
 
     def advance(self, until: float) -> None:
         time = self.time
