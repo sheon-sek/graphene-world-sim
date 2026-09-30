@@ -88,6 +88,7 @@ ELECTRICAL_UNITS = {
     "Q_in": "var",
     "I": "A",
     "soc": "1",
+    "load_fraction": "1",
     "energy": "J",
     "V_ln": "V",
     "V_ll": "V",

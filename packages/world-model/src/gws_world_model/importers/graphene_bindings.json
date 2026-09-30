@@ -970,12 +970,46 @@
       "note": "fixed text"
     },
     {
-      "pattern": "Chiller\\ System\\ Control/Sensors/(?:Flow|Pressure|Temperature)/Status",
+      "pattern": "Chiller\\ System\\ Control/Sensors/Flow/Status",
       "source": {
-        "kind": "static",
-        "value": "NORMAL"
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Flow/CHWS FM",
+          "Chiller System Control/Sensors/Flow/CHWR FM",
+          "Chiller System Control/Sensors/Flow/CWS FM",
+          "Chiller System Control/Sensors/Flow/CWR FM"
+        ]
       },
-      "note": "sensor-set health; instrument health is not a model signal yet (a sensor fault shows as bad quality on the reading itself)"
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Pressure/CHWS PS",
+          "Chiller System Control/Sensors/Pressure/CHWR PS",
+          "Chiller System Control/Sensors/Pressure/CWS PS",
+          "Chiller System Control/Sensors/Pressure/CWR PS"
+        ]
+      },
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Temperature/CHWS TS",
+          "Chiller System Control/Sensors/Temperature/CHWR TS",
+          "Chiller System Control/Sensors/Temperature/CWS TS",
+          "Chiller System Control/Sensors/Temperature/CWR TS"
+        ]
+      },
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
     },
     {
       "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Alarm Status",
@@ -4145,30 +4179,30 @@
         "kind": "aggregate",
         "function": "mean",
         "inputs": [
-          "UPS/UPS 1:loadFraction",
-          "UPS/UPS 2:loadFraction",
-          "UPS/UPS 3:loadFraction",
-          "UPS/UPS 4:loadFraction",
-          "UPS/UPS 5:loadFraction",
-          "UPS/UPS 6:loadFraction",
-          "UPS/UPS 7:loadFraction",
-          "UPS/UPS 8:loadFraction",
-          "UPS/UPS 9:loadFraction",
-          "UPS/UPS 10:loadFraction",
-          "UPS/UPS 11:loadFraction",
-          "UPS/UPS 12:loadFraction",
-          "UPS/UPS 13:loadFraction",
-          "UPS/UPS 14:loadFraction",
-          "UPS/UPS 15:loadFraction",
-          "UPS/UPS 16:loadFraction",
-          "UPS/UPS 17:loadFraction",
-          "UPS/UPS 18:loadFraction",
-          "UPS/UPS 19:loadFraction",
-          "UPS/UPS 20:loadFraction",
-          "UPS/UPS 21:loadFraction",
-          "UPS/UPS 22:loadFraction",
-          "UPS/UPS 23:loadFraction",
-          "UPS/UPS 24:loadFraction"
+          "UPS/UPS 1:load_fraction",
+          "UPS/UPS 2:load_fraction",
+          "UPS/UPS 3:load_fraction",
+          "UPS/UPS 4:load_fraction",
+          "UPS/UPS 5:load_fraction",
+          "UPS/UPS 6:load_fraction",
+          "UPS/UPS 7:load_fraction",
+          "UPS/UPS 8:load_fraction",
+          "UPS/UPS 9:load_fraction",
+          "UPS/UPS 10:load_fraction",
+          "UPS/UPS 11:load_fraction",
+          "UPS/UPS 12:load_fraction",
+          "UPS/UPS 13:load_fraction",
+          "UPS/UPS 14:load_fraction",
+          "UPS/UPS 15:load_fraction",
+          "UPS/UPS 16:load_fraction",
+          "UPS/UPS 17:load_fraction",
+          "UPS/UPS 18:load_fraction",
+          "UPS/UPS 19:load_fraction",
+          "UPS/UPS 20:load_fraction",
+          "UPS/UPS 21:load_fraction",
+          "UPS/UPS 22:load_fraction",
+          "UPS/UPS 23:load_fraction",
+          "UPS/UPS 24:load_fraction"
         ]
       },
       "note": "mean load of the 24 hall UPS"

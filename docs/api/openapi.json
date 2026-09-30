@@ -23,7 +23,8 @@
               "count_true",
               "first",
               "product",
-              "elapsed"
+              "elapsed",
+              "health"
             ],
             "title": "Function",
             "type": "string"

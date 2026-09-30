@@ -477,6 +477,9 @@ class Instrumentation:
         inputs = [self._input(t, ref) for ref in agg.inputs]
         if not inputs:
             return Sample(None, Quality.BAD, t, UNBOUND)
+        if agg.function == "health":
+            good = all(s.quality is Quality.GOOD for s, _, _ in inputs)
+            return Sample("NORMAL" if good else "FAULT", Quality.GOOD, t)
         worst = max((s for s, _, _ in inputs), key=lambda s: _RANK[s.quality])
         quality, reason = worst.quality, worst.reason
         if any(s.value is None for s, _, _ in inputs):

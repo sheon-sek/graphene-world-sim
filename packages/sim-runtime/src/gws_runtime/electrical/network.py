@@ -766,6 +766,7 @@ class ElectricalNetwork:
                     "Q_in": q_in,
                     "P_charge": u.charge_w(faults),
                     "soc": u.soc(faults),
+                    "load_fraction": float(s.get("P", 0.0)) / u.p_rated_w if u.p_rated_w else 0.0,
                     "energy": u.energy_j,
                     "on_battery": u.on_battery,
                     "rectifier_on": u.rectifier_on,
