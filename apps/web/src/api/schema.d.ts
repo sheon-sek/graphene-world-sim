@@ -1910,6 +1910,8 @@ export interface operations {
                 revision?: number | null;
                 connection?: string;
                 alarms?: boolean;
+                /** @description Historian provider to record to */
+                history?: string | null;
             };
             header?: never;
             path?: never;

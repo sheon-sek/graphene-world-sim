@@ -2510,6 +2510,24 @@
               "title": "Alarms",
               "type": "boolean"
             }
+          },
+          {
+            "description": "Historian provider to record to",
+            "in": "query",
+            "name": "history",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Historian provider to record to",
+              "title": "History"
+            }
           }
         ],
         "responses": {
