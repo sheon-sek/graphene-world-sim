@@ -46,7 +46,7 @@ def test_published_openapi_is_current() -> None:
 def test_summary_counts_the_head_revision(client: TestClient) -> None:
     body = client.get(f"{API}/summary").json()
     assert body["revision"] == 1
-    assert body["counts"]["assets"] == 748
+    assert body["counts"]["assets"] == 756
     assert body["counts"]["point_bindings"] == 8811
 
 
@@ -56,7 +56,7 @@ def test_reads_types_assets_connections_and_points(client: TestClient) -> None:
     assert {a["id"] for a in chillers} >= {"Chiller/R_C1", "~CH-004"}
     assert client.get(f"{API}/assets/Chiller/R_C1").json()["type"] == "Chiller"
     links = client.get(f"{API}/connections", params={"node": "Chiller/R_C1"}).json()
-    assert any(c["id"] == "chw:Chiller/R_CP1->Chiller/R_C1" for c in links)
+    assert any(c["id"] == "chw:Chiller/R_CV1->Chiller/R_C1" for c in links)
     page = client.get(f"{API}/points", params={"prefix": "Chiller/R_C1/", "limit": 5}).json()
     assert page["total"] > 5 and len(page["items"]) == 5
 
@@ -94,7 +94,7 @@ def test_draft_edit_validate_diff_and_apply(client: TestClient) -> None:
 
 def test_structural_edit_is_classified_structural(client: TestClient) -> None:
     draft_id = _draft(client)
-    op = {"op": "delete", "collection": "connections", "key": "chw:Chiller/R_CP1->Chiller/R_C1"}
+    op = {"op": "delete", "collection": "connections", "key": "chw:Chiller/R_CV1->Chiller/R_C1"}
     client.post(f"{API}/drafts/{draft_id}/operations", json=[op])
     assert client.get(f"{API}/drafts/{draft_id}/diff").json()["overall"] == "structural"
 

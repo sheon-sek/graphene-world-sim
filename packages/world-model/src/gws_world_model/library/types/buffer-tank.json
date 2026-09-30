@@ -15,6 +15,11 @@
           "max": 20,
           "min": -20,
           "unit": "K"
+        },
+        "signal": {
+          "default": "Buffer Tank Stratified Temperature 1,Buffer Tank Stratified Temperature 2,Buffer Tank Stratified Temperature 3,Buffer Tank Stratified Temperature 4,Buffer Tank Stratified Temperature 5,Buffer Tank Stratified Temperature 6",
+          "change_class": "live",
+          "description": "Model signals or point members the faulty sensor measures."
         }
       }
     },

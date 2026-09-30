@@ -11,7 +11,22 @@
   "id": "Network Device",
   "ignition_type_id": "Network Device",
   "name": "Control-network device",
-  "parameters": {},
+  "parameters": {
+    "role": {
+      "assumed": false,
+      "change_class": "structural",
+      "default": "device",
+      "description": "What the device is on the control network: `device` (switch, server, workstation) or `gateway` (where field data reaches Ignition; a point is fresh only while a path exists from its asset to a gateway).",
+      "unit": null
+    },
+    "serves": {
+      "assumed": false,
+      "change_class": "structural",
+      "default": "",
+      "description": "For a gateway: comma-separated Asset systems (`Cooling, Airside`) whose equipment reports through it when the equipment has no net connection of its own (plant design `gateways`).",
+      "unit": null
+    }
+  },
   "parent": null,
   "ports": {
     "net": {

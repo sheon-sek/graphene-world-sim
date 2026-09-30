@@ -108,3 +108,33 @@ places:
 4. **Structural changes compile in the background and swap at a step boundary.** For one
    chiller leg and one hall, compilation took 65–104 s and the swap took 0.26 s.
 
+
+## Amendment 2: Phase 3 runtime (2026-09-30)
+
+Building the runtime (Phase 3, #4) changed the decision in five places. The gate run on the
+Phase 1 slice is in [`docs/reports/phase3-gate.md`](../reports/phase3-gate.md).
+
+1. **All plant control runs as runtime blocks, not as CDL inside the FMUs.** Controllers read
+   instruments, so a sensor fault (bias, freeze, failure, lost comms) reaches the controller
+   exactly as it would reach the real PLC, and the controller's response is what moves the
+   plant. Compiled-in CDL would read the true state and hide those faults. The blocks
+   (`dp_pid`, `bypass_pid`, `chw_supply_temp`, `cw_temp`, `chw_staging`, `rotation`, `ats`,
+   `genset_start`, `load_shed`) are configured only by ControlBindings. Control that lives
+   inside the equipment itself (a chiller holding its own leaving temperature, undervoltage
+   trips) stays in the equipment models; a sensor fault on such an internal sensor shifts
+   that loop's set point by the sensor error.
+2. **The compiler closes loops the World Model draws open.** The site data draws supply paths
+   only. Every open water outlet drains into a generated return header with the loop's
+   pressure reference, every open inlet draws from it, and a unit's open air inlet takes
+   return air from the room its outlet serves. Each served room gets a generated air volume.
+   Partitions are the connected physical components; weak-coupling cuts are deferred.
+3. **Parameter faults are applied warm.** A fault that changes a Modelica parameter (chiller
+   capacity or COP, strainer resistance) re-instantiates the partition with the scaled
+   parameter and its state carried over by asset id, at a step boundary. Faults that are model
+   inputs (trips, stuck actuators, head or airflow loss) are set as inputs.
+4. **Faults have a time course and trips latch.** Severity scales a fault's parameters from
+   healthy, a ramp grows it over time, and a duration clears it. A trip stays in effect after
+   its cause clears until the asset is reset.
+5. **Replay is exact; restore is to solver tolerance.** The event log reproduces a trajectory
+   bit for bit. A snapshot restore re-initialises the FMUs from their state parameters, which
+   carry every thermal state but not air humidity, and restarts the solver.

@@ -1,0 +1,43 @@
+{
+  "behaviour": "GwsLib.Electrical.TransferSwitch",
+  "category": "controller",
+  "description": "Open-transition (break-before-make) automatic transfer switch with its controller: voltage sensing on both sources, transfer and retransfer timers and the genset start contact. The asset source has no record of it; it sits in the MSB and L1 DB switchgear (graphene supplement electrical.json).",
+  "fault_modes": {
+    "fail_to_transfer": {
+      "description": "The switch mechanism holds its current position and ignores transfer commands.",
+      "kind": "stuck"
+    }
+  },
+  "id": "ATS",
+  "ignition_type_id": null,
+  "name": "Automatic transfer switch",
+  "parameters": {
+    "initial_position": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1,
+      "description": "Switch position at start: 0 open, 1 normal source, 2 emergency source.",
+      "max": 2,
+      "min": 0,
+      "unit": null
+    }
+  },
+  "parent": null,
+  "ports": {
+    "emergency_in": {
+      "description": "Emergency source (genset bus or the other MSB side).",
+      "direction": "in",
+      "domain": "power"
+    },
+    "normal_in": {
+      "description": "Normal source (utility transformers or this side's MSB).",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "Load side: the bus this switch supplies.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

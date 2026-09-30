@@ -1,8 +1,12 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Electrical.Feeder",
   "category": "device",
   "description": "Isolated (IT-earthed) power circuit with insulation monitoring, serving the control room.",
   "fault_modes": {
+    "breaker_trip": {
+      "description": "The circuit breaker at this metered position trips and opens the circuit until it is reset.",
+      "kind": "trip"
+    },
     "insulation_fault": {
       "description": "First insulation fault on the isolated circuit; it keeps supplying and the monitor alarms.",
       "kind": "degrade",

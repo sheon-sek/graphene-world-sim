@@ -1,5 +1,5 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.Electrical.UPS",
   "category": "equipment",
   "description": "Double-conversion UPS with battery: 800 kVA hall units (960 kVA in DH08), three per hall distributed redundant, 8 min at rated load; UPS 25 is 100 kVA for the BMS control room (plant-design basis, review A7).",
   "fault_modes": {
@@ -46,6 +46,24 @@
       "description": "Double-conversion efficiency.",
       "max": 1,
       "min": 0.5,
+      "unit": "1"
+    },
+    "input_power_factor": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.99,
+      "description": "Power factor the rectifier draws from its input.",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "input_voltage_min": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.85,
+      "description": "Input voltage below which the rectifier stops and the inverter runs from the battery.",
+      "max": 1,
+      "min": 0,
       "unit": "1"
     },
     "power_factor": {

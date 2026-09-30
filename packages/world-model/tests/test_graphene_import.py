@@ -31,14 +31,14 @@ def doc(sources: Sources) -> WorldModel:
 
 def test_library_files_are_named_by_type_id() -> None:
     types = library.load()
-    assert len(types) == 60
+    assert len(types) == 62
     assert library.slug("Production/GPM96") == "production-gpm96"
 
 
 def test_every_asset_and_connection_is_imported(doc: WorldModel) -> None:
-    assert len(doc.assets) == 748
+    assert len(doc.assets) == 756
     assert sum(a.exported for a in doc.assets.values()) == 639
-    assert len(doc.connections) == 760
+    assert len(doc.connections) == 768
     assert len(doc.site.rooms) == 33
     assert [f.id for f in doc.site.floors] == ["Ground", "Level 1", "Level 2", "Roof"]
 
@@ -64,7 +64,7 @@ def test_udt_members_bind_to_signals_their_type_exposes(doc: WorldModel) -> None
 
 
 def test_ports_follow_domain_and_direction(doc: WorldModel) -> None:
-    c = doc.connections["chw:Chiller/R_CP1->Chiller/R_C1"]
+    c = doc.connections["chw:Chiller/R_CP1->Chiller/R_CV1"]
     assert (c.source.port, c.target.port) == ("chw_out", "chw_in")
     to_room = next(c for c in doc.connections.values() if c.target.is_room)
     assert to_room.target.port == to_room.domain

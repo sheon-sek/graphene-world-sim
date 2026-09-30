@@ -30,6 +30,11 @@
           "max": 10,
           "min": -10,
           "unit": "K"
+        },
+        "signal": {
+          "default": "TChwLvg",
+          "change_class": "live",
+          "description": "Model signals or point members the faulty sensor measures."
         }
       }
     },

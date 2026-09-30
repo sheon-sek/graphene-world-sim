@@ -1,0 +1,558 @@
+{
+  "note": "Electrical switchgear and sources the asset source lacks (issue #38). The plant design draws both SPPA incomers and all three gensets of a side straight into the MSB main bus meter (edges labelled TX-n and ATS-A/B), and MSB A_1 and B_9 both straight into the L1 DB incomer (labelled ATS-DB), which would parallel utility with gensets and side A with side B. The changeover equipment that sits in the MSB and L1 DB switchgear is added as unexported ATS assets (~ATS-A, ~ATS-B, ~ATS-DB) wired normal/emergency/load, with their transfer, genset start and load shed sequences as control bindings. Each utility incomer is fed by an unexported Utility Supply (~TX-1..4: grid plus 5 MVA transformer, plant-design basis.capacities), so a transformer or incomer loss is a fault on that one asset. The standalone demo rack gets its own incomer (~DEMO-RACK-SUPPLY, 100 kVA assumed).",
+  "assets": [
+    {
+      "id": "~ATS-A",
+      "type": "ATS",
+      "name": "ATS-A",
+      "location": {
+        "room": "L2-SUP",
+        "x": 3.0,
+        "y": 42.0
+      },
+      "system": "Electrical",
+      "role": "MSB A automatic transfer switch: transformers (normal) / genset bus A (emergency)",
+      "exported": false
+    },
+    {
+      "id": "~TX-1",
+      "type": "Utility Supply",
+      "name": "TX-1",
+      "location": {
+        "room": "G-HV",
+        "x": 3.0,
+        "y": 2.0
+      },
+      "system": "Electrical",
+      "role": "Utility supply and 5 MVA transformer TX-1 (SPPA Incomer 1)",
+      "exported": false
+    },
+    {
+      "id": "~TX-2",
+      "type": "Utility Supply",
+      "name": "TX-2",
+      "location": {
+        "room": "G-HV",
+        "x": 7.0,
+        "y": 2.0
+      },
+      "system": "Electrical",
+      "role": "Utility supply and 5 MVA transformer TX-2 (SPPA Incomer 2)",
+      "exported": false
+    },
+    {
+      "id": "~ATS-B",
+      "type": "ATS",
+      "name": "ATS-B",
+      "location": {
+        "room": "L2-SUP",
+        "x": 24.0,
+        "y": 42.0
+      },
+      "system": "Electrical",
+      "role": "MSB B automatic transfer switch: transformers (normal) / genset bus B (emergency)",
+      "exported": false
+    },
+    {
+      "id": "~TX-3",
+      "type": "Utility Supply",
+      "name": "TX-3",
+      "location": {
+        "room": "G-HV",
+        "x": 11.0,
+        "y": 2.0
+      },
+      "system": "Electrical",
+      "role": "Utility supply and 5 MVA transformer TX-3 (SPPA Incomer 3)",
+      "exported": false
+    },
+    {
+      "id": "~TX-4",
+      "type": "Utility Supply",
+      "name": "TX-4",
+      "location": {
+        "room": "G-HV",
+        "x": 15.0,
+        "y": 2.0
+      },
+      "system": "Electrical",
+      "role": "Utility supply and 5 MVA transformer TX-4 (SPPA Incomer 4)",
+      "exported": false
+    },
+    {
+      "id": "~ATS-DB",
+      "type": "ATS",
+      "name": "ATS-DB",
+      "location": {
+        "room": "L1-SUP",
+        "x": 3.0,
+        "y": 48.0
+      },
+      "system": "Electrical",
+      "role": "L1 DB automatic transfer switch: MSB A (normal) / MSB B (emergency)",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-RACK-SUPPLY",
+      "type": "Utility Supply",
+      "name": "Demo rack supply",
+      "parameters": {
+        "s_rated": 100.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 84.0,
+        "y": 54.0
+      },
+      "system": "Electrical",
+      "role": "The demo rack's own incomer (standalone, not connected to the site single-line)",
+      "exported": false
+    }
+  ],
+  "remove_connections": [
+    {
+      "id": "power:Meter/SPPA Incomer 1->Meter/Level 2_MSB A_1",
+      "reason": "the incomer reaches MSB A through the normal side of ATS-A"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 2->Meter/Level 2_MSB A_1",
+      "reason": "the incomer reaches MSB A through the normal side of ATS-A"
+    },
+    {
+      "id": "power:Genset/Genset 1->Meter/Level 2_MSB A_1",
+      "reason": "the genset reaches MSB A through the emergency side of ATS-A"
+    },
+    {
+      "id": "power:Genset/Genset 2->Meter/Level 2_MSB A_1",
+      "reason": "the genset reaches MSB A through the emergency side of ATS-A"
+    },
+    {
+      "id": "power:Genset/Genset 3->Meter/Level 2_MSB A_1",
+      "reason": "the genset reaches MSB A through the emergency side of ATS-A"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 3->Meter/Level 2_MSB B_9",
+      "reason": "the incomer reaches MSB B through the normal side of ATS-B"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 4->Meter/Level 2_MSB B_9",
+      "reason": "the incomer reaches MSB B through the normal side of ATS-B"
+    },
+    {
+      "id": "power:Genset/Genset 4->Meter/Level 2_MSB B_9",
+      "reason": "the genset reaches MSB B through the emergency side of ATS-B"
+    },
+    {
+      "id": "power:Genset/Genset 5->Meter/Level 2_MSB B_9",
+      "reason": "the genset reaches MSB B through the emergency side of ATS-B"
+    },
+    {
+      "id": "power:Genset/Genset 6->Meter/Level 2_MSB B_9",
+      "reason": "the genset reaches MSB B through the emergency side of ATS-B"
+    },
+    {
+      "id": "power:Meter/Level 2_MSB A_1->Meter/Level 1_DB_18",
+      "reason": "MSB A reaches the L1 DB through ATS-DB; drawn as two parallel feeds, it would parallel the two MSB sides"
+    },
+    {
+      "id": "power:Meter/Level 2_MSB B_9->Meter/Level 1_DB_18",
+      "reason": "MSB B reaches the L1 DB through ATS-DB; drawn as two parallel feeds, it would parallel the two MSB sides"
+    }
+  ],
+  "connections": [
+    {
+      "id": "power:~TX-1->Meter/SPPA Incomer 1",
+      "domain": "power",
+      "source": {
+        "node": "~TX-1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/SPPA Incomer 1",
+        "port": "power_in"
+      },
+      "label": "TX-1"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 1->~ATS-A",
+      "domain": "power",
+      "source": {
+        "node": "Meter/SPPA Incomer 1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-A",
+        "port": "normal_in"
+      },
+      "label": "TX-1"
+    },
+    {
+      "id": "power:~TX-2->Meter/SPPA Incomer 2",
+      "domain": "power",
+      "source": {
+        "node": "~TX-2",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/SPPA Incomer 2",
+        "port": "power_in"
+      },
+      "label": "TX-2"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 2->~ATS-A",
+      "domain": "power",
+      "source": {
+        "node": "Meter/SPPA Incomer 2",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-A",
+        "port": "normal_in"
+      },
+      "label": "TX-2"
+    },
+    {
+      "id": "power:Genset/Genset 1->~ATS-A",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-A",
+        "port": "emergency_in"
+      },
+      "label": "genset bus A"
+    },
+    {
+      "id": "power:Genset/Genset 2->~ATS-A",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 2",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-A",
+        "port": "emergency_in"
+      },
+      "label": "genset bus A"
+    },
+    {
+      "id": "power:Genset/Genset 3->~ATS-A",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 3",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-A",
+        "port": "emergency_in"
+      },
+      "label": "genset bus A"
+    },
+    {
+      "id": "power:~ATS-A->Meter/Level 2_MSB A_1",
+      "domain": "power",
+      "source": {
+        "node": "~ATS-A",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/Level 2_MSB A_1",
+        "port": "power_in"
+      },
+      "label": "ATS-A"
+    },
+    {
+      "id": "power:~TX-3->Meter/SPPA Incomer 3",
+      "domain": "power",
+      "source": {
+        "node": "~TX-3",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/SPPA Incomer 3",
+        "port": "power_in"
+      },
+      "label": "TX-3"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 3->~ATS-B",
+      "domain": "power",
+      "source": {
+        "node": "Meter/SPPA Incomer 3",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-B",
+        "port": "normal_in"
+      },
+      "label": "TX-3"
+    },
+    {
+      "id": "power:~TX-4->Meter/SPPA Incomer 4",
+      "domain": "power",
+      "source": {
+        "node": "~TX-4",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/SPPA Incomer 4",
+        "port": "power_in"
+      },
+      "label": "TX-4"
+    },
+    {
+      "id": "power:Meter/SPPA Incomer 4->~ATS-B",
+      "domain": "power",
+      "source": {
+        "node": "Meter/SPPA Incomer 4",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-B",
+        "port": "normal_in"
+      },
+      "label": "TX-4"
+    },
+    {
+      "id": "power:Genset/Genset 4->~ATS-B",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 4",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-B",
+        "port": "emergency_in"
+      },
+      "label": "genset bus B"
+    },
+    {
+      "id": "power:Genset/Genset 5->~ATS-B",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 5",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-B",
+        "port": "emergency_in"
+      },
+      "label": "genset bus B"
+    },
+    {
+      "id": "power:Genset/Genset 6->~ATS-B",
+      "domain": "power",
+      "source": {
+        "node": "Genset/Genset 6",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-B",
+        "port": "emergency_in"
+      },
+      "label": "genset bus B"
+    },
+    {
+      "id": "power:~ATS-B->Meter/Level 2_MSB B_9",
+      "domain": "power",
+      "source": {
+        "node": "~ATS-B",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/Level 2_MSB B_9",
+        "port": "power_in"
+      },
+      "label": "ATS-B"
+    },
+    {
+      "id": "power:Meter/Level 2_MSB A_1->~ATS-DB",
+      "domain": "power",
+      "source": {
+        "node": "Meter/Level 2_MSB A_1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-DB",
+        "port": "normal_in"
+      },
+      "label": "ATS-DB (A)"
+    },
+    {
+      "id": "power:Meter/Level 2_MSB B_9->~ATS-DB",
+      "domain": "power",
+      "source": {
+        "node": "Meter/Level 2_MSB B_9",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~ATS-DB",
+        "port": "emergency_in"
+      },
+      "label": "ATS-DB (B)"
+    },
+    {
+      "id": "power:~ATS-DB->Meter/Level 1_DB_18",
+      "domain": "power",
+      "source": {
+        "node": "~ATS-DB",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "Meter/Level 1_DB_18",
+        "port": "power_in"
+      },
+      "label": "ATS-DB"
+    },
+    {
+      "id": "power:~DEMO-RACK-SUPPLY->DemoRack/E820",
+      "domain": "power",
+      "source": {
+        "node": "~DEMO-RACK-SUPPLY",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/E820",
+        "port": "power_in"
+      },
+      "label": "demo rack incomer"
+    }
+  ],
+  "control_bindings": [
+    {
+      "id": "ATS-A/ats",
+      "controller": "~ATS-A",
+      "function": "ats",
+      "reads": [
+        "~ATS-A:V_normal_pu",
+        "~ATS-A:V_emergency_pu"
+      ],
+      "drives": [
+        "~ATS-A:position"
+      ],
+      "parameters": {
+        "pickup_pu": 0.9,
+        "confirm_delay": 2.0,
+        "emergency_stable": 1.0,
+        "retransfer_delay": 300.0
+      }
+    },
+    {
+      "id": "ATS-A/genset_start",
+      "controller": "~ATS-A",
+      "function": "genset_start",
+      "reads": [
+        "~ATS-A:V_normal_pu",
+        "~ATS-A:source"
+      ],
+      "drives": [
+        "Genset/Genset 1:start",
+        "Genset/Genset 2:start",
+        "Genset/Genset 3:start"
+      ],
+      "parameters": {
+        "pickup_pu": 0.9,
+        "confirm_delay": 2.0,
+        "cooldown": 300.0
+      }
+    },
+    {
+      "id": "ATS-A/load_shed",
+      "controller": "~ATS-A",
+      "function": "load_shed",
+      "reads": [
+        "~ATS-A:source",
+        "~ATS-A:P",
+        "Genset/Genset 1:P_available",
+        "Genset/Genset 2:P_available",
+        "Genset/Genset 3:P_available"
+      ],
+      "drives": [
+        "Meter/Level 2_MSB A_6:breaker"
+      ],
+      "parameters": {
+        "shed_fraction": 0.95,
+        "shed_delay": 2.0,
+        "restore_delay": 60.0
+      }
+    },
+    {
+      "id": "ATS-B/ats",
+      "controller": "~ATS-B",
+      "function": "ats",
+      "reads": [
+        "~ATS-B:V_normal_pu",
+        "~ATS-B:V_emergency_pu"
+      ],
+      "drives": [
+        "~ATS-B:position"
+      ],
+      "parameters": {
+        "pickup_pu": 0.9,
+        "confirm_delay": 2.0,
+        "emergency_stable": 1.0,
+        "retransfer_delay": 300.0
+      }
+    },
+    {
+      "id": "ATS-B/genset_start",
+      "controller": "~ATS-B",
+      "function": "genset_start",
+      "reads": [
+        "~ATS-B:V_normal_pu",
+        "~ATS-B:source"
+      ],
+      "drives": [
+        "Genset/Genset 4:start",
+        "Genset/Genset 5:start",
+        "Genset/Genset 6:start"
+      ],
+      "parameters": {
+        "pickup_pu": 0.9,
+        "confirm_delay": 2.0,
+        "cooldown": 300.0
+      }
+    },
+    {
+      "id": "ATS-B/load_shed",
+      "controller": "~ATS-B",
+      "function": "load_shed",
+      "reads": [
+        "~ATS-B:source",
+        "~ATS-B:P",
+        "Genset/Genset 4:P_available",
+        "Genset/Genset 5:P_available",
+        "Genset/Genset 6:P_available"
+      ],
+      "drives": [
+        "Meter/Level 2_MSB B_14:breaker"
+      ],
+      "parameters": {
+        "shed_fraction": 0.95,
+        "shed_delay": 2.0,
+        "restore_delay": 60.0
+      }
+    },
+    {
+      "id": "ATS-DB/ats",
+      "controller": "~ATS-DB",
+      "function": "ats",
+      "reads": [
+        "~ATS-DB:V_normal_pu",
+        "~ATS-DB:V_emergency_pu"
+      ],
+      "drives": [
+        "~ATS-DB:position"
+      ],
+      "parameters": {
+        "pickup_pu": 0.9,
+        "confirm_delay": 2.0,
+        "emergency_stable": 1.0,
+        "retransfer_delay": 60.0
+      }
+    }
+  ]
+}

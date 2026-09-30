@@ -1,0 +1,234 @@
+{
+ "scope": [
+  "Chiller/R_C1",
+  "Chiller/R_CP1",
+  "Chiller/R_CV1",
+  "Chiller/R_CV9",
+  "Buffer Tank/R_BT1",
+  "Buffer Tank/R_BT2",
+  "Chiller/R_CP9",
+  "~CB-001",
+  "FCU/L1_FCU1",
+  "~CCU-001",
+  "Chiller/R_CP5",
+  "Chiller/R_CV5",
+  "Cooling Towers Plant/R_P1_CT1",
+  "Cooling Towers Plant/R_P1_CT2",
+  "Cooling Towers Plant/R_P1_CT3",
+  "Cooling Towers Plant/R_P1_CT4",
+  "Cooling Towers Plant/R_P1_CT5",
+  "~IT-DH01"
+ ],
+ "partitions": {
+  "P_8a873f80b585a6fd": 17
+ },
+ "not_modelled": {
+  "~IT-DH01": "IT Load has no thermofluid behaviour"
+ },
+ "controllers": [
+  "ATS-A/ats",
+  "ATS-A/genset_start",
+  "ATS-B/ats",
+  "ATS-B/genset_start",
+  "PLC-01/chw_staging",
+  "PLC-01/chw_supply_temp",
+  "PLC-01/cw_temp",
+  "PLC-01/dp_pid"
+ ],
+ "dt_s": 5.0,
+ "simulated_h": 4.68,
+ "wall_s": 58.0,
+ "real_time_factor": 291,
+ "init_s": 0.6,
+ "replay_s": 56.7,
+ "passed": true,
+ "scenarios": [
+  {
+   "name": "Steady state",
+   "cause": "DH01 at 30 % IT load for an hour",
+   "checks": [
+    {
+     "name": "dp loop holds 85 kPa",
+     "passed": true,
+     "detail": "85.0 kPa"
+    },
+    {
+     "name": "header supply at 14 \u00b0C",
+     "passed": true,
+     "detail": "14.00 \u00b0C"
+    },
+    {
+     "name": "condenser water at 29 \u00b0C",
+     "passed": true,
+     "detail": "29.0 \u00b0C"
+    }
+   ],
+   "values": {
+    "chiller_leaving_C": 13.89,
+    "header_supply_reading_C": 14.000088177411726,
+    "loop_dp_reading_kPa": 85.00024545961898,
+    "cw_entering_C": 29.0,
+    "room_C": 26.01,
+    "chiller_kW": 66.1
+   }
+  },
+  {
+   "name": "Chiller trip",
+   "cause": "trip on Chiller/R_C1, clear, reset",
+   "checks": [
+    {
+     "name": "chiller stops",
+     "passed": true,
+     "detail": "running=False"
+    },
+    {
+     "name": "hall warms",
+     "passed": true,
+     "detail": "26.01 \u2192 26.57 \u00b0C"
+    },
+    {
+     "name": "PLC sees the trip",
+     "passed": true,
+     "detail": "System Failure_Trip point"
+    },
+    {
+     "name": "trip latches after the cause clears",
+     "passed": true,
+     "detail": "still stopped"
+    },
+    {
+     "name": "restarts after reset and recovers",
+     "passed": true,
+     "detail": "26.57 \u2192 26.2 \u00b0C"
+    }
+   ],
+   "values": {
+    "room_before_C": 26.01,
+    "room_tripped_C": 26.57,
+    "room_recovered_C": 26.2
+   }
+  },
+  {
+   "name": "Sensor bias",
+   "cause": "+1.5 K bias on header supply sensor HDR/TS-02",
+   "checks": [
+    {
+     "name": "controller trims to the wrong reading",
+     "passed": true,
+     "detail": "true supply 13.97 \u2192 12.5 \u00b0C while the sensor reads 14.00 \u00b0C"
+    }
+   ],
+   "values": {
+    "true_supply_before_C": 13.97,
+    "true_supply_biased_C": 12.5,
+    "reading_C": 14.001859946500645
+   }
+  },
+  {
+   "name": "Hot humid day",
+   "cause": "wet bulb 25 \u2192 29 \u00b0C",
+   "checks": [
+    {
+     "name": "towers work harder",
+     "passed": true,
+     "detail": "fan 0.00 \u2192 15.00 kW"
+    },
+    {
+     "name": "chiller works harder",
+     "passed": true,
+     "detail": "61.9 \u2192 70.0 kW, CW entering 30.17 \u00b0C"
+    }
+   ],
+   "values": {
+    "fan_kW": [
+     0.0,
+     15.0
+    ],
+    "chiller_kW": [
+     61.91259948966276,
+     69.97816297410404
+    ]
+   }
+  },
+  {
+   "name": "Condenser fouling",
+   "cause": "COP to 60 %, ramped over 10 min",
+   "checks": [
+    {
+     "name": "same duty at more power (warm rebuild)",
+     "passed": true,
+     "detail": "68 \u2192 113 kW, cooling 380 \u2192 381 kW"
+    }
+   ],
+   "values": {
+    "chiller_kW": [
+     67.58865820375448,
+     113.07244301432708
+    ]
+   }
+  },
+  {
+   "name": "Secondary pump trip",
+   "cause": "trip on Chiller/R_CP9",
+   "checks": [
+    {
+     "name": "secondary flow collapses",
+     "passed": true,
+     "detail": "cooling block flow 20.3 \u2192 5.5 kg/s"
+    },
+    {
+     "name": "hall warms",
+     "passed": true,
+     "detail": "26.42 \u2192 29.34 \u00b0C"
+    }
+   ],
+   "values": {}
+  },
+  {
+   "name": "Utility loss",
+   "cause": "utility supply lost",
+   "checks": [
+    {
+     "name": "chiller loses supply, then runs on the gensets",
+     "passed": true,
+     "detail": "lowest chiller supply 0.00 pu, ATS-A source 2.0"
+    },
+    {
+     "name": "IT load never drops (UPS)",
+     "passed": true,
+     "detail": "lowest IT draw 300 kW"
+    }
+   ],
+   "values": {}
+  },
+  {
+   "name": "Gateway failure",
+   "cause": "GATEWAY A fails",
+   "checks": [
+    {
+     "name": "cooling readings lose comms",
+     "passed": true,
+     "detail": "HDR/DPS-01 bad comm_lost"
+    },
+    {
+     "name": "dp loop holds its output",
+     "passed": true,
+     "detail": "CP9 speed held at 0.637"
+    }
+   ],
+   "values": {}
+  },
+  {
+   "name": "Replay",
+   "cause": "re-run the event log from the start",
+   "checks": [
+    {
+     "name": "identical trajectory",
+     "passed": true,
+     "detail": "17 events, step 3372"
+    }
+   ],
+   "values": {}
+  }
+ ]
+}

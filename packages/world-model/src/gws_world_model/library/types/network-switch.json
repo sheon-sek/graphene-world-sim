@@ -12,6 +12,13 @@
   "ignition_type_id": "Network Switch",
   "name": "Network switch (port view)",
   "parameters": {
+    "device": {
+      "assumed": false,
+      "change_class": "structural",
+      "default": "",
+      "description": "Asset id of the Network Topology device this port-level view shows. The view shares that device's state: failing either fails the one physical switch.",
+      "unit": null
+    },
     "port_count": {
       "assumed": false,
       "change_class": "structural",
