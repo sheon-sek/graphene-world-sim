@@ -9,11 +9,26 @@ IT load is electrical demand, and the power actually drawn is heat in the hall.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
 from gws_world_model.model import Conditions as WorldConditions
+
+P_ATM = 101325.0
+
+
+def saturation_pressure(t_k: float) -> float:
+    """Water vapour saturation pressure over liquid water, Pa (as in the Buildings library)."""
+    return 611.657 * math.exp(17.2799 - 4102.99 / (t_k - 35.719))
+
+
+def vapour_fraction(t_c: float, rh_pct: float, p: float = P_ATM) -> float:
+    """Water vapour mass fraction of moist air (kg water per kg moist air)."""
+    pw = rh_pct / 100 * saturation_pressure(t_c + 273.15)
+    x = 0.621964 * pw / (p - pw)
+    return x / (1 + x)
 
 
 @dataclass
@@ -26,6 +41,8 @@ class Conditions:
     """Room -> design IT load, kW."""
     it_fraction: dict[str, float] = field(default_factory=dict)
     """Room -> operating fraction of design."""
+    liquid_fraction: dict[str, float] = field(default_factory=dict)
+    """Room -> share of its IT heat removed by liquid cooling (CDUs) rather than the air."""
 
     @classmethod
     def from_world(cls, c: WorldConditions) -> Conditions:
@@ -36,11 +53,16 @@ class Conditions:
             utility_available=c.utility_available,
             it_load_kw={k: v.design_kw for k, v in c.it_load.items()},
             it_fraction={k: v.fraction for k, v in c.it_load.items()},
+            liquid_fraction={k: v.liquid_fraction for k, v in c.it_load.items()},
         )
 
     def environment(self) -> dict[str, float]:
         """Values of the `env_*` model inputs, SI."""
-        return {"TWetBulb": self.wet_bulb_c + 273.15, "TDryBulb": self.dry_bulb_c + 273.15}
+        return {
+            "TWetBulb": self.wet_bulb_c + 273.15,
+            "TDryBulb": self.dry_bulb_c + 273.15,
+            "XOut": vapour_fraction(self.dry_bulb_c, self.relative_humidity),
+        }
 
     def it_demand_w(self, room: str) -> float:
         return self.it_load_kw.get(room, 0.0) * 1e3 * self.it_fraction.get(room, 0.0)
@@ -73,6 +95,7 @@ class Conditions:
             "utility_available": self.utility_available,
             "it_load_kw": dict(self.it_load_kw),
             "it_fraction": dict(self.it_fraction),
+            "liquid_fraction": dict(self.liquid_fraction),
         }
 
     @classmethod
@@ -84,4 +107,5 @@ class Conditions:
             utility_available=bool(d["utility_available"]),
             it_load_kw={k: float(v) for k, v in d["it_load_kw"].items()},
             it_fraction={k: float(v) for k, v in d["it_fraction"].items()},
+            liquid_fraction={k: float(v) for k, v in d.get("liquid_fraction", {}).items()},
         )

@@ -57,3 +57,7 @@ class StateView(Protocol):
     def unit(self, asset: str, signal: str) -> str | None:
         """The SI unit of a signal (`K`, `W`, `Pa`, `kg/s`, `1`), or None when unknown."""
         ...
+
+    # A view may also define `monitored(asset, signal) -> bool`: whether the gateway computes
+    # the signal about the asset (its communication status), so it stays fresh when the asset
+    # itself cannot report.

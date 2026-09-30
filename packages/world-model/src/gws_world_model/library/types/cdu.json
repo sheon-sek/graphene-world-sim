@@ -1,5 +1,5 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.CDU",
   "category": "equipment",
   "description": "Coolant distribution unit of the DH08 liquid-cooled pod: facility-water heat exchanger and secondary pumps. Its air connection to DH08 carries no air; it removes the liquid-cooled share of the hall's IT load directly (review A17). The Ignition UDT inherits Dashboard for its energy KPIs.",
   "fault_modes": {

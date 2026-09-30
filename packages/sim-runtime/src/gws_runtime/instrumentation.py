@@ -354,7 +354,10 @@ class Instrumentation:
     ) -> Sample:
         """A measured value of the asset's model signal `names[0]` in `unit`."""
         signal = names[0]
-        monitored = self.network.is_network_asset(asset) and signal in MONITOR_SIGNALS
+        monitor = getattr(self._state, "monitored", None)
+        monitored = (self.network.is_network_asset(asset) and signal in MONITOR_SIGNALS) or bool(
+            monitor is not None and monitor(asset, signal)
+        )
         if not monitored and not self._reaches(asset, via):
             return _stale(last, t)
         true = self._true(asset, signal)

@@ -42,12 +42,15 @@ import numpy as np
 import numpy.typing as npt
 import pandapower as pp
 
+from gws_runtime.electrical import quality
 from gws_runtime.electrical.equipment import (
     BEHAVIOUR_FEEDER,
     BEHAVIOUR_GENSET,
     BEHAVIOUR_TRANSFER_SWITCH,
     BEHAVIOUR_UPS,
     BEHAVIOUR_UTILITY,
+    IDLE_FRACTION,
+    OIL_PREALARM_PA,
     POSITION_EMERGENCY,
     POSITION_NORMAL,
     Faults,
@@ -68,6 +71,8 @@ from gws_world_model.model import (
 )
 
 type Floats = npt.NDArray[np.float64]
+
+NOISE_W = 1.0
 
 V_LV_KV = 0.4
 ENERGISED_PU = 0.5
@@ -182,9 +187,23 @@ class ElectricalNetwork:
         self._q_ratio: list[float] = []
         self._in_lines: dict[str, list[int]] = defaultdict(list)
         self._out_lines: dict[str, list[int]] = defaultdict(list)
+        self._branches: list[tuple[int, int]] = []
+        self._switched: dict[int, tuple[int, int]] = {}
+        self._sources: dict[str, quality.Source] = {}
+        self._children: dict[str, list[tuple[str, str]]] = defaultdict(list)
+        """Node -> (child node, load name fed by that connection, or "") in connection order."""
+        self._grid_hz = 50.0
+        self._nominal_hz = 50.0
         for node in sorted(self._kind):
             self._build_node(node)
         self._build_connections()
+        self._islands = quality.Islands(len(self._bus_names), self._branches, self._switched)
+        self._load_kind = [self._harmonic_kind(name) for name in self._load_names]
+        self._load_rating = [self._rating_w(name) for name in self._load_names]
+        self._bus_hz: Floats = np.zeros(len(self._bus_names))
+        self._bus_thdv: Floats = np.zeros(len(self._bus_names))
+        self._thda: dict[str, float] = {}
+        self._neutral: dict[str, float] = {}
 
         self._solved: _Solved | None = None
         self._vm: Floats = np.zeros(len(self._bus_names))
@@ -260,11 +279,24 @@ class ElectricalNetwork:
                 name=node,
             )
             self._ext(node, hv, self._param(node, "vm_pu", 1.0))
+            self._branches.append((hv, lv))
+            self._sources[node] = quality.Source(
+                "utility",
+                hv,
+                self._rated_a(self._param(node, "s_rated", 5000.0)),
+                self._param(node, "vk_percent", 6.0) / 100 * quality.HARMONIC_ORDER,
+            )
             self._supplies[node] = UtilitySupply()
             self._main_bus[node] = lv
         elif kind == GENSET:
             bus = self._bus(node)
             self._ext(node, bus)
+            self._sources[node] = quality.Source(
+                "genset",
+                bus,
+                self._rated_a(self._param(node, "s_rated", 3750.0)),
+                quality.GENSET_XD_SUBTRANSIENT * quality.HARMONIC_ORDER,
+            )
             self._gensets[node] = Genset(
                 p_prime_w=self._param(node, "p_prime", 3000.0) * 1000,
                 start_time=self._param(node, "start_time", 10.0),
@@ -284,6 +316,12 @@ class ElectricalNetwork:
             input_pf = self._param(node, "input_power_factor", 0.99)
             self._load(f"{node}#in", bus_in, input_pf)
             self._ext(node, bus_out)
+            self._sources[node] = quality.Source(
+                "ups",
+                bus_out,
+                self._rated_a(self._param(node, "s_rated", 800.0)),
+                quality.INVERTER_Z_PU * quality.HARMONIC_ORDER,
+            )
             self._ups[node] = Ups(
                 p_rated_w=p_rated,
                 efficiency=efficiency,
@@ -303,6 +341,7 @@ class ElectricalNetwork:
             self._port_bus[(node, "power_out")] = out
             switches = []
             for side, bus in (("normal", normal), ("emergency", emergency)):
+                self._switched[len(self._switch_names)] = (bus, out)
                 switches.append(len(self._switch_names))
                 self._switch_names.append(f"{node}#{side}")
                 pp.create_switch(self._net, bus, out, et="b", closed=False, name=f"{node}#{side}")
@@ -335,10 +374,17 @@ class ElectricalNetwork:
             if c.domain is not Domain.POWER or src not in self._kind or dst not in self._kind:
                 continue
             from_bus = self._port_bus.get((src, c.source.port), self._main_bus[src])
+            fed = ""
             if dst in cords:
                 to_bus = next(cords[dst])
+                fed = f"{dst}#cord{self._cords[dst].index(to_bus)}"
             else:
                 to_bus = self._port_bus.get((dst, c.target.port), self._main_bus[dst])
+                if self._kind[dst] == LOAD:
+                    fed = dst
+                elif self._kind[dst] == UPS:
+                    fed = f"{dst}#in"
+            self._children[src].append((dst, fed))
             r = c.parameters.get("r_ohm", CABLE_R_OHM)
             x = c.parameters.get("x_ohm", CABLE_X_OHM)
             line = int(
@@ -357,9 +403,36 @@ class ElectricalNetwork:
             self._out_lines[src].append(line)
             self._in_lines[dst].append(line)
             if self._kind[dst] == FEEDER:
+                self._switched[len(self._switch_names)] = (from_bus, to_bus)
                 self._feeder_switches[dst].append(len(self._switch_names))
                 self._switch_names.append(cid)
                 pp.create_switch(self._net, to_bus, line, et="l", closed=True, name=cid)
+            else:
+                self._branches.append((from_bus, to_bus))
+
+    @staticmethod
+    def _rated_a(s_kva: float) -> float:
+        return s_kva * 1e3 / (SQRT3 * V_LV_KV * 1e3)
+
+    def _harmonic_kind(self, load: str) -> str:
+        node = load.split("#", 1)[0]
+        if load.endswith("#in") and self._kind.get(node) == UPS:
+            return "rectifier"
+        if node.startswith(ROOM_PREFIX) or node not in self._doc.assets:
+            return "general"
+        declared = self._params[node].get("load_kind")
+        if isinstance(declared, str) and declared:
+            return declared
+        ctype = self._doc.component_types[self._doc.assets[node].type]
+        return "drive" if ctype.behaviour else "general"
+
+    def _rating_w(self, load: str) -> float:
+        node = load.split("#", 1)[0]
+        if node not in self._params:
+            return 0.0
+        rating = self._param(node, "design_power", 0.0) * 1e3
+        cords = len(self._cords.get(node, [])) or 1
+        return rating / cords
 
     # --- inputs ------------------------------------------------------------------------------
 
@@ -371,6 +444,10 @@ class ElectricalNetwork:
 
     def set_utility(self, available: bool) -> None:
         self._utility = bool(available)
+
+    def set_grid_frequency(self, hz: float) -> None:
+        """The utility grid's frequency (an operating condition)."""
+        self._grid_hz = float(hz)
 
     def _faults_of(self, asset: str) -> Faults:
         return self._faults.get(asset, {})
@@ -525,6 +602,81 @@ class ElectricalNetwork:
             ups.p_out_w = float(self._ext_pq[self._ext_of[name], 0])
         for name, genset in self._gensets.items():
             genset.p_w = float(self._ext_pq[self._ext_of[name], 0])
+        self._power_quality(state)
+
+    def _load_amps(self) -> Floats:
+        buses = self._net.load["bus"].to_numpy(dtype=np.int64) if len(self._load_names) else []
+        vm = self._vm[buses] if len(self._load_names) else np.zeros(0)
+        s_va = np.hypot(self._load_pq[:, 0], self._load_pq[:, 1])
+        base = SQRT3 * V_LV_KV * 1e3 * np.maximum(vm, 1e-3)
+        amps: Floats = np.where(vm > 1e-3, s_va / base, 0.0)
+        return amps
+
+    def _power_quality(self, state: _Solved) -> None:
+        """Frequency, THD(I), THD(V) and neutral current from this solution (`quality`)."""
+        root = self._islands.update(state.switch)
+        live = {n: bool(state.ext[self._ext_of[n]]) for n in self._sources}
+        power = {n: float(self._ext_pq[self._ext_of[n], 0]) for n in self._sources}
+        rated = {n: g.p_prime_w for n, g in self._gensets.items()}
+        freq = quality.island_frequency(
+            self._sources,
+            live,
+            power,
+            rated,
+            root,
+            self._grid_hz,
+            self._nominal_hz,
+            {n: b[0] for n, b in self._ups_buses.items()},
+            {n: u.rectifier_on for n, u in self._ups.items()},
+        )
+        amps = self._load_amps()
+        ih = np.zeros(len(self._load_names))
+        for i in range(len(self._load_names)):
+            rating = self._load_rating[i]
+            fraction = float(self._load_pq[i, 0]) / rating if rating > 0 else 1.0
+            ih[i] = quality.load_thd(self._load_kind[i], fraction) * amps[i]
+        buses = self._net.load["bus"].to_numpy(dtype=np.int64) if len(self._load_names) else []
+        per_island: dict[int, float] = {}
+        for i, bus in enumerate(buses):
+            island = int(root[int(bus)])
+            per_island[island] = per_island.get(island, 0.0) + float(ih[i]) ** 2
+        thdv = quality.island_thdv(
+            self._sources, live, root, {k: math.sqrt(v) for k, v in per_island.items()}
+        )
+        self._bus_hz = np.array([freq.get(int(r), 0.0) for r in root])
+        self._bus_thdv = np.array([thdv.get(int(r), 0.0) for r in root])
+        index = {name: i for i, name in enumerate(self._load_names)}
+        closed = state.switch
+        memo: dict[str, tuple[float, float]] = {}
+
+        def downstream(node: str) -> tuple[float, float]:
+            """Sum of squared harmonic currents, all and triplen, of the loads fed from node."""
+            if node in memo:
+                return memo[node]
+            memo[node] = (0.0, 0.0)
+            total = triplen = 0.0
+            for child, fed in self._children.get(node, []):
+                if self._kind.get(child) == ATS:
+                    normal, emergency = self._ats_switches[child]
+                    side = self._ats[child].position
+                    if not (closed[normal] if side == POSITION_NORMAL else closed[emergency]):
+                        continue
+                if fed:
+                    h = float(ih[index[fed]]) ** 2
+                    total += h
+                    if self._load_kind[index[fed]] in ("it", "general"):
+                        triplen += h
+                else:
+                    a, b = downstream(child)
+                    total, triplen = total + a, triplen + b
+            memo[node] = (total, triplen)
+            return memo[node]
+
+        self._thda, self._neutral = {}, {}
+        for node in self._kind:
+            total, triplen = downstream(node)
+            self._thda[node] = math.sqrt(total)
+            self._neutral[node] = 3 * quality.TRIPLEN_SHARE * math.sqrt(triplen)
 
     # --- outputs -----------------------------------------------------------------------------
 
@@ -562,8 +714,11 @@ class ElectricalNetwork:
                 s["demand"] = self._demand[node]
             else:
                 p, q = self._flow(node)
+            # Below a watt is the load flow's convergence noise on an unloaded branch.
+            p, q = (x if abs(x) >= NOISE_W else 0.0 for x in (p, q))
             s["P"], s["Q"] = p, q
             s["I"] = math.hypot(p, q) / (SQRT3 * V_LV_KV * 1e3 * vm) if vm > 1e-3 else 0.0
+            s |= self._meter(node, vm, p, q, float(s["I"]))
             if kind == UTILITY:
                 s["available"] = self._supplies[node].available(self._utility, faults)
             elif kind == GENSET:
@@ -574,7 +729,23 @@ class ElectricalNetwork:
                     "locked_out": g.locked_out,
                     "start_cmd": g.start_cmd,
                     "P_available": g.available_w(faults),
+                    "idling": g.running and g.load < IDLE_FRACTION,
+                    "T_coolant": g.coolant_k,
+                    "p_oil": g.oil_pressure_pa(faults),
+                    "V_battery": g.battery_v(),
+                    "speed": g.speed_rev_s(float(s.get("Hz", 0.0))),
+                    "run_s": g.run_s,
+                    "overload_warning": g.running
+                    and g.p_w > g.overload_limit * g.available_w(faults),
+                    "oil_prealarm": g.running and g.oil_pressure_pa(faults) < OIL_PREALARM_PA,
+                    "low_coolant": "coolant_loss" in faults,
+                    "emergency_stop": "emergency_stop" in faults,
+                    "over_crank": g.lockout == "over_crank",
+                    "oil_shutdown": g.lockout == "oil_pressure",
+                    "short_circuit": g.lockout == "short_circuit",
                 }
+                s["prealarm"] = bool(s["overload_warning"] or s["oil_prealarm"] or s["low_coolant"])
+                s["alarm"] = g.locked_out
             elif kind == UPS:
                 u = self._ups[node]
                 bus_in = self._ups_buses[node][0]
@@ -589,7 +760,15 @@ class ElectricalNetwork:
                     "on_battery": u.on_battery,
                     "rectifier_on": u.rectifier_on,
                     "inverter_on": u.inverter_on,
+                    "V_in_ll": float(self._vm[bus_in]) * V_LV_KV * 1e3,
+                    "V_in_ln": float(self._vm[bus_in]) * V_LV_KV * 1e3 / SQRT3,
+                    "input_low": float(self._vm[bus_in]) < u.vin_min,
+                    "rectifier_failed": "rectifier_failure" in faults,
+                    "output_fault": "output_fault" in faults,
                 }
+                s["alarm"] = bool(
+                    s["input_low"] or s["rectifier_failed"] or s["output_fault"] or u.on_battery
+                )
             elif kind == ATS:
                 normal, emergency, _ = self._ats_buses[node]
                 closed = [bool(switch[i]) for i in self._ats_switches[node]]
@@ -605,8 +784,32 @@ class ElectricalNetwork:
                 f = self._feeders[node]
                 breaker = all(bool(switch[i]) for i in self._feeder_switches[node])
                 s |= {"closed": breaker, "tripped": f.tripped}
+            s.setdefault("alarm", bool(s.get("tripped", False)))
             result[node] = s
         return result
+
+    def _meter(self, node: str, vm: float, p: float, q: float, amps: float) -> dict[str, float]:
+        """What a three-phase meter at the node reads, SI: phase and line voltages, per-phase
+        and total powers, power factor, frequency, THD and neutral current (balanced phases)."""
+        bus = self._cords.get(node, [self._main_bus[node]])[0]
+        if node in self._ups:
+            bus = self._ups_buses[node][1]
+        s_va = math.hypot(p, q)
+        harmonic = self._thda.get(node, 0.0)
+        return {
+            "V_ln": vm * V_LV_KV * 1e3 / SQRT3,
+            "V_ll": vm * V_LV_KV * 1e3,
+            "S": s_va,
+            "PF": abs(p) / s_va if s_va > 1.0 else 1.0,
+            "P_ph": p / 3,
+            "Q_ph": q / 3,
+            "S_ph": s_va / 3,
+            "I_1ph": s_va / (vm * V_LV_KV * 1e3 / SQRT3) if vm > 1e-3 else 0.0,
+            "Hz": float(self._bus_hz[bus]) if vm >= ENERGISED_PU else 0.0,
+            "THDV": float(self._bus_thdv[bus]) if vm >= ENERGISED_PU else 0.0,
+            "THDA": harmonic / amps if amps > 1e-3 else 0.0,
+            "I_n": self._neutral.get(node, 0.0),
+        }
 
     # --- lifecycle ---------------------------------------------------------------------------
 

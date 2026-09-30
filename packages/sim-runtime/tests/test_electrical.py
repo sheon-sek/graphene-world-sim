@@ -9,6 +9,7 @@ import gws_runtime.controllers.electrical  # noqa: F401  (registers the blocks)
 from gws_runtime import controllers
 from gws_runtime.controllers import Block
 from gws_runtime.electrical import ElectricalNetwork
+from gws_runtime.master import electrical_points
 from gws_runtime.values import Value, split_ref
 from gws_world_model import library
 from gws_world_model.importers.graphene import Sources, build
@@ -303,3 +304,66 @@ def test_site_rides_through_utility_loss_on_gensets(site: WorldModel) -> None:
     assert sum(s[g]["P"] for g in gensets) == pytest.approx(
         s["~ATS-A"]["P"] + s["~ATS-B"]["P"], rel=0.01
     )
+
+
+def test_meters_read_power_quality_from_the_supplying_island() -> None:
+    plant = small_plant()
+    s = plant.step(2)
+    msb = s["MSB"]
+    assert msb["V_ln"] == pytest.approx(msb["V_ll"] / 3**0.5)
+    assert msb["P_ph"] == pytest.approx(msb["P"] / 3)
+    assert msb["Hz"] == 50.0
+    # Drives and IT power supplies draw harmonic current; the utility adds background THD(V).
+    assert 0.0 < msb["THDA"] < 0.35 and s["F1"]["THDA"] == pytest.approx(0.35)
+    assert msb["THDV"] >= 0.01 and s["F1"]["I_n"] == 0.0
+    # The UPS rectifiers isolate the IT loads' triplen currents from the MSB.
+    assert msb["I_n"] == 0.0 and s["B1"]["I_n"] > 0.0
+
+    plant.net.set_utility(False)
+    s = plant.step()
+    assert s["UPS1"]["on_battery"] and s["UPS1"]["Hz"] == 50.0  # its own oscillator
+    assert s["MSB"]["Hz"] == 0.0
+    s = plant.step(20)
+    load = s["G1"]["P"] / 1e6
+    assert s["MSB"]["Hz"] == pytest.approx(50.0 * (1 - 0.03 * (load - 0.5)))
+    assert s["UPS1"]["Hz"] == s["MSB"]["Hz"]  # synchronised to its input again
+
+
+def test_genset_engine_warms_up_and_its_oil_protection_shuts_it_down() -> None:
+    plant = small_plant()
+    plant.step(2)
+    plant.net.set_utility(False)
+    s = plant.step(20)
+    g = s["G1"]
+    assert g["running"] and g["speed"] == pytest.approx(g["Hz"] / 2)
+    assert g["p_oil"] > 380e3 and g["V_battery"] == 27.6 and g["run_s"] > 0.0
+    cold = g["T_coolant"]
+    s = plant.step(60)
+    assert s["G1"]["T_coolant"] > cold
+
+    plant.net.fault("G1", "low_oil_pressure", {"pressure_fraction": 0.6})
+    s = plant.step()
+    assert s["G1"]["running"] and s["G1"]["oil_prealarm"] and s["G1"]["prealarm"]
+    plant.net.fault("G1", "low_oil_pressure", {"pressure_fraction": 0.3})
+    s = plant.step()
+    assert s["G1"]["locked_out"] and s["G1"]["oil_shutdown"] and s["G1"]["alarm"]
+    assert not s["G1"]["running"] and s["G1"]["p_oil"] == 0.0
+    plant.net.command("G1", "reset", True)
+    assert plant.step()["G1"]["locked_out"]  # the cause is still there
+    plant.net.clear("G1", "low_oil_pressure")
+    plant.net.command("G1", "reset", True)
+    assert not plant.step()["G1"]["oil_shutdown"]
+
+
+def test_electrical_points_map_a_single_phase_meter_to_its_whole_circuit() -> None:
+    three = electrical_points({"P1", "P2", "P3", "Ptot", "Wh_Im", "HasAlarm"})
+    assert three == {
+        "P1": "P_ph",
+        "P2": "P_ph",
+        "P3": "P_ph",
+        "Ptot": "P",
+        "Wh_Im": "energy:P",
+        "HasAlarm": "alarm",
+    }
+    single = electrical_points({"P1", "I1", "V1"})
+    assert single == {"P1": "P", "I1": "I_1ph", "V1": "V_ln"}
