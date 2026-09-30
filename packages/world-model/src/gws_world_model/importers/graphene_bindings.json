@@ -651,6 +651,41 @@
   ],
   "rules": [
     {
+      "pattern": "Dashboard/([1-6])A/(IT Load|Facility Load|PUE)",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Data Halls/DH0\\1/\\2"
+        ]
+      },
+      "note": "hall dashboard widget nA shows Data Hall DH0n (its role in the asset source)"
+    },
+    {
+      "pattern": "BCPM/([^/]+)/Rack ID",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "rack row identifier, the BCPM's own name"
+    },
+    {
+      "pattern": "RCMS/Circuit (\\d+)/Outgoing No",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "outgoing circuit number, from the circuit's name"
+    },
+    {
+      "pattern": "IPS/Circuit (\\d+)/Outgoing No",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "outgoing circuit number, from the circuit's name"
+    },
+    {
       "pattern": "Chiller\\ System\\ Control/(?:Chillers|Buffer Tanks|Cooling Towers|Pumps)/([^/]+)/Equipment Name",
       "source": {
         "kind": "static",

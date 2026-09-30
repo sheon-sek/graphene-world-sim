@@ -344,11 +344,22 @@ def _point_bindings(
             # outside the simulation and its physics coverage.
             source = StaticValue(value=SUPPORT_DEFAULTS.get(p.data_type, 0))
         elif p.asset is not None and p.member is not None:
-            source = AssetSignal(asset=p.asset, signal=p.member)
+            # A rule wins over the member only for what the asset cannot compute itself: an
+            # identifier, or a widget that shows other points.
+            ruled = point_class is PointClass.STATIC_METADATA or (
+                types[assets[p.asset].type].category is AssetCategory.AGGREGATE
+            )
+            source = (binder.source(p.path) if ruled else None) or AssetSignal(
+                asset=p.asset, signal=p.member
+            )
         elif (source := binder.source(p.path)) is not None:
             pass
         else:
             source = Unbound(reason="point outside any UDT; not bound yet")
+        if isinstance(source, StaticValue) and isinstance(source.value, str):
+            # A rule's text (a name captured from the path) in a numeric point is its number.
+            if p.data_type.startswith("Int") and source.value.isdigit():
+                source = StaticValue(value=int(source.value))
         bindings[p.path] = PointBinding(
             path=p.path,
             data_type=p.data_type,

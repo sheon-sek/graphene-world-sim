@@ -85,6 +85,9 @@ CABLE_R_OHM = 0.0002
 CABLE_X_OHM = 0.0001
 """Default cable impedance of a connection (assumed: short, heavy LV cable or busbar)."""
 DEFAULT_POWER_FACTOR = 0.95
+LEAKAGE_A_PER_A = 5e-4
+"""Standing earth leakage of a healthy circuit (filter capacitors, cable capacitance): 0.5 mA per
+amp of load current."""
 MAX_PASSES = 6
 SQRT3 = math.sqrt(3.0)
 
@@ -787,7 +790,13 @@ class ElectricalNetwork:
             elif kind == FEEDER:
                 f = self._feeders[node]
                 breaker = all(bool(switch[i]) for i in self._feeder_switches[node])
-                s |= {"closed": breaker, "tripped": f.tripped}
+                residual = faults.get("earth_leakage", {}).get("residual_current", 0.0)
+                s |= {
+                    "closed": breaker,
+                    "tripped": f.tripped,
+                    "insulation_fault": "insulation_fault" in faults,
+                    "I_residual": LEAKAGE_A_PER_A * float(s["I"]) + residual if vm > 1e-3 else 0.0,
+                }
             s.setdefault("alarm", bool(s.get("tripped", False)))
             result[node] = s
         return result

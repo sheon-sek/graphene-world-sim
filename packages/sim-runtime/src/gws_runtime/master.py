@@ -103,6 +103,7 @@ ELECTRICAL_UNITS = {
     "THDV": "1",
     "THDA": "1",
     "I_n": "A",
+    "I_residual": "A",
     "T_coolant": "K",
     "p_oil": "Pa",
     "V_battery": "V",
@@ -176,9 +177,17 @@ _ELECTRICAL_POINTS = {
 """Point members of electrical assets -> the network's signals (`energy:` integrates)."""
 
 
-def electrical_points(members: Collection[str]) -> dict[str, str]:
+_TYPE_ELECTRICAL_POINTS = {
+    # A residual current monitor's current is the circuit's current to earth.
+    "RCMS": {"Current": "I_residual"},
+    "IPS": {"Insulation Fault": "insulation_fault", "HasAlarm": "insulation_fault"},
+}
+
+
+def electrical_points(members: Collection[str], type_id: str = "") -> dict[str, str]:
     """Point aliases of an electrical asset whose type has these point members."""
     aliases = {m: s for m, s in _ELECTRICAL_POINTS.items() if m in members}
+    aliases |= {m: s for m, s in _TYPE_ELECTRICAL_POINTS.get(type_id, {}).items() if m in members}
     aliases |= {m: f"energy:{m[:-6]}_P" for m in members if m.endswith("_Wh_Im")}
     if "P1" in members and "P2" not in members:
         aliases |= {m: s for m, s in _SINGLE_PHASE_POINTS.items() if m in members}
@@ -384,7 +393,9 @@ class Simulation:
         for asset in sorted(self._electrical):
             if asset in doc.assets and asset not in self.aliases:
                 members = doc.component_types[doc.assets[asset].type].point_template
-                self.aliases[asset] = electrical_points(set(members) | bound.get(asset, set()))
+                self.aliases[asset] = electrical_points(
+                    set(members) | bound.get(asset, set()), doc.assets[asset].type
+                )
         self._rooms = {room for p in self.plan.partitions for room in p.rooms}
         self.served_room: dict[str, str] = {}
         """Asset -> the room it takes the liquid-cooled IT heat of (a CDU's room connection)."""
