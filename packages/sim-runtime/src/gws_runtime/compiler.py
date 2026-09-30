@@ -34,13 +34,14 @@ from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gws_runtime.behaviours import BEHAVIOURS, HALL, Behaviour, Params, modelica_real, si
+from gws_runtime.behaviours import BEHAVIOURS, HALL, Behaviour, Input, Params, modelica_real, si
 from gws_world_model.model import ROOM_PREFIX, Asset, Domain, WorldModel
 
 GWSLIB = Path(__file__).with_name("modelica") / "GwsLib" / "package.mo"
 TOOLCHAIN = "openmodelica-1.25.0+msl-4.0.0+buildings-11.1.0"
 """Part of every partition hash: a different compiler or library must rebuild."""
-FLUID = frozenset({Domain.CHW, Domain.CW, Domain.WATER, Domain.AIR})
+FLUID = frozenset({Domain.CHW, Domain.CW, Domain.AIR})
+"""Domains the thermofluid models carry. Cold water service (`water`) is its own domain."""
 HEADER_VOLUME_M3 = 1.0
 
 
@@ -166,6 +167,8 @@ def _collect(doc: WorldModel, scope: Collection[str]) -> tuple[_Build, dict[str,
         if c.domain not in FLUID:
             continue
         src, dst = c.source, c.target
+        if _external(b, src.node, src.port) or _external(b, dst.node, dst.port):
+            continue
         if src.node not in b.units:
             if src.node in scope or dst.node in b.units:
                 dropped.append(cid)
@@ -190,6 +193,11 @@ def _collect(doc: WorldModel, scope: Collection[str]) -> tuple[_Build, dict[str,
             continue
         b.links.append((src.node, src_port, dst.node, dst_port))
     return b, not_modelled, dropped
+
+
+def _external(b: _Build, node: str, port: str) -> bool:
+    unit = b.units.get(node)
+    return unit is not None and port in unit.behaviour.external
 
 
 class _Components:
@@ -252,6 +260,10 @@ def plan(doc: WorldModel, scope: Collection[str]) -> Plan:
     # connection touches is unused (a pump's second domain) and is left out.
     linked = {(a, p) for a, p, _, _ in b.links} | {(c, p) for _, _, c, p in b.links}
     linked |= {(a, p) for links in b.rooms.values() for a, p, _ in links}
+    for asset in sorted(b.units):
+        if not any(a == asset for a, _ in linked):
+            del b.units[asset]
+            not_modelled[asset] = "not connected to any modelled loop"
     loops = _loops(b, linked)
 
     headers: list[_Header] = []
@@ -348,13 +360,13 @@ def _generate(
     state: dict[str, dict[str, str]] = {}
     start: dict[str, dict[str, str]] = {}
     power: dict[str, str] = {}
-    environment: set[str] = set()
+    environment: dict[str, Input] = {}
     member_set = set(members)
 
     def io(owner: str, inst: str, behaviour: Behaviour, values: dict[str, float | bool]) -> None:
         for sig, spec in behaviour.inputs.items():
             if spec.environment:
-                environment.add(spec.environment)
+                environment.setdefault(spec.environment, spec)
                 eqs.append(f"  {inst}.{sig} = env_{spec.environment};")
                 continue
             var = f"{inst}_{sig}"
@@ -436,9 +448,10 @@ def _generate(
             decls.append(f'  GwsLib.Expansion exp{n} "pressure reference {why}";')
             eqs.append(f"  connect(exp{n}.port, {b.units[pump].name}.{inlet});")
 
-    for name in sorted(environment):
-        decls.insert(0, f'  input Real env_{name}(start=298.15) "Operating condition";')
-        inputs.append(Variable(f"env_{name}", None, name, "real", "K"))
+    for name, spec in sorted(environment.items()):
+        value = _literal(float(spec.default))
+        decls.insert(0, f'  input Real env_{name}(start={value}) "Operating condition";')
+        inputs.append(Variable(f"env_{name}", None, name, "real", spec.unit))
 
     body = "\n".join(["equation", *eqs])
     text = "\n".join([*decls, body])
@@ -481,8 +494,46 @@ loadModel(Buildings, {{"11.1.0"}}); getErrorString();
 loadFile("{gwslib}"); getErrorString();
 loadFile("{model}.mo"); getErrorString();
 setCommandLineOptions("--fmiFlags=s:cvode"); getErrorString();
+setCompiler("gws-cc"); getErrorString();
 buildModelFMU({model}, version="2.0", fmuType="me", fileNamePrefix="{model}",
   platforms={{"static"}}); getErrorString();
+"""
+
+CC = r"""#!/bin/sh
+# The C compiler OpenModelica builds the FMU with: clang, except for the variable table.
+# OpenModelica writes every variable's name, comment and attributes as one straight-line
+# function in <model>_init_fmu.c, a million lines for a whole site, and clang's time grows
+# faster than the function. This splits it into functions of 5,000 lines and compiles it
+# without optimisation (it runs once, at instantiation).
+for a in "$@"; do
+  case "$a" in *_init_fmu.c) init="$a" ;; esac
+done
+if [ -n "$init" ] && ! grep -q '_read_input_fmu_0(' "$init"; then
+  awk -v N=5000 '
+    /^void [A-Za-z0-9_]+_read_input_fmu\(MODEL_DATA\* modelData\)$/ {
+      name = $2; sub(/\(.*/, "", name); getline; k = 0; n = 0; body = 1
+      print "static void " name "_0(MODEL_DATA* modelData)"; print "{"; next
+    }
+    body && /^}$/ {
+      print "}"; print "void " name "(MODEL_DATA* modelData)"; print "{"
+      for (i = 0; i <= k; i++) print "  " name "_" i "(modelData);"
+      print "}"; body = 0; next
+    }
+    body {
+      print
+      if (++n >= N) {
+        k++; n = 0
+        print "}"; print "static void " name "_" k "(MODEL_DATA* modelData)"; print "{"
+      }
+      next
+    }
+    { print }
+  ' "$init" > "$init.split" && mv "$init.split" "$init"
+fi
+if [ -n "$init" ]; then
+  exec clang "$@" -O0
+fi
+exec clang "$@"
 """
 
 
@@ -500,6 +551,9 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     work = Path(tempfile.mkdtemp(prefix=f"{partition.name}-", dir=cache))
     (work / f"{partition.name}.mo").write_text(partition.source, encoding="utf-8")
     shutil.copy(GWSLIB, work / "GwsLib.mo")
+    cc = work / "gws-cc"
+    cc.write_text(CC, encoding="utf-8")
+    cc.chmod(0o755)
     (work / "build.mos").write_text(
         SCRIPT.format(libdir=LIBDIR, gwslib=work / "GwsLib.mo", model=partition.name),
         encoding="utf-8",
@@ -508,7 +562,9 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     if not LIBDIR.startswith("/opt/"):
         mounts.add(LIBDIR)
         mounts.update(str(p.resolve()) for p in Path(LIBDIR).iterdir() if p.is_symlink())
-    cmd = ["docker", "run", "--rm", "-w", str(work)]
+    # OpenModelica passes the compiler to CMake by name, so the wrapper goes on the PATH.
+    path = f"{work}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    cmd = ["docker", "run", "--rm", "-w", str(work), "-e", f"PATH={path}"]
     for m in sorted(mounts):
         cmd += ["-v", f"{m}:{m}"]
     cmd += [IMAGE, "omc", "build.mos"]

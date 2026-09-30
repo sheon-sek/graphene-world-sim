@@ -65,4 +65,6 @@ export async function must<T>(
 }
 export type Put = Schemas["Put"];
 export type Delete = Schemas["Delete"];
-export type Edit = Put | Delete;
+export type Place = Schemas["Place"];
+export type Remove = Schemas["Remove"];
+export type Edit = Put | Delete | Place | Remove;

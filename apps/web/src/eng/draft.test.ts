@@ -20,3 +20,13 @@ test("a draft's operations overlay the revision", () => {
   expect(world.assets.size).toBe(1);
   expect(connectionId("air", "FCU/L1_FCU9", "room:DH01")).toBe("air:FCU/L1_FCU9->DH01");
 });
+
+test("placing and removing assets overlay like the server's operations", () => {
+  const edited = overlay(world, [
+    { op: "place", value: { id: "N", type: "FCU", name: "N" } },
+    { op: "remove", key: "A" },
+  ]);
+  expect([...edited.assets.keys()]).toEqual(["N"]);
+  expect(edited.connections.size).toBe(0);
+  expect(edited.touched).toEqual(new Set(["N", "A"]));
+});

@@ -164,7 +164,7 @@ class _Fault:
 
 
 class _NoState:
-    def get(self, asset: str, signal: str) -> float | bool | None:
+    def get(self, asset: str, signal: str) -> float | bool | str | None:
         return None
 
     def unit(self, asset: str, signal: str) -> str | None:
@@ -205,16 +205,37 @@ class Instrumentation:
         self._instrument_ids = sorted(
             i for i, inst in doc.instruments.items() if wanted is None or inst.asset in wanted
         )
-        self._paths = sorted(
-            path
-            for path, b in doc.point_bindings.items()
-            if wanted is None
-            or (isinstance(b.source, AssetSignal) and b.source.asset in wanted)
-            or (
-                isinstance(b.source, InstrumentSource)
-                and doc.instruments[b.source.instrument].asset in wanted
-            )
-        )
+        covered: dict[str, bool] = {}
+        self._paths = sorted(p for p in doc.point_bindings if self._covers(wanted, p, covered))
+
+    def _covers(
+        self, wanted: frozenset[str] | None, reference: str, covered: dict[str, bool]
+    ) -> bool:
+        """Whether a point (or an aggregate's input) can be computed from the scope: its asset
+        is in it, or it is a constant, or every input of its aggregate is."""
+        if wanted is None:
+            return True
+        binding = self.doc.point_bindings.get(reference)
+        if binding is None:
+            if reference in self.doc.instruments:
+                return self.doc.instruments[reference].asset in wanted
+            return split_ref(reference)[0] in wanted
+        src = binding.source
+        if isinstance(src, AssetSignal):
+            return src.asset in wanted
+        if isinstance(src, InstrumentSource):
+            return self.doc.instruments[src.instrument].asset in wanted
+        if isinstance(src, Aggregate):
+            if reference not in covered:
+                covered[reference] = False  # a cycle through it is not computable
+                covered[reference] = all(self._covers(wanted, r, covered) for r in src.inputs)
+            return covered[reference]
+        return isinstance(src, StaticValue)
+
+    @property
+    def paths(self) -> list[str]:
+        """The points this instrumentation serves."""
+        return list(self._paths)
 
     def _model_signal(self, asset: str, member: str) -> str:
         a = self.doc.assets.get(asset)
@@ -333,7 +354,7 @@ class Instrumentation:
 
     # --- evaluation ------------------------------------------------------------------------
 
-    def _true(self, asset: str, signal: str) -> float | bool | None:
+    def _true(self, asset: str, signal: str) -> float | bool | str | None:
         value = self._state.get(asset, signal)
         if value is None and self.network.is_network_asset(asset):
             value = self.network.signal(asset, signal)
@@ -354,7 +375,10 @@ class Instrumentation:
     ) -> Sample:
         """A measured value of the asset's model signal `names[0]` in `unit`."""
         signal = names[0]
-        monitored = self.network.is_network_asset(asset) and signal in MONITOR_SIGNALS
+        monitor = getattr(self._state, "monitored", None)
+        monitored = (self.network.is_network_asset(asset) and signal in MONITOR_SIGNALS) or bool(
+            monitor is not None and monitor(asset, signal)
+        )
         if not monitored and not self._reaches(asset, via):
             return _stale(last, t)
         true = self._true(asset, signal)
@@ -448,9 +472,14 @@ class Instrumentation:
         return self.converter.convert(value, unit, target)
 
     def _aggregate(self, t: float, binding: PointBinding, agg: Aggregate) -> Sample:
+        if agg.function == "elapsed":
+            return Sample(self.converter.convert(t, "s", binding.unit), Quality.GOOD, t)
         inputs = [self._input(t, ref) for ref in agg.inputs]
         if not inputs:
             return Sample(None, Quality.BAD, t, UNBOUND)
+        if agg.function == "health":
+            good = all(s.quality is Quality.GOOD for s, _, _ in inputs)
+            return Sample("NORMAL" if good else "FAULT", Quality.GOOD, t)
         worst = max((s for s, _, _ in inputs), key=lambda s: _RANK[s.quality])
         quality, reason = worst.quality, worst.reason
         if any(s.value is None for s, _, _ in inputs):
@@ -462,6 +491,15 @@ class Instrumentation:
             result = self._ratio(binding, inputs)
             if result is None:
                 return Sample(None, Quality.BAD, t, "undefined")
+        elif agg.function == "product":
+            (factor, _, _), rest = inputs[0], inputs[1:]
+            unit = rest[0][1] if rest else None
+            terms = [self._to(s.value, u, si, unit) for s, u, si in rest]
+            if not _numeric(factor.value) or not all(_numeric(v) for v in terms):
+                return Sample(None, Quality.BAD, t, "not_numeric")
+            assert isinstance(factor.value, int | float)
+            result = float(factor.value) * sum(float(v) for v in terms if v is not None)
+            result *= agg.scale
         else:
             target = binding.unit or inputs[0][1]
             values = [self._to(s.value, u, si, target) for s, u, si in inputs]
@@ -503,7 +541,8 @@ class Instrumentation:
         else:
             unit = f"{u0}/{ud}" if u0 and ud and not (si0 or sid) else None
         if denominator == 0:
-            return None
+            # Nothing over nothing: an idle unit's efficiency reads zero, not undefined.
+            return 0.0 if abs(float(numerator)) < 1e-6 else None
         quotient = float(numerator) / denominator
         if unit is not None and binding.unit and compatible(unit, binding.unit):
             return self.converter.convert(quotient, unit, binding.unit)

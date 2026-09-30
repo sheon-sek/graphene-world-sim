@@ -3,6 +3,10 @@
   "category": "equipment",
   "description": "3,750 kVA / 3,000 kW prime diesel genset, three per side (N+1), transferring through the ATS within 15 s (plant-design basis).",
   "fault_modes": {
+    "coolant_loss": {
+      "description": "A coolant leak: the low coolant level alarm rises and a running engine heats up until its high coolant temperature shutdown locks it out.",
+      "kind": "trip"
+    },
     "derate": {
       "description": "Engine or alternator fault limits the output.",
       "kind": "degrade",
@@ -18,12 +22,31 @@
         }
       }
     },
+    "emergency_stop": {
+      "description": "The emergency stop is pressed: the genset stops and stays locked out until the button is released and it is reset.",
+      "kind": "trip"
+    },
     "fail_to_start": {
       "description": "The engine fails to start (over-crank at the end of its start time) and locks out until reset.",
       "kind": "trip"
     },
+    "low_oil_pressure": {
+      "description": "An oil leak or a failing oil pump lowers the lubricating oil pressure; below the prealarm the controller warns, below the shutdown pressure the engine's protection stops the set and locks it out.",
+      "kind": "degrade",
+      "parameters": {
+        "pressure_fraction": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 0.4,
+          "description": "Oil pressure as a fraction of normal.",
+          "max": 1,
+          "min": 0,
+          "unit": "1"
+        }
+      }
+    },
     "shutdown": {
-      "description": "A running genset shuts down on a protection (oil pressure, coolant, short circuit) and locks out until reset.",
+      "description": "The alternator's short-circuit protection trips a running genset and locks it out until reset.",
       "kind": "trip"
     }
   },

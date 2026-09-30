@@ -1,0 +1,11 @@
+{
+  "note": "The CW Ground Tank and CW Roof Tank UDTs give Water Level no engineering unit. Its alarm on the gateway fires outside 20 to 30, and the demo value is 25: it is the level in percent of full.",
+  "member_units": {
+    "CW Ground Tank": {
+      "Water Level": "%"
+    },
+    "CW Roof Tank": {
+      "Water Level": "%"
+    }
+  }
+}

@@ -651,6 +651,285 @@
   ],
   "rules": [
     {
+      "pattern": "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+      "source": {
+        "kind": "static",
+        "value": 0.412
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: grid emission factor of a Singapore-class grid (the site basis climate), kgCO2e/kWh"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Diesel Emission Factor",
+      "source": {
+        "kind": "static",
+        "value": 2.68
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: combustion factor of diesel, kgCO2e/L"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Refrigerant Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 0.31
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: 2 %/yr leakage of 4 x 1,000 kg R-134a (GWP 1,430), tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Capital Goods Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 4.6
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: 50,000 tCO2e embodied carbon over 30 years, tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Fuel and Energy Related Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 2.0
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: upstream and transmission losses of the purchased energy, tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Year Start",
+      "source": {
+        "kind": "static",
+        "value": 0.0
+      },
+      "note": "the start of the run: the YTD totals count from it (the totalisers are not reset at a calendar year start)"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Elapsed (?:Days|Hours) YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "elapsed"
+      },
+      "note": "time since the run began, the period the YTD totals cover"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Diesel Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 1/Diesel Emission Factor",
+          "Dashboard/Carbon Footprint/Scope 1/Diesel Used YTD"
+        ],
+        "scale": 0.001
+      },
+      "note": "kgCO2e/L x L, in t"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Refrigerant Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Refrigerant Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 2/Total Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Dashboard/Carbon Footprint/Scope 2/Grid Energy YTD"
+        ]
+      },
+      "note": "kgCO2e/kWh x MWh, in t"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 3/Capital Goods Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Capital Goods Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 3/Fuel and Energy Related Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Fuel and Energy Related Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Realtime/Scope 2 Emission Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Meter/SPPA Incomer 1/Ptot",
+          "Meter/SPPA Incomer 2/Ptot",
+          "Meter/SPPA Incomer 3/Ptot",
+          "Meter/SPPA Incomer 4/Ptot"
+        ],
+        "scale": 0.001
+      },
+      "note": "kgCO2e/kWh x utility import kW, in t/h"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Realtime/Carbon Emission Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Dashboard/Facility Load"
+        ]
+      },
+      "note": "the facility's power at grid intensity (kgCO2e/kWh x MW, in t/h), whether the grid or the gensets supply it"
+    },
+    {
+      "pattern": "IPS/Load Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "load_ok"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Device Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "device_ok"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Transformer Temp",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "over_temperature"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Insulation Value",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "insulation_kohm"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/PE Connection",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "pe_connected"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Load Percentage",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "load_pct"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/No CT",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "ct_open"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Short CT",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "ct_short"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/I_(?:AC|RMS)_CH1",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "I_residual"
+      },
+      "note": "residual current on the GEM630 feed"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/I_DC_CH1",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "I_residual_dc"
+      },
+      "note": "smooth DC share of the residual current"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/TestStatus",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "alarm"
+      },
+      "note": "0 passed, 1 tripped"
+    },
+    {
+      "pattern": "Dashboard/([1-6])A/(IT Load|Facility Load|PUE)",
+      "source": {
+        "kind": "aggregate",
+        "function": "first",
+        "inputs": [
+          "Dashboard/Data Halls/DH0\\1/\\2"
+        ]
+      },
+      "note": "hall dashboard widget nA shows Data Hall DH0n (its role in the asset source)"
+    },
+    {
+      "pattern": "BCPM/([^/]+)/Rack ID",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "rack row identifier, the BCPM's own name"
+    },
+    {
+      "pattern": "RCMS/Circuit (\\d+)/Outgoing No",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "outgoing circuit number, from the circuit's name"
+    },
+    {
+      "pattern": "IPS/Circuit (\\d+)/Outgoing No",
+      "source": {
+        "kind": "static",
+        "value": "\\1"
+      },
+      "note": "outgoing circuit number, from the circuit's name"
+    },
+    {
       "pattern": "Chiller\\ System\\ Control/(?:Chillers|Buffer Tanks|Cooling Towers|Pumps)/([^/]+)/Equipment Name",
       "source": {
         "kind": "static",
@@ -691,12 +970,46 @@
       "note": "fixed text"
     },
     {
-      "pattern": "Chiller\\ System\\ Control/Sensors/(?:Flow|Pressure|Temperature)/Status",
+      "pattern": "Chiller\\ System\\ Control/Sensors/Flow/Status",
       "source": {
-        "kind": "static",
-        "value": "NORMAL"
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Flow/CHWS FM",
+          "Chiller System Control/Sensors/Flow/CHWR FM",
+          "Chiller System Control/Sensors/Flow/CWS FM",
+          "Chiller System Control/Sensors/Flow/CWR FM"
+        ]
       },
-      "note": "sensor-set health; instrument health is not a model signal yet (a sensor fault shows as bad quality on the reading itself)"
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Pressure/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Pressure/CHWS PS",
+          "Chiller System Control/Sensors/Pressure/CHWR PS",
+          "Chiller System Control/Sensors/Pressure/CWS PS",
+          "Chiller System Control/Sensors/Pressure/CWR PS"
+        ]
+      },
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
+    },
+    {
+      "pattern": "Chiller\\ System\\ Control/Sensors/Temperature/Status",
+      "source": {
+        "kind": "aggregate",
+        "function": "health",
+        "inputs": [
+          "Chiller System Control/Sensors/Temperature/CHWS TS",
+          "Chiller System Control/Sensors/Temperature/CHWR TS",
+          "Chiller System Control/Sensors/Temperature/CWS TS",
+          "Chiller System Control/Sensors/Temperature/CWR TS"
+        ]
+      },
+      "note": "sensor-set health: FAULT while any of the set's readings has bad quality"
     },
     {
       "pattern": "Chiller\\ System\\ Control/Chillers/CH-00([1-3])/Alarm Status",
@@ -3866,30 +4179,30 @@
         "kind": "aggregate",
         "function": "mean",
         "inputs": [
-          "UPS/UPS 1:loadFraction",
-          "UPS/UPS 2:loadFraction",
-          "UPS/UPS 3:loadFraction",
-          "UPS/UPS 4:loadFraction",
-          "UPS/UPS 5:loadFraction",
-          "UPS/UPS 6:loadFraction",
-          "UPS/UPS 7:loadFraction",
-          "UPS/UPS 8:loadFraction",
-          "UPS/UPS 9:loadFraction",
-          "UPS/UPS 10:loadFraction",
-          "UPS/UPS 11:loadFraction",
-          "UPS/UPS 12:loadFraction",
-          "UPS/UPS 13:loadFraction",
-          "UPS/UPS 14:loadFraction",
-          "UPS/UPS 15:loadFraction",
-          "UPS/UPS 16:loadFraction",
-          "UPS/UPS 17:loadFraction",
-          "UPS/UPS 18:loadFraction",
-          "UPS/UPS 19:loadFraction",
-          "UPS/UPS 20:loadFraction",
-          "UPS/UPS 21:loadFraction",
-          "UPS/UPS 22:loadFraction",
-          "UPS/UPS 23:loadFraction",
-          "UPS/UPS 24:loadFraction"
+          "UPS/UPS 1:load_fraction",
+          "UPS/UPS 2:load_fraction",
+          "UPS/UPS 3:load_fraction",
+          "UPS/UPS 4:load_fraction",
+          "UPS/UPS 5:load_fraction",
+          "UPS/UPS 6:load_fraction",
+          "UPS/UPS 7:load_fraction",
+          "UPS/UPS 8:load_fraction",
+          "UPS/UPS 9:load_fraction",
+          "UPS/UPS 10:load_fraction",
+          "UPS/UPS 11:load_fraction",
+          "UPS/UPS 12:load_fraction",
+          "UPS/UPS 13:load_fraction",
+          "UPS/UPS 14:load_fraction",
+          "UPS/UPS 15:load_fraction",
+          "UPS/UPS 16:load_fraction",
+          "UPS/UPS 17:load_fraction",
+          "UPS/UPS 18:load_fraction",
+          "UPS/UPS 19:load_fraction",
+          "UPS/UPS 20:load_fraction",
+          "UPS/UPS 21:load_fraction",
+          "UPS/UPS 22:load_fraction",
+          "UPS/UPS 23:load_fraction",
+          "UPS/UPS 24:load_fraction"
         ]
       },
       "note": "mean load of the 24 hall UPS"
@@ -4093,22 +4406,6 @@
       "note": "total emissions / GFA (t shown as kg)"
     },
     {
-      "pattern": "Dashboard/Carbon\\ Footprint/(?:Demo Inputs/(?:Capital Goods|Fuel and Energy Related|Refrigerant) Emission Rate|Demo Inputs/Elapsed (?:Days|Hours) YTD|Demo Inputs/Year Start|Scope 1/Diesel Emission Factor|Scope 2/Grid Emission Factor)",
-      "source": {
-        "kind": "unbound",
-        "reason": "demo carbon-accounting input with no value in the export; bind a StaticValue when the owner supplies it"
-      },
-      "note": "demo artefact"
-    },
-    {
-      "pattern": "Dashboard/Carbon\\ Footprint/(?:Scope 1/(?:Diesel|Refrigerant) Emissions YTD|Scope 2/Total Emissions YTD|Scope 3/(?:Capital Goods|Fuel and Energy Related) Emissions YTD|Realtime/(?:Carbon|Scope 2) Emission Rate)",
-      "source": {
-        "kind": "unbound",
-        "reason": "emission = factor × activity; no aggregate function multiplies, and the factors have no value"
-      },
-      "note": "demo artefact"
-    },
-    {
       "pattern": "Other/IT\\ Load",
       "source": {
         "kind": "aggregate",
@@ -4213,7 +4510,7 @@
       "pattern": "Other/Maintenance\\ Schedule",
       "source": {
         "kind": "static",
-        "value": 1812384000000
+        "value": "2027-06-07T00:00:00+00:00"
       },
       "note": "next maintenance date (2027-06-07), operator setting"
     },
@@ -4893,20 +5190,12 @@
       "note": "lift state (A18)"
     },
     {
-      "pattern": "IPS/(?:Device Status|Insulation Value|Load Percentage|Load Status|No CT|PE Connection|Short CT|Transformer Temp)",
+      "pattern": "TIW/CDU-0[1-3]/New\\ Tag",
       "source": {
-        "kind": "unbound",
-        "reason": "IPS panel measurement (isolation transformer, CT and PE monitor); the panel is not an asset, only its circuits are"
+        "kind": "static",
+        "value": 0
       },
-      "note": "no honest source"
-    },
-    {
-      "pattern": "DemoRack/RCMS425/.+",
-      "source": {
-        "kind": "unbound",
-        "reason": "demo-rack RCMS425 residual-current monitor has no asset"
-      },
-      "note": "no honest source"
+      "note": "an unused spare register in the CDU's template"
     }
   ]
 }

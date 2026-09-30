@@ -27,7 +27,7 @@ from starlette.websockets import WebSocketDisconnect
 from gws_api.history import History
 from gws_runtime import gate
 from gws_runtime.compiler import CompileError
-from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session
+from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session, Swap
 from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
 from gws_world_model.model import AssetSignal, InstrumentSource, PointClass
 from gws_world_model.store import NotFound, SqliteStore
@@ -46,6 +46,7 @@ class _Live:
         self.subscribers: set[asyncio.Queue[dict[str, Any]]] = set()
         self.history = History()
         self.last_error: dict[str, Any] | None = None
+        self.swapper: asyncio.Task[None] | None = None
         self.created = time.monotonic()
         self._alarm_points: tuple[Simulation, dict[str, str | None]] | None = None
         self.record(session.sim.frame().to_json())
@@ -139,6 +140,8 @@ class SessionOut(BaseModel):
     blocks: list[str]
     missing_blocks: list[str]
     faults: list[dict[str, Any]]
+    swap: dict[str, Any] | None = None
+    """The latest structural edit applied without stopping, or being applied."""
 
 
 class StepIn(_In):
@@ -194,6 +197,7 @@ def _out(live: _Live) -> SessionOut:
         blocks=[b.binding.id for b in sim.blocks],
         missing_blocks=list(sim.missing_blocks),
         faults=[f.to_json() for f in sim.faults.active()],
+        swap=s.swap.to_json() if s.swap is not None else None,
     )
 
 
@@ -222,11 +226,18 @@ async def _do(live: _Live, fn: Any, *args: Any, **kwargs: Any) -> Any:
 
 
 async def _runner(live: _Live) -> None:
-    """Step while running, paced so that simulated time advances `speed` times wall time."""
+    """Step while running, paced so that simulated time advances `speed` times wall time. The
+    pace is kept on average: a step that runs late is made up by the next ones not waiting,
+    and the schedule restarts when the speed changes or the run falls behind by more than
+    `MAX_LAG_STEPS` steps."""
     loop = asyncio.get_running_loop()
     session = live.session
+    due, pace = loop.time(), session.speed
     while session.running:
-        began = loop.time()
+        if session.speed != pace or loop.time() - due > MAX_LAG_STEPS * session.sim.dt / max(
+            session.speed, 1e-9
+        ):
+            due, pace = loop.time(), session.speed
         async with live.lock:
             try:
                 frame = await run_in_threadpool(session.step, 1)
@@ -236,7 +247,8 @@ async def _runner(live: _Live) -> None:
                 return
         live.publish(frame.to_json())
         if session.speed > 0:
-            await asyncio.sleep(max(session.sim.dt / session.speed - (loop.time() - began), 0.0))
+            due += session.sim.dt / session.speed
+            await asyncio.sleep(max(due - loop.time(), 0.0))
         else:
             await asyncio.sleep(0)
 
@@ -265,6 +277,10 @@ class Preset(BaseModel):
     conditions: dict[str, Any]
     """Operating conditions to set after creating the session (`PUT .../conditions`)."""
 
+
+SWAP_POLL_S = 0.2
+MAX_LAG_STEPS = 10
+"""A run further behind its schedule than this many steps stops trying to catch up."""
 
 PRESETS = [
     Preset(
@@ -431,6 +447,38 @@ async def reinit(sid: str, body: ReinitIn, runtime: Runtime, store: Store) -> di
     result: dict[str, Any] = (await _do(live, live.session.reinit, revision, body.scope)).to_json()
     live.publish(result)
     return result
+
+
+@router.post("/sessions/{sid}/swap", status_code=202)
+async def swap(sid: str, body: ReinitIn, runtime: Runtime, store: Store) -> dict[str, Any]:
+    """Apply another World Model revision without stopping the session: the partitions it
+    changes compile in the background while the session keeps running, and the swap happens
+    between two steps. If it fails, the session keeps its current models and the swap says
+    why. `GET` on the same path follows it."""
+    live = _live(runtime, sid)
+    revision = body.revision or store.head()
+    if revision is None:
+        raise HTTPException(409, "the World Model has no revision yet")
+    prepared: Swap = await _do(live, live.session.prepare, revision, body.scope)
+    if live.swapper is None or live.swapper.done():
+        live.swapper = asyncio.create_task(_swapper(live))
+    return prepared.to_json()
+
+
+@router.get("/sessions/{sid}/swap")
+def swap_state(sid: str, runtime: Runtime) -> dict[str, Any] | None:
+    s = _live(runtime, sid).session.swap
+    return s.to_json() if s is not None else None
+
+
+async def _swapper(live: _Live) -> None:
+    """Swap the prepared revision in at the first step boundary after it has compiled."""
+    while (s := live.session.swap) is not None and s.state == "compiling":
+        await asyncio.sleep(SWAP_POLL_S)
+    async with live.lock:
+        frame = await run_in_threadpool(live.session.apply_swap)
+    if frame is not None:
+        live.publish(frame.to_json())
 
 
 @router.post("/sessions/{sid}/replay", status_code=201, response_model=SessionOut)

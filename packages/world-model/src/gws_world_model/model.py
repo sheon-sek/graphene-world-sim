@@ -337,10 +337,25 @@ class Aggregate(_Frozen):
     """A value computed from other points (a KPI, a hall average)."""
 
     kind: Literal["aggregate"] = "aggregate"
-    function: Literal["sum", "mean", "max", "min", "ratio", "count_true", "first"]
-    inputs: tuple[str, ...]
+    function: Literal[
+        "sum",
+        "mean",
+        "max",
+        "min",
+        "ratio",
+        "count_true",
+        "first",
+        "product",
+        "elapsed",
+        "health",
+    ]
+    inputs: tuple[str, ...] = ()
     """Export paths or `<asset>:<signal>` references. `ratio` divides the first by the sum of
-    the rest."""
+    the rest; `product` multiplies the first by the sum of the rest, each in its own unit, and by
+    `scale`. `elapsed` takes no inputs: the simulated time since the run began. `health` reads
+    "NORMAL" while every input reads with good quality and "FAULT" otherwise."""
+    scale: float = 1.0
+    """Multiplier on a `product`, for the units its inputs leave unconverted."""
 
 
 class StaticValue(_Frozen):

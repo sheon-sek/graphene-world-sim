@@ -1,0 +1,58 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "A load bank in the standalone demo rack, behind one of its meters. It steps through a demonstration duty cycle so the meter in front of it has something to measure. A load behind a branch circuit monitor is split over the monitor's circuits, each with its own share and cycle.",
+  "fault_modes": {
+    "trip": {
+      "description": "The load bank's own protection trips it off until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Demo Load",
+  "ignition_type_id": null,
+  "name": "Demo rack load bank",
+  "parameters": {
+    "design_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 5.0,
+      "description": "Full power of the load bank.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "power_factor": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.9,
+      "description": "Power factor of the load bank.",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "cycle": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 120.0,
+      "description": "Spacing of the steps of the demonstration duty cycle.",
+      "min": 1,
+      "unit": "s"
+    },
+    "min_fraction": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.3333333333333333,
+      "description": "Lowest share of full power the duty cycle reaches.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Feed from the demo rack meter in front of it.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

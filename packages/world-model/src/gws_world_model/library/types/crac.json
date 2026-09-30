@@ -1,7 +1,7 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.DXUnit",
   "category": "equipment",
-  "description": "Direct-expansion CRAC with two compressors and an EC fan; not on the CHW plant, so it keeps cooling when the chillers fail, and high ambient raises its head pressure (review A4). No GwsLib model yet.",
+  "description": "Direct-expansion CRAC with two compressors and an EC fan; not on the CHW plant, so it keeps cooling when the chillers fail, and high ambient raises its head pressure (review A4). Its variable-speed DX coil holds the supply air at its set point; above the high-pressure ambient limit its compressors lock out.",
   "fault_modes": {
     "compressor_failure": {
       "description": "A compressor fails; the unit runs on its remaining stage.",

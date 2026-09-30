@@ -39,8 +39,12 @@ class Block(ABC):
     def __init__(self, binding: ControlBinding, doc: WorldModel) -> None:
         self.binding = binding
         self.doc = doc
+        self.overrides: dict[str, Any] = {}
+        """Parameters an operator has set on the controller's HMI (hmi.py), which win."""
 
     def param(self, name: str, default: Any) -> Any:
+        if name in self.overrides:
+            return self.overrides[name]
         return self.binding.parameters.get(name, default)
 
     @abstractmethod

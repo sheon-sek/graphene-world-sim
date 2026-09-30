@@ -76,6 +76,10 @@ export const lifecycle = {
     useSession.getState().act(null, () => must(api.POST("/api/runtime/sessions/{sid}/step", { ...path(sid), body: { steps } }))),
   speed: (sid: string, speed: number) =>
     useSession.getState().act(null, () => must(api.PUT("/api/runtime/sessions/{sid}/speed", { ...path(sid), body: { speed } }))),
+  swap: (sid: string, revision: number, scope: string[]) =>
+    useSession
+      .getState()
+      .act(null, () => must(api.POST("/api/runtime/sessions/{sid}/swap", { ...path(sid), body: { revision, scope } }))),
   reinit: (sid: string, revision: number, scope: string[]) =>
     useSession
       .getState()

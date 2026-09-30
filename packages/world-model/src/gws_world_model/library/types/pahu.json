@@ -1,7 +1,7 @@
 {
-  "behaviour": null,
+  "behaviour": "GwsLib.AirHandler",
   "category": "equipment",
-  "description": "Primary AHU providing fresh air, dehumidification and pressurisation (review A6); it shuts down on its fire zone's signal. Its coil dehumidifies, which GwsLib.FanCoil (a dry coil) does not model.",
+  "description": "Primary AHU providing fresh air, dehumidification and pressurisation (review A6); it shuts down on its fire zone's signal. Its wet coil cools and dehumidifies outdoor air to the supply set point through the unit's own CHW valve.",
   "fault_modes": {
     "filter_choke": {
       "description": "Filter blocks: the fan moves less air at the same speed.",

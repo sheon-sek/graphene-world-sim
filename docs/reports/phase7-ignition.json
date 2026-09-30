@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "facts": {
+    "swap_requested": {
+      "revision": 2,
+      "state": "compiling",
+      "reason": "",
+      "requested_t": 100.0,
+      "applied_t": null,
+      "compiling": [
+        "P_c25420f80e813c95"
+      ],
+      "added": [
+        "Chiller/R_C9"
+      ],
+      "removed": []
+    },
+    "swap": {
+      "revision": 2,
+      "state": "applied",
+      "reason": "",
+      "requested_t": 100.0,
+      "applied_t": 295.0,
+      "compiling": [
+        "P_c25420f80e813c95"
+      ],
+      "added": [
+        "Chiller/R_C9"
+      ],
+      "removed": [],
+      "wall_s": 43.1
+    },
+    "new_points": 17
+  },
+  "checks": [
+    {
+      "name": "the session keeps running while the new partition compiles",
+      "passed": true,
+      "detail": {
+        "t_before": 100.0,
+        "t_during": 115.0,
+        "swap": "compiling"
+      }
+    },
+    {
+      "name": "the new chiller swaps into the running session",
+      "passed": true,
+      "detail": {
+        "revision": 2,
+        "state": "applied",
+        "reason": "",
+        "requested_t": 100.0,
+        "applied_t": 295.0,
+        "compiling": [
+          "P_c25420f80e813c95"
+        ],
+        "added": [
+          "Chiller/R_C9"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "name": "Ignition reads the new chiller's tags",
+      "passed": true,
+      "detail": {
+        "ignition": {
+          "good": true,
+          "value": 22.82915687561035,
+          "quality": "Good"
+        },
+        "simulator": {
+          "value": 22.82915681871942,
+          "quality": "good",
+          "t": 335.0,
+          "reason": ""
+        }
+      }
+    },
+    {
+      "name": "nothing was restarted",
+      "passed": true,
+      "detail": {
+        "simulator_pid": 9369,
+        "session": "R1"
+      }
+    },
+    {
+      "name": "a removed asset reads Bad in Ignition, then its source disappears",
+      "passed": true,
+      "detail": {
+        "while_removing": {
+          "good": false,
+          "value": 22.86191177368164,
+          "quality": "Bad(\"Bad_NotFound: A requested item was not found or a search operation ended without success.\")"
+        },
+        "after": {
+          "good": false,
+          "value": 22.86191177368164,
+          "quality": "Bad(\"Bad_NotFound: A requested item was not found or a search operation ended without success.\")"
+        },
+        "points": [
+          8828,
+          8811
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from gws_runtime.netdevices import DeviceTelemetry
 from gws_runtime.network import COMM_DISCONNECTED, LINK_DOWN, ControlNetwork
 from gws_world_model.model import (
     Asset,
@@ -156,3 +157,29 @@ def test_snapshot_restores_failures() -> None:
     other.restore_state(state)
     assert unreachable(other) == unreachable(net)
     assert other.failed() == ("SW1", "net:GW->SW2")
+
+
+def test_device_telemetry_varies_with_traffic_and_uptime_restarts_after_a_failure() -> None:
+    doc = network_world()
+    net = ControlNetwork.from_world(doc)
+    telemetry = DeviceTelemetry.from_world(doc, net)
+    first = telemetry.signals(0.0, 1.0, {})
+    later = telemetry.signals(300.0, 1.0, {})
+    assert first["SW3"]["CPU"] != later["SW3"]["CPU"]
+    assert first["V"]["Ports/Port 01/In Utilization"] != later["V"]["Ports/Port 01/In Utilization"]
+    assert later["D1"]["Ping Time"] > later["SW1"]["Ping Time"]  # more hops to the gateway
+    assert first["D1"]["Uptime"] > 0.0  # it was running before the run began
+
+    net.fail("V/Ports/Port 02")
+    net.step(301.0)
+    port = telemetry.signals(301.0, 1.0, {})["V"]
+    assert port["Ports/Port 02/Speed"] == 0.0 and port["Ports/Port 02/In Utilization"] == 0
+    assert port["Ports/Port 01/Speed"] == 1e9
+
+    net.fail("D1")
+    net.step(302.0)
+    assert set(telemetry.signals(302.0, 1.0, {})["D1"]) == set()  # a dead device reads nothing
+    net.restore("D1")
+    net.step(310.0)
+    assert telemetry.signals(310.0, 1.0, {})["D1"]["Uptime"] == 0.0
+    assert telemetry.signals(400.0, 1.0, {})["D1"]["Uptime"] == 90.0

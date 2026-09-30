@@ -48,8 +48,8 @@
     "level_alarm_high": {
       "assumed": true,
       "change_class": "live",
-      "default": 0.95,
-      "description": "High-level alarm as a fraction of full.",
+      "default": 0.3,
+      "description": "High-level alarm as a fraction of full (the gateway's Water Level alarm band is 20 to 30 percent).",
       "max": 1,
       "min": 0,
       "unit": "1"
@@ -58,7 +58,7 @@
       "assumed": true,
       "change_class": "live",
       "default": 0.2,
-      "description": "Low-level alarm as a fraction of full.",
+      "description": "Low-level alarm as a fraction of full (the gateway's Water Level alarm band is 20 to 30 percent).",
       "max": 1,
       "min": 0,
       "unit": "1"
@@ -66,8 +66,8 @@
     "level_start": {
       "assumed": true,
       "change_class": "live",
-      "default": 0.8,
-      "description": "Initial level as a fraction of full.",
+      "default": 0.25,
+      "description": "Normal level, which the float valve or the transfer pumps hold, as a fraction of full; also the initial level.",
       "max": 1,
       "min": 0,
       "unit": "1"

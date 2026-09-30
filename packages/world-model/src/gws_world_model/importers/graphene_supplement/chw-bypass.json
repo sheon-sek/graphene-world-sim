@@ -1,0 +1,57 @@
+{
+  "note": "Supply/return bypass valves BV-001..004 (Chiller/R_CV13..16). The asset source has them, and the plant controller's bypass PID drives them on the loop differential pressure (HDR/DPS-02), but the plant design draws no pipe to them. Each relieves the distribution pump's discharge (R_CP9) into the loop return, which the compiler closes as the return header.",
+  "connections": [
+    {
+      "id": "chw:Chiller/R_CP9->Chiller/R_CV13",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP9",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV13",
+        "port": "chw_in"
+      },
+      "label": "supply/return bypass BV-001"
+    },
+    {
+      "id": "chw:Chiller/R_CP9->Chiller/R_CV14",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP9",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV14",
+        "port": "chw_in"
+      },
+      "label": "supply/return bypass BV-002"
+    },
+    {
+      "id": "chw:Chiller/R_CP9->Chiller/R_CV15",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP9",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV15",
+        "port": "chw_in"
+      },
+      "label": "supply/return bypass BV-003"
+    },
+    {
+      "id": "chw:Chiller/R_CP9->Chiller/R_CV16",
+      "domain": "chw",
+      "source": {
+        "node": "Chiller/R_CP9",
+        "port": "chw_out"
+      },
+      "target": {
+        "node": "Chiller/R_CV16",
+        "port": "chw_in"
+      },
+      "label": "supply/return bypass BV-004"
+    }
+  ]
+}

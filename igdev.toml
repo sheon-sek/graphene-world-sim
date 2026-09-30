@@ -15,7 +15,7 @@ jython_version = "2.7.4"
 edition = "standard"
 
 [modules]
-enabled = ["com.inductiveautomation.opcua", "com.inductiveautomation.webdev"]
+enabled = ["com.inductiveautomation.opcua", "com.inductiveautomation.webdev", "com.inductiveautomation.historian", "com.inductiveautomation.mcp"]
 
 [scan]
 jython = []

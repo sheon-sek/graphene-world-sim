@@ -37,6 +37,53 @@ def si(value: float, unit: str | None) -> float:
             return value
 
 
+R134A_A, R134A_B = 15.40, 2655.0
+"""ln(p / kPa) = A - B / T: R-134a saturation pressure, within 2 % from 0 to 50 °C."""
+
+
+def _psat_pa(t_k: float) -> float:
+    return math.exp(R134A_A - R134A_B / t_k) * 1e3
+
+
+def _f(s: Mapping[str, float | bool | str], name: str) -> float:
+    value = s[name]
+    if isinstance(value, str):
+        raise ValueError(f"{name} is not a number")
+    return float(value)
+
+
+def _evap_approach(s: Mapping[str, float | bool | str]) -> float:
+    """Chilled water leaving minus evaporating temperature: the approach grows with load."""
+    return 0.5 + 2.0 * _f(s, "PLR")
+
+
+def _cond_k(s: Mapping[str, float | bool | str]) -> float:
+    """Condensing temperature: the approach over the leaving condenser water grows with load."""
+    return _f(s, "TCwLvg") + 0.5 + 2.5 * _f(s, "PLR")
+
+
+def _chiller_state(s: Mapping[str, float | bool | str]) -> str:
+    if s.get("tripped"):
+        return "TRIPPED"
+    if s.get("running"):
+        return "RUNNING"
+    return "STOPPED" if s.get("enable", True) else "DISABLED"
+
+
+TANK_T_CHARGED_K, TANK_T_SPENT_K = 287.15, 293.15
+"""A buffer tank full of design supply water is charged; at design return water, spent."""
+TANK_FLOW_MIN = 0.05
+"""kg/s below which the tank is standing."""
+TANK_T_ALARM_K = 291.15
+
+
+def _tank_mode(s: Mapping[str, float | bool | str]) -> int:
+    """1 charging (colder water in than the tank holds), 2 discharging, 0 standing."""
+    if abs(_f(s, "m_flow")) < TANK_FLOW_MIN:
+        return 0
+    return 1 if _f(s, "TEnt") < _f(s, "T") - 0.05 else 2
+
+
 def _num(params: Params, name: str) -> float:
     value = params[name]
     if isinstance(value, bool) or not isinstance(value, int | float):
@@ -62,6 +109,10 @@ class Input:
     """Operating-condition signal that drives this input (`TWetBulb`)."""
     supply: bool = False
     """The supply voltage the electrical domain computes for the asset (`V_pu`)."""
+    liquid_heat: bool = False
+    """The liquid-cooled share of the IT heat in the room the asset serves (a CDU)."""
+    fire: bool = False
+    """Whether the fire zone the asset's `fire` port is connected to is in alarm."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +150,23 @@ class FaultAction:
     """A latching trip stays active after it clears until the asset is reset."""
 
 
+type Derived = tuple[str | None, Callable[[Mapping[str, float | bool | str]], float | bool | str]]
+
+
+@dataclass(frozen=True, slots=True)
+class Setting:
+    """A set point the unit's own controller holds but its model does not act on (a CRAC's
+    return-air set point beside the supply-air one it controls). It starts at a World Model
+    parameter, reads back as a signal and an operator can write it."""
+
+    unit: str
+    parameter: str
+    default: float
+
+
+"""A derived signal's SI unit and how it is computed from the asset's other signals."""
+
+
 @dataclass(frozen=True, slots=True)
 class Behaviour:
     modelica: str
@@ -125,9 +193,23 @@ class Behaviour:
     """Ignition point member or instrument quantity -> the model signal it reports. `on:<x>`
     reports whether output x is non-zero (a run status). `tripped` and `run_hours` are kept
     by the runtime: a protection trip is latched, and running time is accumulated."""
+    derived: Mapping[str, Derived] = field(default_factory=dict)
+    """Signals computed from the asset's other signals each step (SI; unit, function): what
+    an instrument on the equipment reads that the model does not output directly."""
+    alarms: tuple[str, ...] = ()
+    """Boolean outputs that are alarms: `alarm` (a unit's summary alarm) is true while the
+    asset is tripped or any of them is true."""
+    settings: Mapping[str, Setting] = field(default_factory=dict)
+    """Signal -> a set point held by the unit's controller that the model does not use."""
+    external: Mapping[str, str] = field(default_factory=dict)
+    """World Model fluid ports the model does not expose as fluid ports, and why: a port whose
+    medium the model makes itself (a PAHU's outdoor air), or one another domain carries (a
+    tower's makeup water). Their connections are not part of the thermofluid model."""
 
 
 _V = Input("real", "1", 1.0, supply=True)
+MAINS_HZ = 50.0
+"""A variable-speed drive's output frequency at full speed."""
 _W = "W"
 _K = "K"
 
@@ -215,14 +297,40 @@ def _fan_coil(p: Params) -> dict[str, str]:
     }
 
 
+def _air_handler(p: Params) -> dict[str, str]:
+    return {
+        "Q_flow_nominal": modelica_real(si(_num(p, "q_nominal"), "kW")),
+        "mWat_flow_nominal": modelica_real(_num(p, "m_wat_flow_nominal")),
+        "mAir_flow_nominal": modelica_real(_num(p, "m_air_flow_nominal")),
+        "VTrip_pu": modelica_real(_num(p, "v_trip_pu")),
+    }
+
+
+def _dx_unit(p: Params) -> dict[str, str]:
+    return {
+        "Q_flow_nominal": modelica_real(si(_num(p, "q_nominal"), "kW")),
+        "COP_nominal": modelica_real(_num(p, "cop_nominal")),
+        "mAir_flow_nominal": modelica_real(_num(p, "m_air_flow_nominal")),
+        "TAmbTrip": modelica_real(si(_num(p, "high_pressure_ambient_limit"), "degC")),
+        "VTrip_pu": modelica_real(_num(p, "v_trip_pu")),
+    }
+
+
+def _cdu(p: Params) -> dict[str, str]:
+    return {
+        "Q_flow_nominal": modelica_real(si(_num(p, "q_nominal"), "kW")),
+        "mWat_flow_nominal": modelica_real(_num(p, "m_facility_flow_nominal")),
+        "nPumps": str(int(_num(p, "pump_count"))),
+        "VTrip_pu": modelica_real(_num(p, "v_trip_pu")),
+    }
+
+
 _WATER_PASSAGE: Mapping[str, Literal["water", "air"]] = {"inlet": "water", "outlet": "water"}
 _PUMP_PORTS = {
     "chw_in": "inlet",
     "chw_out": "outlet",
     "cw_in": "inlet",
     "cw_out": "outlet",
-    "water_in": "inlet",
-    "water_out": "outlet",
 }
 
 BEHAVIOURS: dict[str, Behaviour] = {
@@ -268,6 +376,41 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "General Alarm": "tripped",
             "HasAlarm": "tripped",
             "Unit Operating Hours": "run_hours",
+            "Compressor Motor Current": "motor_current",
+            "Evaporator - Low Pressure": "p_evap",
+            "Evaporator Small Temperature Difference": "evap_approach",
+            "Condenser - High Pressure": "p_cond",
+            "Condenser Pressure": "p_cond",
+            "Discharge - High Temperature": "T_discharge",
+            "Discharge - Low Temperature": "T_liquid",
+            "System Start Times": "starts_day",
+            "Unit Cycling Fault Code": "short_cycling",
+            "Unit Safety Fault Code": "tripped",
+            "state": "state",
+            "sequenceState": "sequence_state",
+            "readyToStart": "ready_to_start",
+            "readyToStop": "running",
+        },
+        derived={
+            # Motor current follows the compressor's load, as a share of full-load amps.
+            "motor_current": ("1", lambda s: _f(s, "PLR")),
+            "evap_approach": ("K", _evap_approach),
+            "p_evap": ("Pa", lambda s: _psat_pa(_f(s, "TChwLvg") - _evap_approach(s))),
+            "p_cond": ("Pa", lambda s: _psat_pa(_cond_k(s))),
+            # Hot gas leaves the compressor superheated, more so at high lift and load; the
+            # liquid leaves the condenser a few kelvin subcooled.
+            "T_discharge": ("K", lambda s: _cond_k(s) + 8.0 + 17.0 * _f(s, "PLR")),
+            "T_liquid": ("K", lambda s: _cond_k(s) - 4.0),
+            "state": (None, _chiller_state),
+            "sequence_state": (
+                None,
+                lambda s: "ON LINE"
+                if s.get("running")
+                else "STANDBY"
+                if not s.get("tripped")
+                else "LOCKED OUT",
+            ),
+            "ready_to_start": (None, lambda s: not s.get("running") and not s.get("tripped")),
         },
     ),
     "GwsLib.Pump": Behaviour(
@@ -296,6 +439,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "TChwRet": "TRet",
             "dpLoop": "dp",
         },
+        derived={"frequency": ("Hz", lambda s: MAINS_HZ * _f(s, "speed"))},
     ),
     "GwsLib.Valve": Behaviour(
         modelica="GwsLib.Valve",
@@ -326,7 +470,16 @@ BEHAVIOURS: dict[str, Behaviour] = {
                 rebuild={"flow_fraction": ("dp_nominal", -2.0)}
             )
         },
-        points={"TChwEnt": "TEnt", "TChwLvg": "TEnt"},
+        points={
+            "TChwEnt": "TEnt",
+            "TChwLvg": "TEnt",
+            "valve1Position": "valves_open",
+            "valve2Position": "valves_open",
+        },
+        derived={
+            # The branch's isolating valves are not modelled: they read open while it flows.
+            "valves_open": ("1", lambda s: 1.0 if abs(_f(s, "m_flow")) > TANK_FLOW_MIN else 0.0),
+        },
     ),
     "GwsLib.CoolingTower": Behaviour(
         modelica="GwsLib.CoolingTower",
@@ -353,6 +506,11 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "System Failure_Trip": "tripped",
             "General Alarm": "tripped",
             "HasAlarm": "tripped",
+            "runHours": "run_hours",
+        },
+        derived={
+            # The tower's load is its fan's: the share of full speed it runs at.
+            "PLR": ("1", lambda s: _f(s, "fanSpeed") if _f(s, "PFan") > 0 else 0.0),
         },
     ),
     "GwsLib.BufferTank": Behaviour(
@@ -361,7 +519,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
         passages=(("inlet", "outlet"),),
         medium=_WATER_PASSAGE,
         inputs={},
-        outputs=_outputs(T=_K, TEnt=_K, m_flow="kg/s"),
+        outputs=_outputs(T=_K, TEnt=_K, m_flow="kg/s", p="Pa"),
         modifiers=_tank,
         state={"T_start": "vol.T"},
         points={
@@ -369,7 +527,56 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "Chilled Water Supply Outlet Temp": "T",
             # Modelled well mixed: every stratified sensor reads the tank temperature.
             **{f"Buffer Tank Stratified Temperature {n}": "T" for n in range(1, 7)},
+            "p": "p",
+            "level": "level",
+            "chargeFraction": "charge",
+            "status": "status",
+            "Chiller Buffer Tank Mode Status": "mode",
+            "Chiller Buffer Tank Recharge": "charging",
+            "Chiller Buffer Tank Recharge Pipe Flow Meter": "recharge_flow",
+            "Buffer Tank Temperature Alarm": "T_alarm",
+            # The recharge line's valves are not modelled: they read as the tank's mode sets
+            # them (normally-closed open and normally-open closed while recharging).
+            "Recharge Valve Control": "recharge_valve",
+            "Recharge Valve Feedback": "recharge_valve",
+            "Normally Closed Valve Open Command": "charging",
+            "Normally Closed Valve Open Status": "nc_open",
+            "Normally Closed Valve Close Command": "not_charging",
+            "Normally Closed Valve Close Status": "nc_closed",
+            "Normally Opened Valve Open Command": "not_charging",
+            "Normally Opened Valve Open Status": "nc_closed",
+            "Normally Opened Valve Close Command": "charging",
+            "Normally Opened Valve Close Status": "nc_open",
+            "Normally Closed Valve Fail To Close": "valve_fault",
+            "Normally Opened Valve Fail To Open": "valve_fault",
+            "Normally Closed Valve Auto_Manual Mode": "Auto_Manual",
+            "Normally Opened Valve Auto_Manual Mode": "Auto_Manual",
         },
+        derived={
+            # A closed, pressurised tank is always full.
+            "level": ("1", lambda s: 1.0),
+            "charge": (
+                "1",
+                lambda s: min(
+                    max((TANK_T_SPENT_K - _f(s, "T")) / (TANK_T_SPENT_K - TANK_T_CHARGED_K), 0.0),
+                    1.0,
+                ),
+            ),
+            "mode": (None, _tank_mode),
+            "charging": (None, lambda s: _tank_mode(s) == 1),
+            "not_charging": (None, lambda s: _tank_mode(s) != 1),
+            "nc_open": (None, lambda s: int(_tank_mode(s) == 1)),
+            "nc_closed": (None, lambda s: int(_tank_mode(s) != 1)),
+            "recharge_valve": ("1", lambda s: 1.0 if _tank_mode(s) == 1 else 0.0),
+            "recharge_flow": (
+                "m3/s",
+                lambda s: abs(_f(s, "m_flow")) / 1000 if _tank_mode(s) == 1 else 0.0,
+            ),
+            "status": (None, lambda s: ("STANDBY", "CHARGING", "DISCHARGING")[_tank_mode(s)]),
+            "T_alarm": (None, lambda s: _f(s, "T") > TANK_T_ALARM_K),
+            "valve_fault": (None, lambda s: bool(s.get("tripped"))),
+        },
+        alarms=("T_alarm",),
     ),
     "GwsLib.FanCoil": Behaviour(
         modelica="GwsLib.FanCoil",
@@ -380,6 +587,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "fanSpeed": Input("real", "1", 1.0),
             "V_pu": _V,
             "airFactor": Input("real", "1", 1.0),
+            "TSupSet": Input("real", _K, 291.15, parameter="supply_air_temp_set"),
         },
         outputs=_outputs(
             Q=_W,
@@ -390,25 +598,230 @@ BEHAVIOURS: dict[str, Behaviour] = {
             TChwLvg=_K,
             mChw_flow="kg/s",
             mAir_flow="kg/s",
+            yVal="1",
+            yFan="1",
+            dpFan="Pa",
+            phiSup="1",
+            phiRet="1",
+            filterAlarm="bool",
         ),
         modifiers=_fan_coil,
-        state={"TRet_start": "fan.mov.heatPort.T"},
+        alarms=("filterAlarm",),
+        state={"TRet_start": "fan.mov.heatPort.T", "xiVal_start": "val.con.I.y"},
         power="PFan",
         faults={
             "trip": FaultAction(override={"fanSpeed": 0.0}, latching=True),
             "filter_choke": FaultAction(scale={"airflow_fraction": "airFactor"}),
+            # The unit's valve controls on this sensor: reading high by b, it delivers air b
+            # colder than its set point.
+            "supply_air_sensor": FaultAction(offset={"TSupSet": ("bias", -1.0)}),
         },
         points={
             "On_Off": "on:PFan",
             "EC Fan Run Status": "on:PFan",
+            "Operation": "on:PFan",
             "Chilled Water Supply Temperature": "TChwEnt",
             "Chilled Water Return Temperature": "TChwLvg",
             "Flowrate": "mChw_flow",
             "Supply Air Temperature": "TSupAir",
             "Return Air Temperature": "TRetAir",
+            "TRetAir": "TRetAir",
+            "Supply Air Relative Humidity": "phiSup",
+            "Return Air Relative Humidity": "phiRet",
+            "Unit Static Pressure": "dpFan",
+            "Filter Choke Alarm": "filterAlarm",
+            "Air Differential Pressure Alarm": "filterAlarm",
+            "Energy Monitoring System": "energy:PFan",
             "Fault": "tripped",
+            "System Failure_Trip": "tripped",
             "Common Fault": "tripped",
-            "HasAlarm": "tripped",
+            "Common Alarm": "alarm",
+            "HasAlarm": "alarm",
+            "Loss of Signal Alarm": "comm_lost",
+            "Master Loss Communication Alarm": "comm_lost",
+            "Unit Loss Communication Alarm": "comm_lost",
+        },
+    ),
+    "GwsLib.AirHandler": Behaviour(
+        modelica="GwsLib.AirHandler",
+        ports={"chw_in": "chw_in", "chw_out": "chw_out", "air_out": "air_out"},
+        passages=(("chw_in", "chw_out"),),
+        medium={"chw_in": "water", "chw_out": "water", "air_out": "air"},
+        inputs={
+            "fanSpeed": Input("real", "1", 1.0),
+            "V_pu": _V,
+            "airFactor": Input("real", "1", 1.0),
+            "TSupSet": Input("real", _K, 289.15, parameter="supply_air_temp_set"),
+            "TOut": Input("real", _K, 303.15, environment="TDryBulb"),
+            "XOut": Input("real", "1", 0.019, environment="XOut"),
+            "fireStop": Input("bool", "1", False, fire=True),
+        },
+        outputs=_outputs(
+            Q=_W,
+            PFan=_W,
+            TSupAir=_K,
+            TOutAir=_K,
+            TChwEnt=_K,
+            TChwLvg=_K,
+            mChw_flow="kg/s",
+            mAir_flow="kg/s",
+            yVal="1",
+            yFan="1",
+            phiSup="1",
+            phiOut="1",
+            filterAlarm="bool",
+            fireAlarm="bool",
+        ),
+        modifiers=_air_handler,
+        alarms=("filterAlarm", "fireAlarm"),
+        state={"TFan_start": "fan.mov.heatPort.T", "xiVal_start": "val.con.I.y"},
+        power="PFan",
+        faults={
+            "trip": FaultAction(override={"fanSpeed": 0.0}, latching=True),
+            "filter_choke": FaultAction(scale={"airflow_fraction": "airFactor"}),
+            "supply_air_sensor": FaultAction(offset={"TSupSet": ("bias", -1.0)}),
+        },
+        settings={
+            "TRetSet": Setting(_K, "return_air_temp_set", 297.15),
+            "phiRetSet": Setting("1", "return_air_rh_set", 0.5),
+            "phiSupSet": Setting("1", "supply_air_rh_set", 0.55),
+        },
+        points={
+            "On_Off": "on:PFan",
+            "Fan On_Off": "on:PFan",
+            "Supply Air Temperature": "TSupAir",
+            "Supply Air Relative Humidity": "phiSup",
+            "Supply Air Temperature Setpoint": "TSupSet",
+            "Supply Air Relative Humidity Setpoint": "phiSupSet",
+            "Return Air Temperature": "TRetAir",
+            "Return Air Relative Humidity": "phiRet",
+            "Return Air Temperature Setpoint": "TRetSet",
+            "Return Air Relative Humidity Setpoint": "phiRetSet",
+            "Filter Sensor Alarm": "filterAlarm",
+            "Main Fire Alarm": "fireAlarm",
+            "System Failure_Trip": "tripped",
+            "HasAlarm": "alarm",
+        },
+        external={
+            "air_in": "outdoor air: the model draws it at the outdoor condition",
+        },
+    ),
+    "GwsLib.DXUnit": Behaviour(
+        modelica="GwsLib.DXUnit",
+        ports={"air_in": "air_in", "air_out": "air_out"},
+        passages=(("air_in", "air_out"),),
+        medium={"air_in": "air", "air_out": "air"},
+        inputs={
+            "fanSpeed": Input("real", "1", 1.0),
+            "V_pu": _V,
+            "airFactor": Input("real", "1", 1.0),
+            "capFactor": Input("real", "1", 1.0),
+            "TSupSet": Input("real", _K, 291.15, parameter="supply_air_temp_set"),
+            "TOut": Input("real", _K, 303.15, environment="TDryBulb"),
+        },
+        outputs=_outputs(
+            Q=_W,
+            QSen=_W,
+            P=_W,
+            PFan=_W,
+            TSupAir=_K,
+            TRetAir=_K,
+            mAir_flow="kg/s",
+            speRat="1",
+            compressor1="bool",
+            compressor2="bool",
+            highPressure="bool",
+            yFan="1",
+            phiSup="1",
+            phiRet="1",
+            filterAlarm="bool",
+        ),
+        modifiers=_dx_unit,
+        alarms=("filterAlarm", "highPressure"),
+        derived={
+            # Two compressors: the first carries the speed ratio up to half, the second the rest.
+            "stage1": ("1", lambda s: min(float(s["speRat"]) / 0.5, 1.0)),
+            "stage2": ("1", lambda s: max(float(s["speRat"]) - 0.5, 0.0) / 0.5),
+        },
+        state={"TRet_start": "fan.mov.heatPort.T", "xiCom_start": "con.I.y"},
+        power="P",
+        faults={
+            "trip": FaultAction(override={"fanSpeed": 0.0}, latching=True),
+            "filter_choke": FaultAction(scale={"airflow_fraction": "airFactor"}),
+            "compressor_failure": FaultAction(scale={"capacity_fraction": "capFactor"}),
+            "supply_air_sensor": FaultAction(offset={"TSupSet": ("bias", -1.0)}),
+        },
+        settings={"TRetSet": Setting(_K, "return_air_temp_set", 297.15)},
+        points={
+            "On_Off": "on:PFan",
+            "Fan Speed": "yFan",
+            "Supply Air Temperature Setpoint": "TSupSet",
+            "Return Air Temperature Setpoint": "TRetSet",
+            "EC Fan Speed": "yFan",
+            "Compressor On_Off Status": "compressor1",
+            "Compressor Capacity": "stage1",
+            "Compressor 2 Capacity": "stage2",
+            "Supply Air Temperature": "TSupAir",
+            "Return Air Temperature": "TRetAir",
+            "Supply Air Relative Humidity": "phiSup",
+            "Return Air Relative Humidity": "phiRet",
+            "Filter Choke Alarm": "filterAlarm",
+            "High Pressure Alarm": "highPressure",
+            "Loss of Signal Alarm": "comm_lost",
+            "System Failure_Trip": "tripped",
+            "HasAlarm": "alarm",
+        },
+    ),
+    "GwsLib.CDU": Behaviour(
+        modelica="GwsLib.CDU",
+        ports={"chw_in": "chw_in", "chw_out": "chw_out"},
+        passages=(("chw_in", "chw_out"),),
+        medium={"chw_in": "water", "chw_out": "water"},
+        inputs={
+            "QIt": Input("real", _W, 0.0, liquid_heat=True),
+            "pumps": Input("real", "1", 1.0),
+            "pumpFactor": Input("real", "1", 1.0),
+            "V_pu": _V,
+            "TSecSet": Input("real", _K, 298.15, parameter="secondary_supply_temp_set"),
+        },
+        outputs=_outputs(
+            Q=_W,
+            P=_W,
+            PPump=_W,
+            TSec=_K,
+            TChwEnt=_K,
+            TChwLvg=_K,
+            mChw_flow="kg/s",
+            yVal="1",
+            running="bool",
+        ),
+        modifiers=_cdu,
+        state={"TSec_start": "coolant.T", "xiVal_start": "val.con.I.y"},
+        power="P",
+        faults={
+            "trip": FaultAction(override={"pumps": 0.0}, latching=True),
+            "pump_failure": FaultAction(scale={"capacity_fraction": "pumpFactor"}),
+        },
+        points={
+            "Unit Running Status": "running",
+            "IT Load": "energy:QIt",
+            "Pump 1": "energy:PPump",
+            "Pump 2": "energy:PPump",
+            "Pump 3": "energy:PPump",
+            "HasAlarm": "alarm",
+            "Facility Load": "energy:P",
+            "Load Demand": "energy:QIt",
+            "PUE": "pue",
+        },
+        derived={
+            # The CDU's own power usage effectiveness: its IT heat plus its pumps over the IT.
+            "pue": (
+                "1",
+                lambda s: (_f(s, "QIt") + _f(s, "P")) / _f(s, "QIt") if _f(s, "QIt") > 0 else 1.0,
+            ),
+        },
+        external={
+            "air_out": "no air: the CDU takes the liquid-cooled share of its room's IT heat",
         },
     ),
 }
@@ -419,7 +832,7 @@ HALL = Behaviour(
     passages=(),
     medium={},
     inputs={"QIt": Input("real", _W, 0.0)},
-    outputs=_outputs(TAir=_K, TMass=_K),
+    outputs=_outputs(TAir=_K, TMass=_K, phi="1", X="1"),
     modifiers=lambda _: {},
     state={"T_start": "vol.T", "TMass_start": "mass.T"},
 )

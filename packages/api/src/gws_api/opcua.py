@@ -7,13 +7,17 @@ meet. The Bridge:
   session's World Model, or the store's head revision while no session is attached;
 - follows the attached session's frames and publishes every point's value, quality and
   timestamp. A point outside the session's scope reads Bad `out_of_scope`;
-- maps simulation time to SourceTimestamps: the session's current simulation time is the wall
+- maps simulation time to SourceTimestamps (and DateTime point values, which the runtime gives
+  as simulation times): the session's current simulation time is the wall
   clock at the moment it is attached, and time then advances with the simulation;
 - hands a write to a command point to the session as a runtime command, recorded in its event
   log exactly like a command from the web application;
 - rebuilds the address space in place when the World Model changes (a reinit to another
   revision, a new head while no session is attached, or another session attached), so
-  clients see new points through a model-change event without reconnecting.
+  clients see new points through a model-change event without reconnecting. When the
+  attached session moves to a revision that removes points, those points first read Bad
+  `removed` for `removal_grace` seconds, so clients see them go Bad, and then their nodes
+  are removed.
 """
 
 from __future__ import annotations
@@ -29,10 +33,13 @@ from pydantic import BaseModel, ConfigDict
 from gws_api.runtime import Registry, _do, _Live, get_registry
 from gws_opcua.points import PointSpec, PointValue, Scalar
 from gws_opcua.server import PointServer
-from gws_world_model.model import Access, WorldModel
+from gws_world_model.model import Access, PointBinding, WorldModel
 from gws_world_model.store import SqliteStore
 
 OUT_OF_SCOPE = "out_of_scope"
+REMOVED = "removed"
+REMOVAL_GRACE_S = 10.0
+"""How long a removed point reads Bad before its node goes."""
 POLL_S = 1.0
 """How often the Bridge checks for a changed World Model when no frame arrives."""
 
@@ -66,6 +73,9 @@ class Bridge:
         self._queue: asyncio.Queue[dict[str, Any]] | None = None
         self._task: asyncio.Task[None] | None = None
         self._lock = asyncio.Lock()
+        self.removal_grace = REMOVAL_GRACE_S
+        self._removing: tuple[float, set[str]] | None = None
+        """When the removed points' nodes go, and which they are."""
         server.on_write = self.on_write
         server.clock = self.now
 
@@ -134,6 +144,7 @@ class Bridge:
                 await self._sync_model()
                 if frame is not None:
                     await self._publish(frame)
+                await self._drop_removed()
 
     async def _sync_model(self, *, force_values: bool = False) -> None:
         """Rebuild the address space if the World Model changed. Every point then reads out of
@@ -147,21 +158,56 @@ class Bridge:
         else:
             doc, revision = self.live.session.sim.doc, self.live.session.revision
             changed = doc is not self.doc
+        # The attached session moved to another revision: the points it keeps keep their values.
+        edit = changed and not force_values and self.live is not None and self._from_session
         if changed:
-            await self.server.set_points(point_specs(doc) if doc is not None else [])
+            specs = point_specs(doc) if doc is not None else []
+            keep = {spec.path for spec in specs}
+            known = set(self.server.specs)
+            gone = [spec for path, spec in self.server.specs.items() if path not in keep]
+            if not (edit and self.removal_grace > 0):
+                gone = []
+            await self.server.set_points([*specs, *gone])
             self.doc, self.revision = doc, revision
             self._from_session = self.live is not None
-        if changed or force_values:
+            stamp = self.now()
+            if edit:
+                self._scoped &= keep
+                await self.server.publish(
+                    {p: PointValue(None, "bad", stamp, OUT_OF_SCOPE) for p in keep - known}
+                )
+            if gone:
+                await self.server.publish(
+                    {g.path: PointValue(None, "bad", stamp, REMOVED) for g in gone}
+                )
+                deadline = asyncio.get_running_loop().time() + self.removal_grace
+                self._removing = (deadline, {g.path for g in gone})
+            else:
+                self._removing = None
+        if (changed and not edit) or force_values:
             self._scoped = set()
             stamp = self.now()
             await self.server.publish(
                 {path: PointValue(None, "bad", stamp, OUT_OF_SCOPE) for path in self.server.specs}
             )
 
+    async def _drop_removed(self) -> None:
+        """Remove the nodes of removed points once they have read Bad long enough."""
+        if self._removing is None or asyncio.get_running_loop().time() < self._removing[0]:
+            return
+        self._removing = None
+        await self.server.set_points(point_specs(self.doc) if self.doc is not None else [])
+
     async def _publish(self, frame: dict[str, Any]) -> None:
         points: dict[str, dict[str, Any]] = frame["points"]
+        bindings = self.doc.point_bindings if self.doc is not None else {}
         values = {
-            path: PointValue(p["value"], p["quality"], self.timestamp(p["t"]), p.get("reason", ""))
+            path: PointValue(
+                self._value(p["value"], bindings.get(path)),
+                p["quality"],
+                self.timestamp(p["t"]),
+                p.get("reason", ""),
+            )
             for path, p in points.items()
         }
         left = self._scoped - set(points)
@@ -170,6 +216,18 @@ class Bridge:
             values.update({path: PointValue(None, "bad", stamp, OUT_OF_SCOPE) for path in left})
         self._scoped = set(points)
         await self.server.publish(values)
+
+    def _value(self, value: Any, binding: PointBinding | None) -> Any:
+        """A DateTime point's value is a simulation time: it reads as the wall-clock time it
+        maps to, like every SourceTimestamp."""
+        if (
+            binding is not None
+            and binding.data_type == "DateTime"
+            and isinstance(value, int | float)
+            and not isinstance(value, bool)
+        ):
+            return self.timestamp(float(value))
+        return value
 
     # --- writes ----------------------------------------------------------------------------
 

@@ -9,8 +9,10 @@ One macro step from t to t + dt:
 3. thermofluid: each partition's inputs are set — the supply voltage each asset now has, the
    operating conditions, the commands in force, and the effect of each active fault on its
    own asset — and the FMUs integrate to t + dt;
-4. the true state is assembled, the control network settles and instrumentation measures it;
-5. controllers read the measurements and write commands, which act from the next step.
+4. site services (cold water, fire, lifts, fuel, room sensors) step on the state the models
+   published and the conditions;
+5. the true state is assembled, the control network settles and instrumentation measures it;
+6. controllers read the measurements and write commands, which act from the next step.
 
 Operator commands (points the World Model marks as commands, ADR-0003) act on the asset's
 operator station, not on physics:
@@ -40,21 +42,23 @@ from typing import Any
 
 import gws_runtime.controllers.electrical
 import gws_runtime.controllers.plant  # noqa: F401 - registers the blocks
-from gws_runtime.behaviours import BEHAVIOURS, Behaviour, FaultAction
+from gws_runtime.behaviours import BEHAVIOURS, Behaviour, FaultAction, si
 from gws_runtime.compiler import CACHE, Partition, Plan, compile_partition, ident, plan
 from gws_runtime.conditions import Conditions
 from gws_runtime.controllers import Block, build
+from gws_runtime.controllers.hmi import PlantHmi
 from gws_runtime.electrical import ElectricalNetwork
 from gws_runtime.faults import Fault, FaultBook
 from gws_runtime.fmu import FmuUnit, Scalar
 from gws_runtime.instrumentation import Instrumentation
+from gws_runtime.netdevices import DeviceTelemetry
 from gws_runtime.network import ControlNetwork
+from gws_runtime.services import Env, SiteServices
 from gws_runtime.values import Sample, Value, split_ref
 from gws_world_model.model import (
     ROOM_PREFIX,
     AssetSignal,
     FaultKind,
-    InstrumentSource,
     WorldModel,
 )
 
@@ -63,6 +67,10 @@ del gws_runtime.controllers.electrical  # imported to register its blocks
 ON_THRESHOLD = 1e-3
 MODE, ENABLED = "Auto_Manual", "enabled"
 OPERATOR_SIGNALS = frozenset({MODE, ENABLED, "start", "stop", "reset"})
+MOMENTARY = frozenset({"start", "stop", "reset"})
+COMM_LOST = "comm_lost"
+"""Alias of a unit's communication-loss alarms: the gateway raises them when the unit cannot
+reach it, so they stay fresh while the unit's own readings go stale."""
 RUN_INPUTS = ("enable", "speed", "fanSpeed", "position")
 """The model input that runs or stops an asset, by preference."""
 """An output above this counts as running for an `on:<output>` status."""
@@ -81,8 +89,118 @@ ELECTRICAL_UNITS = {
     "Q_in": "var",
     "I": "A",
     "soc": "1",
+    "load_fraction": "1",
+    "PLoss": "W",
     "energy": "J",
+    "V_ln": "V",
+    "V_ll": "V",
+    "V_in_ln": "V",
+    "V_in_ll": "V",
+    "S": "VA",
+    "PF": "1",
+    "P_ph": "W",
+    "Q_ph": "var",
+    "S_ph": "VA",
+    "I_1ph": "A",
+    "Hz": "Hz",
+    "THDV": "1",
+    "THDA": "1",
+    "I_n": "A",
+    "I_residual": "A",
+    "I_residual_dc": "A",
+    "T_coolant": "K",
+    "p_oil": "Pa",
+    "V_battery": "V",
+    "speed": "Hz",
+    "run_s": "s",
 }
+
+_METER_POINTS = {
+    **{f"V{n}": "V_ln" for n in ("1", "2", "3", "sys")},
+    **{f"V{n}": "V_ll" for n in ("12", "23", "31", "sys2")},
+    **{f"I{n}": "I" for n in ("1", "2", "3", "sys")},
+    **{f"P{n}": "P_ph" for n in "123"},
+    **{f"Q{n}": "Q_ph" for n in "123"},
+    **{f"S{n}": "S_ph" for n in "123"},
+    **{f"PF{n}": "PF" for n in ("1", "2", "3", "sys")},
+    **{f"THDA{n}": "THDA" for n in "123"},
+    **{f"THDV{n}": "THDV" for n in "123"},
+    "In": "I_n",
+    "Ptot": "P",
+    "Qtot": "Q",
+    "Stot": "S",
+    "Wh_Im": "energy:P",
+}
+_SINGLE_PHASE_POINTS = {"P1": "P", "Q1": "Q", "S1": "S", "I1": "I_1ph"}
+"""A meter with one phase measures a single-phase circuit: its phase is the whole circuit."""
+_ELECTRICAL_POINTS = {
+    **_METER_POINTS,
+    "HasAlarm": "alarm",
+    # Branch circuit and residual current monitors.
+    "Active Power": "P",
+    "Current": "I",
+    "Accumulated Energy": "energy:P",
+    # Branch circuit monitor totals.
+    "Iasys": "I",
+    "Wh_Ima": "energy:P",
+    # IT load.
+    "E": "energy:P",
+    # UPS.
+    "Average Input Voltage": "V_in_ll",
+    **{f"Input Voltage {p}": "V_in_ll" for p in ("L1-L2", "L2-L3", "L3-L1")},
+    # The UDT labels its input power members in volts: they read the input phase voltages.
+    **{f"Input Power {p}": "V_in_ln" for p in ("L1", "L2", "L3")},
+    "Average Output Voltage": "V_ll",
+    **{f"Output Voltage {p}": "V_ll" for p in ("L1-L2", "L2-L3", "L3-L1")},
+    "Frequency": "Hz",
+    "Bypass Undervoltage Warning": "input_low",
+    "System Input Power Problem": "input_low",
+    "Power Supply Failure": "on_battery",
+    "Rectifier Failure": "rectifier_failed",
+    "System Output Fault": "output_fault",
+    # Genset.
+    **{f"AC Voltage: {p}-N": "V_ln" for p in ("L1", "L2", "L3")},
+    "Battery DC Volts": "V_battery",
+    "Coolant Temperature": "T_coolant",
+    "Oil Pressure": "p_oil",
+    "Engine Speed": "speed",
+    "Engine Run Time": "run_s",
+    "Engine Start": "start_cmd",
+    "Run Command Active": "start_cmd",
+    "Idling": "idling",
+    "Emergency Stop": "emergency_stop",
+    "General Genset Alarm": "alarm",
+    "Genset Prealarm": "prealarm",
+    "Low Coolant Level": "low_coolant",
+    "Low Lubricant Oil Pressure Prealarm": "oil_prealarm",
+    "Low Lubricant Oil Pressure Shutdown": "oil_shutdown",
+    "Over Crank Shutdown": "over_crank",
+    "Overload Warning": "overload_warning",
+    "Short Circuit Shutdown": "short_circuit",
+}
+"""Point members of electrical assets -> the network's signals (`energy:` integrates)."""
+
+
+_TYPE_ELECTRICAL_POINTS = {
+    # A residual current monitor's current is the circuit's current to earth.
+    "RCMS": {"Current": "I_residual"},
+    "IPS": {"Insulation Fault": "insulation_fault", "HasAlarm": "insulation_fault"},
+    # A cooling tower's fan motor meter.
+    "Cooling Tower": {"Voltage": "V_ll", "Power Factor": "PF", "Energy": "energy:P"},
+}
+STARTS_WINDOW_S = 86400.0
+CYCLING_WINDOW_S, CYCLING_STARTS = 3600.0, 4
+"""More starts than this in the window is short cycling (a unit's anti-recycle limit)."""
+
+
+def electrical_points(members: Collection[str], type_id: str = "") -> dict[str, str]:
+    """Point aliases of an electrical asset whose type has these point members."""
+    aliases = {m: s for m, s in _ELECTRICAL_POINTS.items() if m in members}
+    aliases |= {m: s for m, s in _TYPE_ELECTRICAL_POINTS.get(type_id, {}).items() if m in members}
+    aliases |= {m: f"energy:{m[:-6]}_P" for m in members if m.endswith("_Wh_Im")}
+    if "P1" in members and "P2" not in members:
+        aliases |= {m: s for m, s in _SINGLE_PHASE_POINTS.items() if m in members}
+    return aliases
 
 
 class RuntimeProblem(ValueError):
@@ -134,29 +252,36 @@ class _View:
     def __init__(self, sim: Simulation) -> None:
         self.sim = sim
 
-    def get(self, asset: str, signal: str) -> float | bool | None:
+    def get(self, asset: str, signal: str) -> float | bool | str | None:
         values = self.sim.state.get(asset)
         if values is None:
             return None
         if signal in (MODE, ENABLED) and self.sim.operable(asset):
             return self.sim.operator_value(asset, signal)
+        if signal in MOMENTARY and self.sim.operable(asset):
+            return False  # a push button reads released between presses
+        if self.monitored(asset, signal):
+            return not self.sim.network.reachable(asset)
         if signal in values:
-            v = values[signal]
-            return v if isinstance(v, float | bool | int) else None
+            return values[signal]
         alias = self.sim.aliases.get(asset, {}).get(signal)
         if alias is None:
             return None
+        if alias in (MODE, ENABLED) and self.sim.operable(asset):
+            return self.sim.operator_value(asset, alias)
         if alias.startswith("on:"):
             x = values.get(alias[3:])
             return None if not isinstance(x, float | int) else abs(float(x)) > ON_THRESHOLD
-        found = values.get(alias)
-        return found if isinstance(found, float | bool | int) else None
+        return values.get(alias)
 
     def unit(self, asset: str, signal: str) -> str | None:
         alias = self.sim.aliases.get(asset, {}).get(signal, signal)
         if alias.startswith("on:"):
             return None
         return self.sim.units.get((asset, alias)) or ELECTRICAL_UNITS.get(alias)
+
+    def monitored(self, asset: str, signal: str) -> bool:
+        return COMM_LOST in (signal, self.sim.aliases.get(asset, {}).get(signal))
 
 
 class _Clock:
@@ -208,7 +333,10 @@ class Simulation:
         cache: Path = CACHE,
         start_time: float = 0.0,
         conditions: Conditions | None = None,
+        adopt: Simulation | None = None,
     ) -> None:
+        """`adopt` is a running simulation of another revision: its partitions that this one
+        has unchanged keep running as they are, and only the others start afresh."""
         self.doc = doc
         self.scope = frozenset(scope)
         self.seed = seed
@@ -226,7 +354,10 @@ class Simulation:
         self.timings = StepTimings()
         self.conditions = conditions or Conditions.from_world(doc.conditions)
         self.electrical = ElectricalNetwork.from_world(doc, self.scope)
+        self.services = SiteServices.from_world(doc, self.scope)
+        self._services: dict[str, dict[str, float | bool | str]] = {}
         self.network = ControlNetwork.from_world(doc)
+        self.telemetry = DeviceTelemetry.from_world(doc, self.network)
         self.instrumentation = Instrumentation(doc, self.network, seed, self.scope)
         self.blocks: list[Block]
         self.blocks, self.missing_blocks = build(doc, self._in_scope)
@@ -234,15 +365,27 @@ class Simulation:
         self.commands: dict[str, dict[str, Scalar]] = {}
         """Asset -> model input -> the command in force (operator or controller)."""
         self.register: dict[str, Value] = {}
-        """Controller registers written by blocks (`~PLC-01:lead_chiller`)."""
+        """Controller registers written by blocks (`~PLC-01:lead_chiller`) or an operator."""
+        self.hmis = {
+            c: PlantHmi.build(c, doc, self.blocks)
+            for c in sorted({b.binding.controller for b in self.blocks})
+            if c in doc.assets and doc.assets[c].type in _CONTROLLERS
+        }
+        """Controller -> its register table (settings, configuration, status)."""
+        for hmi in self.hmis.values():
+            self.register |= hmi.defaults()
         self.unrouted: set[str] = set()
         """Writes by blocks to targets outside the scope (reported, not applied)."""
         self.run_hours: dict[str, float] = {}
+        self.starts: dict[str, list[float]] = {}
+        """Asset -> start times in the last day (kept for units that report their starts)."""
+        self._was_running: dict[str, bool] = {}
         self.operator: dict[str, dict[str, Scalar]] = {}
         """Asset -> `Auto_Manual` (1 auto, 0 manual) and `enabled`, where set by an operator."""
         self._frozen: dict[tuple[str, str], Scalar] = {}
         self._applied_sensor: dict[str, dict[str, float]] = {}
         self._applied_electrical: dict[str, dict[str, float]] = {}
+        self._applied_services: dict[str, dict[str, float]] = {}
         self._rebuild: dict[str, dict[str, float]] = {}
         self.state: dict[str, dict[str, float | bool | str]] = {}
         self._electrical = self.electrical.signals()
@@ -256,6 +399,7 @@ class Simulation:
         for part in self.plan.partitions:
             for v in part.inputs:
                 if v.asset is not None:
+                    self.units.setdefault((v.asset, v.signal), v.unit)
                     self.inputs.setdefault(v.asset, {})[v.signal] = _Input(
                         part.name, v.name, v.kind
                     )
@@ -263,11 +407,60 @@ class Simulation:
                 if v.asset is not None:
                     self.outputs.setdefault(v.asset, {})[v.signal] = (part.name, v.name)
                     self.units[(v.asset, v.signal)] = v.unit
+        self.settings: dict[str, dict[str, float]] = {}
+        """Asset -> set points its controller holds that its model does not use (SI)."""
         for asset in sorted(self.plan.modelled):
             b = BEHAVIOURS[doc.component_types[doc.assets[asset].type].behaviour or ""]
             self.behaviour[asset] = b
             self.aliases[asset] = dict(b.points)
+            ctype = doc.component_types[doc.assets[asset].type]
+            for signal, setting in b.settings.items():
+                raw = doc.assets[asset].parameters.get(setting.parameter)
+                spec = ctype.parameters.get(setting.parameter)
+                value = raw if raw is not None else spec.default if spec else None
+                self.settings.setdefault(asset, {})[signal] = (
+                    si(float(value), spec.unit if spec else None)
+                    if isinstance(value, int | float) and not isinstance(value, bool)
+                    else setting.default
+                )
+                self.units[(asset, signal)] = setting.unit
+        for asset in sorted(self.services.assets):
+            if asset not in self.aliases:
+                self.aliases[asset] = self.services.points(asset)
+        bound: dict[str, set[str]] = {}
+        for binding in doc.point_bindings.values():
+            if isinstance(binding.source, AssetSignal):
+                bound.setdefault(binding.source.asset, set()).add(binding.source.signal)
+        for asset in sorted(self._electrical):
+            if asset in doc.assets:
+                # A modelled unit's own aliases win; its supply adds the meter-like readings.
+                members = doc.component_types[doc.assets[asset].type].point_template
+                own = self.aliases.get(asset, {})
+                self.aliases[asset] = (
+                    electrical_points(
+                        set(members) | bound.get(asset, set()), doc.assets[asset].type
+                    )
+                    | own
+                )
         self._rooms = {room for p in self.plan.partitions for room in p.rooms}
+        self.supplied_room: dict[str, str] = {}
+        """Air unit -> the room its supply air goes to, whose air its return reads."""
+        for c in sorted(doc.connections.values(), key=lambda c: c.id):
+            if c.source.node in self.behaviour and c.source.port == "air_out" and c.target.is_room:
+                self.supplied_room.setdefault(c.source.node, c.target.room)
+        self.served_room: dict[str, str] = {}
+        """Asset -> the room it takes the liquid-cooled IT heat of (a CDU's room connection)."""
+        for c in sorted(doc.connections.values(), key=lambda c: c.id):
+            served = self.behaviour.get(c.source.node)
+            if served is not None and c.target.is_room and c.source.port in served.external:
+                if any(spec.liquid_heat for spec in served.inputs.values()):
+                    self.served_room[c.source.node] = c.target.room
+        self.integrals: dict[str, dict[str, float]] = {}
+        """Asset -> signal -> time integral (`energy:<signal>` aliases), SI (J for W)."""
+        for asset, aliases in self.aliases.items():
+            for alias in aliases.values():
+                if alias.startswith("energy:"):
+                    self.integrals.setdefault(asset, {})[alias[7:]] = 0.0
         self.it_loads = {
             a.id: a.location.room
             for a in sorted(doc.assets.values(), key=lambda a: a.id)
@@ -275,12 +468,27 @@ class Simulation:
         }
 
         self.fmus: dict[str, FmuUnit] = {}
-        for name, part in self.partitions.items():
-            self.fmus[name] = FmuUnit(self.fmu_paths[name], part, self.t)
+        self.adopted = frozenset(
+            name for name in self.partitions if adopt is not None and name in adopt.fmus
+        )
+        """Partitions taken over running from the simulation this one replaced."""
+        self._keep = set(self.adopted)
+        try:
+            for name, part in self.partitions.items():
+                if name in self.adopted and adopt is not None:
+                    self.fmus[name] = adopt.fmus[name]
+                    self._rebuild[name] = dict(adopt._rebuild.get(name, {}))
+                else:
+                    self.fmus[name] = FmuUnit(self.fmu_paths[name], part, self.t)
+        except BaseException:
+            self.detach(self.adopted)
+            self.close()
+            raise
         for name, unit in self.fmus.items():
             for v in self.partitions[name].inputs:
                 if v.asset is not None and v.name in unit.input_starts:
                     self.commands.setdefault(v.asset, {})[v.signal] = unit.input_starts[v.name]
+        self._services = self.services.signals(self._env(0.0), self.conditions)
         self._publish()
 
     # --- scope ---------------------------------------------------------------------------
@@ -295,6 +503,8 @@ class Simulation:
     def _asset_kind(self, asset: str) -> str:
         if asset in self.behaviour:
             return "thermofluid"
+        if asset in self.services.assets:
+            return "services"
         if asset in self.electrical.assets:
             return "electrical"
         return "other"
@@ -315,6 +525,15 @@ class Simulation:
             raise RuntimeProblem(f"{target}:{signal} is not a command this scope accepts")
 
     def _write(self, asset: str, signal: str, value: Value) -> bool:
+        if signal in self.settings.get(asset, {}):
+            if not isinstance(value, int | float) or isinstance(value, bool):
+                raise RuntimeProblem(f"{asset}:{signal} takes a number, not {value!r}")
+            self.settings[asset][signal] = float(value)
+            return True
+        if asset in self.hmis and self.hmis[asset].writable(signal):
+            self.register[f"{asset}:{signal}"] = value
+            self.register[f"{asset}:last_command"] = f"{signal} = {value}"
+            return True
         if signal in self.inputs.get(asset, {}):
             if not isinstance(value, bool | int | float):
                 raise RuntimeProblem(f"{asset}:{signal} takes a number, not {value!r}")
@@ -323,6 +542,9 @@ class Simulation:
                 bool(value) if kind == "bool" else float(value)
             )
             return True
+        if asset in self.services.assets and isinstance(value, bool | int | float):
+            if self.services.command(asset, signal, value):
+                return True
         if asset in self.electrical.assets and isinstance(value, bool | int | float):
             try:
                 self.electrical.command(asset, signal, value)
@@ -334,7 +556,11 @@ class Simulation:
     # --- operator station ------------------------------------------------------------------
 
     def operable(self, asset: str) -> bool:
-        return asset in self.behaviour or asset in self.electrical.assets
+        return (
+            asset in self.behaviour
+            or asset in self.services.assets
+            or asset in self.electrical.assets
+        )
 
     def operator_value(self, asset: str, signal: str) -> Scalar:
         default: Scalar = 1 if signal == MODE else True
@@ -359,6 +585,8 @@ class Simulation:
             else:
                 raise RuntimeProblem(f"{asset}:{MODE} takes 1/Auto or 0/Manual, not {value!r}")
             self.operator.setdefault(asset, {})[MODE] = mode
+            if mode == 1 and asset in self.services.assets:
+                self.services.command(asset, "auto", True)
             return
         if not isinstance(value, bool | int | float) or isinstance(value, str):
             raise RuntimeProblem(f"{asset}:{signal} takes a Boolean, not {value!r}")
@@ -371,6 +599,9 @@ class Simulation:
         if signal == "reset":
             self.reset(asset)
             return
+        if asset in self.services.assets and self.services.command(asset, signal, True):
+            self.operator.setdefault(asset, {})[MODE] = 0
+            return
         run = self.run_input(asset)
         if run is None:
             raise RuntimeProblem(f"{asset} has no run command in this scope")
@@ -382,6 +613,8 @@ class Simulation:
         done = self.faults.reset(target)
         for f in done:
             self._unroute(f)
+        if target in self.services.assets:
+            self.services.command(target, "reset", True)
         if target in self.electrical.assets:
             try:
                 self.electrical.command(target, "reset", True)
@@ -422,7 +655,10 @@ class Simulation:
             if unknown:
                 raise RuntimeProblem(f"{mode} has no parameters {sorted(unknown)}")
             params = defaults | params
-            if kind is FaultKind.SENSOR:
+            if self.services.handles(target, mode):
+                domain = "services"
+                latching = kind is FaultKind.TRIP
+            elif kind is FaultKind.SENSOR:
                 domain = "sensor"
             elif kind is FaultKind.NETWORK:
                 domain = "network"
@@ -491,6 +727,9 @@ class Simulation:
         elif fault.domain == "electrical":
             self.electrical.clear(fault.target, fault.mode)
             self._applied_electrical.pop(fault.id, None)
+        elif fault.domain == "services":
+            self.services.clear(fault.target, fault.mode)
+            self._applied_services.pop(fault.id, None)
 
     def _route_faults(self) -> None:
         """Apply the current value of every non-thermofluid fault to its domain."""
@@ -502,6 +741,10 @@ class Simulation:
                     self._applied_sensor[f.id] = values
             elif f.domain == "network":
                 self.network.fail(f.target)
+            elif f.domain == "services":
+                if self._applied_services.get(f.id) != values:
+                    self.services.fault(f.target, f.mode, values)
+                    self._applied_services[f.id] = values
             elif f.domain == "electrical" and not f.latched:
                 if self._applied_electrical.get(f.id) != values:
                     self.electrical.fault(f.target, f.mode, values)
@@ -548,6 +791,12 @@ class Simulation:
                     self.electrical.supply(v.asset) if v.asset in self.electrical.assets else 1.0
                 )
                 continue
+            if spec.liquid_heat:
+                values[v.name] = self._liquid_heat(v.asset)
+                continue
+            if spec.fire:
+                values[v.name] = self.fire_shutdown(v.asset)
+                continue
             value = self.commands.get(v.asset, {}).get(v.signal, spec.default)
             if v.signal in RUN_INPUTS and not self.operator_value(v.asset, ENABLED):
                 value = False if v.kind == "bool" else 0.0
@@ -572,9 +821,25 @@ class Simulation:
                     value = float(value) + sign * f.values(self.t).get(param, 0.0)
             values[v.name] = value
         for room in part.rooms:
+            air = 1.0 - self.conditions.liquid_fraction.get(room, 0.0)
+            if not any(r == room for r in self.served_room.values()):
+                air = 1.0  # no liquid cooling is modelled in the room: all of it heats the air
             q = sum(self._room_heat(asset) for asset, r in self.it_loads.items() if r == room)
-            values[f"room_{ident(room)}_QIt"] = q
+            values[f"room_{ident(room)}_QIt"] = q * air
         return values
+
+    def _liquid_heat(self, asset: str) -> float:
+        """A CDU's share of the liquid-cooled IT heat of the room it serves."""
+        room = self.served_room.get(asset)
+        if room is None:
+            return 0.0
+        units = sum(1 for r in self.served_room.values() if r == room)
+        q = sum(self._room_heat(a) for a, r in self.it_loads.items() if r == room)
+        return q * self.conditions.liquid_fraction.get(room, 0.0) / units
+
+    def fire_shutdown(self, asset: str) -> bool:
+        """Whether a fire zone the asset's `fire` port is connected to is in alarm."""
+        return self.services.fire_shutdown(asset)
 
     def _room_heat(self, asset: str) -> float:
         """Heat the IT load puts into its room: the power it actually draws."""
@@ -628,11 +893,16 @@ class Simulation:
         for asset in sorted(self.electrical.loads):
             if asset in self.it_loads:
                 self.electrical.set_demand(asset, self._it_demand(asset))
+            elif asset in self.services.loads:
+                self.electrical.set_demand(asset, self.services.demand_w(asset))
             elif asset in self.outputs:
                 power = self.behaviour[asset].power
                 if power:
                     value = self.state.get(asset, {}).get(power, 0.0)
                     self.electrical.set_demand(asset, max(float(value), 0.0))
+        for genset in sorted(self.services.fuel.day):
+            if genset in self.electrical.assets:
+                self.electrical.set_fuel(genset, self.services.fuel_ok(genset))
         self.electrical.step(t_next, dt)
         self._electrical = self.electrical.signals()
         clock.lap("electrical")
@@ -646,16 +916,29 @@ class Simulation:
 
         self.t = t_next
         self.step_count += 1
-        # 4. True state, network, instrumentation.
+        # 4. Site services, on the state the models published.
+        env = self._env(dt)
+        self.services.step(env, self.conditions)
+        self._services = self.services.signals(env, self.conditions)
+        clock.lap("services")
+        # 5. True state, network, instrumentation.
         self._publish(dt)
         clock.lap("instrumentation")
         # 5. Controllers.
         bus = _Bus(self)
+        for hmi in self.hmis.values():
+            hmi.apply(self.register)
         for blk in self.blocks:
             blk.step(self.t, dt, bus)
         clock.lap("controllers")
         self.timings.record(clock)
         return self.frame()
+
+    def _env(self, dt: float) -> Env:
+        def supply(asset: str) -> float:
+            return self.electrical.supply(asset) if asset in self.electrical.assets else 1.0
+
+        return Env(self.t, dt, supply, self.state, self.network.reachable)
 
     def run(self, steps: int) -> Frame:
         frame = self.frame()
@@ -667,15 +950,59 @@ class Simulation:
         state: dict[str, dict[str, float | bool | str]] = {}
         for asset, values in self._electrical.items():
             state.setdefault(asset, {}).update(values)
+        for asset, service in self._services.items():
+            state.setdefault(asset, {}).update(service)
+            for signal in service:
+                if (service_unit := self.services.unit(signal)) is not None:
+                    self.units[(asset, signal)] = service_unit
+        for asset, device in self.telemetry.signals(self.t, dt, self.state).items():
+            state.setdefault(asset, {}).update(device)
+            for signal in device:
+                if (device_unit := self.telemetry.unit(signal)) is not None:
+                    self.units[(asset, signal)] = device_unit
         for name in sorted(self.fmus):
             unit = self.fmus[name]
             out = unit.outputs()
             for v in self.partitions[name].outputs:
                 if v.asset is not None:
                     state.setdefault(v.asset, {})[v.signal] = out[v.name]
-        for asset in self.behaviour:
+        for asset, inputs in self.inputs.items():
+            # The commands in force read back as signals (a valve's position, a set point).
+            s = state.setdefault(asset, {})
+            for signal, spec in inputs.items():
+                fmu = self.fmus[spec.partition]
+                applied = fmu.applied.get(spec.var, fmu.input_starts.get(spec.var))
+                if applied is not None:
+                    s.setdefault(signal, applied)
+        for asset, settings in self.settings.items():
+            state.setdefault(asset, {}).update(settings)
+        for asset, room in self.supplied_room.items():
+            # A unit with no return-air sensor of its own reads the room it supplies.
+            air = state.get(f"{ROOM_PREFIX}{room}", {})
+            s = state.setdefault(asset, {})
+            for signal, source in (("TRetAir", "TAir"), ("phiRet", "phi")):
+                if source in air:
+                    s.setdefault(signal, air[source])
+                    self.units.setdefault((asset, signal), "K" if source == "TAir" else "1")
+        for asset, b in self.behaviour.items():
             s = state.setdefault(asset, {})
             s["tripped"] = self._tripped(asset)
+            for name, (si_unit, fn) in b.derived.items():
+                try:
+                    s[name] = fn(s)
+                except (KeyError, TypeError, ValueError, ZeroDivisionError):
+                    continue
+                if si_unit is not None:
+                    self.units[(asset, name)] = si_unit
+            s["alarm"] = bool(s["tripped"]) or any(s.get(a) is True for a in b.alarms)
+        for asset, signals in self.integrals.items():
+            s = state.setdefault(asset, {})
+            for signal in signals:
+                x = s.get(signal)
+                if isinstance(x, int | float) and not isinstance(x, bool):
+                    signals[signal] += float(x) * dt
+                s[f"energy:{signal}"] = signals[signal]
+                self.units[(asset, f"energy:{signal}")] = "J"
         for asset in self.it_loads:
             s = state.setdefault(asset, {})
             s["tripped"] = self._tripped(asset)
@@ -683,9 +1010,12 @@ class Simulation:
         for blk in self.blocks:
             for k, x in blk.signals().items():
                 state.setdefault(blk.binding.controller, {})[f"{blk.function}.{k}"] = x
+        for controller, hmi in self.hmis.items():
+            lead = self.register.get(f"{controller}:lead_chiller")
+            state.setdefault(controller, {}).update(hmi.signals(self.t, state, lead))
         for reference, value in self.register.items():
             asset, signal = split_ref(reference)
-            if isinstance(value, float | bool | str):
+            if isinstance(value, int | float | bool | str):
                 state.setdefault(asset, {})[signal] = value
         self.state = state
         view = _View(self)
@@ -695,25 +1025,23 @@ class Simulation:
                 hours = self.run_hours.get(asset, 0.0) + (dt / 3600 if running else 0.0)
                 self.run_hours[asset] = hours
                 state[asset]["run_hours"] = hours
+            if "starts_day" in self.aliases[asset].values():
+                running = bool(view.get(asset, "On_Off"))
+                starts = [t for t in self.starts.get(asset, []) if t > self.t - STARTS_WINDOW_S]
+                if running and not self._was_running.get(asset, running):
+                    starts.append(self.t)
+                self._was_running[asset] = running
+                self.starts[asset] = starts
+                state[asset]["starts_day"] = len(starts)
+                recent = sum(t > self.t - CYCLING_WINDOW_S for t in starts)
+                state[asset]["short_cycling"] = recent > CYCLING_STARTS
         self.network.step(self.t)
         self.instrumentation.update(self.t, view)
 
     # --- output --------------------------------------------------------------------------
 
     def _scoped_points(self) -> list[str]:
-        if not hasattr(self, "_points"):
-            keep = []
-            for path, b in self.doc.point_bindings.items():
-                src = b.source
-                if isinstance(src, AssetSignal) and src.asset in self.scope:
-                    keep.append(path)
-                elif (
-                    isinstance(src, InstrumentSource)
-                    and self.doc.instruments[src.instrument].asset in self.scope
-                ):
-                    keep.append(path)
-            self._points = sorted(keep)
-        return self._points
+        return self.instrumentation.paths
 
     def frame(self) -> Frame:
         points = self.instrumentation.points()
@@ -751,14 +1079,20 @@ class Simulation:
             "commands": {a: dict(c) for a, c in self.commands.items()},
             "register": dict(self.register),
             "run_hours": dict(self.run_hours),
+            "starts": {a: list(t) for a, t in self.starts.items()},
+            "settings": {a: dict(x) for a, x in self.settings.items()},
+            "integrals": {a: dict(x) for a, x in self.integrals.items()},
             "operator": {a: dict(o) for a, o in self.operator.items()},
             "frozen": [[k[0], k[1], v] for k, v in self._frozen.items()],
             "conditions": self.conditions.snapshot(),
             "faults": self.faults.snapshot(),
             "electrical": self.electrical.snapshot(),
+            "services": self.services.snapshot(),
             "network": self.network.snapshot(),
+            "telemetry": self.telemetry.snapshot(),
             "instrumentation": self.instrumentation.snapshot(),
             "blocks": {b.binding.id: b.snapshot() for b in self.blocks},
+            "hmi": {c: h.snapshot() for c, h in self.hmis.items()},
         }
 
     def restore(self, snap: Mapping[str, Any]) -> None:
@@ -767,15 +1101,32 @@ class Simulation:
         self.t = float(snap["t"])
         self.step_count = int(snap["step"])
         self.commands = {a: dict(c) for a, c in snap["commands"].items() if a in self.inputs}
-        self.register = dict(snap["register"])
+        self.register = {k: v for h in self.hmis.values() for k, v in h.defaults().items()}
+        self.register |= snap["register"]
+        for controller, hmi in self.hmis.items():
+            hmi.restore(snap.get("hmi", {}).get(controller, {}))
         self.run_hours = {a: float(h) for a, h in snap["run_hours"].items()}
+        self.starts = {a: [float(x) for x in t] for a, t in snap.get("starts", {}).items()}
+        for asset, settings in snap.get("settings", {}).items():
+            for signal, value in settings.items():
+                if signal in self.settings.get(asset, {}):
+                    self.settings[asset][signal] = float(value)
+        for asset, signals in snap.get("integrals", {}).items():
+            for signal, value in signals.items():
+                if signal in self.integrals.get(asset, {}):
+                    self.integrals[asset][signal] = float(value)
         self.operator = {a: dict(o) for a, o in snap.get("operator", {}).items()}
         self._frozen = {(k[0], k[1]): k[2] for k in snap["frozen"]}
         self.conditions = Conditions.from_snapshot(snap["conditions"])
         self.faults.restore(snap["faults"])
-        self._applied_sensor, self._applied_electrical, self._rebuild = {}, {}, {}
+        self._applied_sensor, self._applied_electrical = {}, {}
+        self._rebuild = {n: r for n, r in self._rebuild.items() if n in self._keep}
+        self._applied_services = {}
         self.electrical.restore(snap["electrical"])
+        if "services" in snap:
+            self.services.restore(snap["services"])
         self.network.restore_state(snap["network"])
+        self.telemetry.restore(snap.get("telemetry", {}))
         self.instrumentation.restore(snap["instrumentation"])
         for b in self.blocks:
             if b.binding.id in snap["blocks"]:
@@ -783,6 +1134,8 @@ class Simulation:
         self._route_faults()
         thermo = snap["thermofluid"]
         for name, part in self.partitions.items():
+            if name in self._keep:
+                continue  # taken over running: its state is already the live one
             self.fmus[name].close()
             inputs = {
                 v.name: self.commands[v.asset][v.signal]
@@ -798,7 +1151,14 @@ class Simulation:
                 inputs,
             )
             self._maybe_rebuild(name)
+        self._keep = set()
+        self._services = self.services.signals(self._env(0.0), self.conditions)
         self._publish()
+
+    def detach(self, names: Collection[str]) -> None:
+        """Let go of partitions another simulation has taken over, without closing them."""
+        for name in names:
+            self.fmus.pop(name, None)
 
     def close(self) -> None:
         for unit in self.fmus.values():

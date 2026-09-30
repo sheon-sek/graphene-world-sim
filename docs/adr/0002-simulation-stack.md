@@ -158,3 +158,59 @@ The operator station is part of the runtime state: it is in snapshots, and the c
 set it are in the event log, so replay stays exact. Command points whose signal is none of
 these and not a model input (valve open and close commands on the buffer tanks, for example)
 are rejected until their equipment is modelled.
+
+## Amendment 4: Site services and the site's air units (2026-09-30)
+
+Modelling the whole site (Phase 6, #7) changed the decision in five places.
+
+1. **Site services are Python models, not Modelica partitions.** Cold water, leak detection,
+   fire detection and protection, lifts, diesel fuel, and the room and weather sensors live in
+   `gws_runtime.services`. They are mass balances and state machines with no stiff physics, so
+   a compiled FMU would add build time and nothing else. The master steps them once per macro
+   step after the thermofluid models, on the state those published. Their pumps, lifts and
+   fire pumps are electrical loads like any other.
+2. **The causes they react to are operating conditions or commands.** A fire in a room (smoke
+   obscuration and hot-layer temperature), water leaking onto a floor, the lift traffic and the
+   water main are conditions; operating a call point is a command. Every consequence follows
+   from the World Model's connections: a fire zone shuts down the PAHUs its `fire` port is
+   connected to and recalls the lifts, an alarm valve starts the fire pumps connected to it, a
+   bulk diesel tank feeds the gensets connected to it. No rule names another asset's fault.
+3. **The electrical network reports what a power meter reads.** Beyond the load flow's
+   voltage and powers, it computes frequency by island (grid, genset governor droop, UPS
+   oscillator), harmonic current and voltage distortion by load kind, and neutral current, so
+   meters read realistic power quality from the network's state rather than constants.
+   Gensets gain an engine model (coolant, oil pressure, starter battery, speed, run time) and
+   stop on its protections and on an empty day tank.
+4. **The compiler models only loops that reach a modelled unit.** A CRAC or PAHU takes outside
+   air or rejects heat to it through the weather conditions; a CDU moves the liquid-cooled
+   share of its room's IT heat into chilled water. A unit with no connection to any modelled
+   loop is left out of the plan and listed as not modelled.
+5. **The standalone demo rack measures load banks.** The asset source has only its meters. The
+   graphene supplement wires them as a demonstration rack: incomer through the GPQM144 Pro onto
+   a busbar, and every other meter feeding an unexported load bank (`Demo Load`). The load
+   banks are site services that step through a seeded duty cycle; the meters measure them
+   through the network like any other feeder, and the E820's 126 branch circuits split its
+   bank. The duty cycle is the one place demand is scripted rather than caused, because a
+   demonstration rack exists to show changing readings.
+
+## Amendment 5: Structural edits on a running session (2026-09-30)
+
+Phase 7 (#8) built decision 4 of Amendment 1.
+
+- **Swap.** `POST /sessions/{id}/swap` validates the revision and plans it, then compiles the
+  partitions it changes on a background thread while the session keeps stepping. Once they
+  are compiled, the swap happens between two steps and is logged as a `reinit` event with
+  the scope it chose, so a replay reproduces it.
+- **Only the changed partitions restart.** A partition's name is the hash of its generated
+  source, so a partition the edit leaves unchanged keeps its name: the new simulation takes
+  its running FMU instance over as it is. Only the changed partitions start afresh, from the
+  state carried over by asset id. Replay takes the same path, so its trajectory is identical.
+- **Scope.** Unless the request names one, the new scope is the old one less the assets the
+  revision removes, plus the ones it adds.
+- **Rollback.** If validation, planning, compilation or initialisation fails, the old models
+  keep running, no event is logged and the swap reports `failed` with the reason. The old
+  simulation is only closed after the new one has taken the state.
+- **Edits that add or remove assets.** The draft operation `place` adds an asset and, when
+  it is exported, a point binding for each member of its type's point template; `remove`
+  takes an asset out with its connections, instruments and point bindings, and drops the
+  references other entities hold to it.

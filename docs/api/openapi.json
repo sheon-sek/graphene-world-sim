@@ -21,12 +21,16 @@
               "min",
               "ratio",
               "count_true",
-              "first"
+              "first",
+              "product",
+              "elapsed",
+              "health"
             ],
             "title": "Function",
             "type": "string"
           },
           "inputs": {
+            "default": [],
             "items": {
               "type": "string"
             },
@@ -38,11 +42,15 @@
             "default": "aggregate",
             "title": "Kind",
             "type": "string"
+          },
+          "scale": {
+            "default": 1.0,
+            "title": "Scale",
+            "type": "number"
           }
         },
         "required": [
-          "function",
-          "inputs"
+          "function"
         ],
         "title": "Aggregate",
         "type": "object"
@@ -1084,7 +1092,9 @@
         "discriminator": {
           "mapping": {
             "delete": "#/components/schemas/Delete",
+            "place": "#/components/schemas/Place",
             "put": "#/components/schemas/Put",
+            "remove": "#/components/schemas/Remove",
             "set_conditions": "#/components/schemas/SetConditions-Input",
             "set_site": "#/components/schemas/SetSite-Input"
           },
@@ -1098,6 +1108,12 @@
             "$ref": "#/components/schemas/Delete"
           },
           {
+            "$ref": "#/components/schemas/Place"
+          },
+          {
+            "$ref": "#/components/schemas/Remove"
+          },
+          {
             "$ref": "#/components/schemas/SetConditions-Input"
           },
           {
@@ -1109,7 +1125,9 @@
         "discriminator": {
           "mapping": {
             "delete": "#/components/schemas/Delete",
+            "place": "#/components/schemas/Place",
             "put": "#/components/schemas/Put",
+            "remove": "#/components/schemas/Remove",
             "set_conditions": "#/components/schemas/SetConditions-Output",
             "set_site": "#/components/schemas/SetSite-Output"
           },
@@ -1121,6 +1139,12 @@
           },
           {
             "$ref": "#/components/schemas/Delete"
+          },
+          {
+            "$ref": "#/components/schemas/Place"
+          },
+          {
+            "$ref": "#/components/schemas/Remove"
           },
           {
             "$ref": "#/components/schemas/SetConditions-Output"
@@ -1209,6 +1233,28 @@
           "default"
         ],
         "title": "ParameterSpec",
+        "type": "object"
+      },
+      "Place": {
+        "additionalProperties": false,
+        "description": "Add an asset. An exported asset also gets a point binding for every member of its\ntype's point template, at `<asset id>/<member>`, reading the member's signal.",
+        "properties": {
+          "op": {
+            "const": "place",
+            "default": "place",
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "additionalProperties": true,
+            "title": "Value",
+            "type": "object"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "Place",
         "type": "object"
       },
       "PointBinding-Input": {
@@ -1573,6 +1619,27 @@
         "title": "ReinitIn",
         "type": "object"
       },
+      "Remove": {
+        "additionalProperties": false,
+        "description": "Remove an asset and everything that only exists through it: its connections,\ninstruments and point bindings, and the controller bindings it runs. References to it\nelsewhere (a controller reading it, an aggregate summing it, an instrument reporting\nthrough it) are dropped from those entities.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "op": {
+            "const": "remove",
+            "default": "remove",
+            "title": "Op",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "title": "Remove",
+        "type": "object"
+      },
       "ResetIn": {
         "additionalProperties": false,
         "properties": {
@@ -1894,6 +1961,18 @@
           "step": {
             "title": "Step",
             "type": "integer"
+          },
+          "swap": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Swap"
           },
           "t": {
             "title": "T",
@@ -2430,6 +2509,24 @@
               "default": true,
               "title": "Alarms",
               "type": "boolean"
+            }
+          },
+          {
+            "description": "Historian provider to record to",
+            "in": "query",
+            "name": "history",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Historian provider to record to",
+              "title": "History"
             }
           }
         ],
@@ -3701,6 +3798,110 @@
           }
         },
         "summary": "Step",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/runtime/sessions/{sid}/swap": {
+      "get": {
+        "operationId": "swap_state_api_runtime_sessions__sid__swap_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Swap State Api Runtime Sessions  Sid  Swap Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Swap State",
+        "tags": [
+          "runtime"
+        ]
+      },
+      "post": {
+        "description": "Apply another World Model revision without stopping the session: the partitions it\nchanges compile in the background while the session keeps running, and the swap happens\nbetween two steps. If it fails, the session keeps its current models and the swap says\nwhy. `GET` on the same path follows it.",
+        "operationId": "swap_api_runtime_sessions__sid__swap_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sid",
+            "required": true,
+            "schema": {
+              "title": "Sid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReinitIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Swap Api Runtime Sessions  Sid  Swap Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Swap",
         "tags": [
           "runtime"
         ]

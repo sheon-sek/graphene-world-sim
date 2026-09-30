@@ -20,12 +20,16 @@
             "min",
             "ratio",
             "count_true",
-            "first"
+            "first",
+            "product",
+            "elapsed",
+            "health"
           ],
           "title": "Function",
           "type": "string"
         },
         "inputs": {
+          "default": [],
           "items": {
             "type": "string"
           },
@@ -37,11 +41,15 @@
           "default": "aggregate",
           "title": "Kind",
           "type": "string"
+        },
+        "scale": {
+          "default": 1.0,
+          "title": "Scale",
+          "type": "number"
         }
       },
       "required": [
-        "function",
-        "inputs"
+        "function"
       ],
       "title": "Aggregate",
       "type": "object"
