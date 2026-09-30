@@ -222,11 +222,18 @@ async def _do(live: _Live, fn: Any, *args: Any, **kwargs: Any) -> Any:
 
 
 async def _runner(live: _Live) -> None:
-    """Step while running, paced so that simulated time advances `speed` times wall time."""
+    """Step while running, paced so that simulated time advances `speed` times wall time. The
+    pace is kept on average: a step that runs late is made up by the next ones not waiting,
+    and the schedule restarts when the speed changes or the run falls behind by more than
+    `MAX_LAG_STEPS` steps."""
     loop = asyncio.get_running_loop()
     session = live.session
+    due, pace = loop.time(), session.speed
     while session.running:
-        began = loop.time()
+        if session.speed != pace or loop.time() - due > MAX_LAG_STEPS * session.sim.dt / max(
+            session.speed, 1e-9
+        ):
+            due, pace = loop.time(), session.speed
         async with live.lock:
             try:
                 frame = await run_in_threadpool(session.step, 1)
@@ -236,7 +243,8 @@ async def _runner(live: _Live) -> None:
                 return
         live.publish(frame.to_json())
         if session.speed > 0:
-            await asyncio.sleep(max(session.sim.dt / session.speed - (loop.time() - began), 0.0))
+            due += session.sim.dt / session.speed
+            await asyncio.sleep(max(due - loop.time(), 0.0))
         else:
             await asyncio.sleep(0)
 
@@ -265,6 +273,9 @@ class Preset(BaseModel):
     conditions: dict[str, Any]
     """Operating conditions to set after creating the session (`PUT .../conditions`)."""
 
+
+MAX_LAG_STEPS = 10
+"""A run further behind its schedule than this many steps stops trying to catch up."""
 
 PRESETS = [
     Preset(

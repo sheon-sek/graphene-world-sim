@@ -21,18 +21,21 @@ measured point is refused, and a chiller trip raises the alarm the tag generator
 uv run python tests/ignition/live.py
 # or record the results:
 uv run python tests/ignition/live.py --evidence docs/reports/phase4-ignition.json
+# the Phase 6 gate: the whole site at real time, every [DemoTwin] tag Good
+uv run python tests/ignition/live.py --site --evidence docs/reports/phase6-ignition.json
 ```
 
 `pytest` runs the same test when `GWS_IGNITION_LIVE=1` is set, and skips it otherwise.
 
-The script is idempotent against the checkout's gateway, and it leaves the gateway running.
+Every run rebuilds the checkout's gateway from scratch (`igdev gateway reset`: a fresh volume,
+so a fresh trial period and nothing left from an earlier run), and leaves it running.
 `igdev gateway down --volumes` removes it.
 
 ## What it does
 
 1. Stages the built-in OPC UA and WebDev modules from the Ignition image with
    `igdev module add` (igdev mounts its staging folder over the image's module folder), then
-   runs `igdev setup`, `igdev gateway up` and `igdev gateway wait`.
+   runs `igdev setup`, `igdev gateway reset` and `igdev gateway wait`.
 2. Installs a disposable API token (a random key; Ignition stores only its SHA-256) and
    restarts the gateway.
 3. Starts `python -m gws_api.serve` with the Graphene World Model, creates a session over the

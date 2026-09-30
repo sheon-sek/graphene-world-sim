@@ -77,3 +77,18 @@ data types.
 
 The serving process (`python -m gws_api.serve`) runs the API and the OPC UA server together;
 `PUT /api/opcua/session` chooses which runtime session is served.
+
+## Amendment 2: Report by exception (2026-09-30)
+
+Serving the whole site through Ignition (Phase 6, #66) showed that rewriting all 8,811 points
+every step costs more than the step itself: only about 1,300 points change in a 1 s step, but a
+new SourceTimestamp made every point a change, and the served run fell to 0.65x real time.
+
+- **Publishing.** A point is written only when its value, quality or reason changes. An
+  unchanged point keeps the SourceTimestamp of the step that last changed it, so
+  SourceTimestamp now reads "the simulation time of the step that produced the current value",
+  not "the latest step". This is how OPC UA devices report by exception, and it is what an
+  Ignition subscription sees anyway, since it only delivers changed values.
+- **Liveness.** A client that needs to know the simulation is still running reads a point that
+  changes every step (for example a clock or an energy counter), not the timestamp of an
+  arbitrary point.

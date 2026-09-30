@@ -88,9 +88,11 @@ class Gateway:
 
     @classmethod
     def up(cls) -> Gateway:
-        """`igdev setup`, `gateway up` and `gateway wait`, then find the container."""
+        """`igdev setup`, then `gateway reset`: every run gets a gateway rebuilt from scratch
+        (a fresh volume, so a fresh trial period and no state from an earlier run). Then find
+        the container."""
         setup = igdev("setup")
-        igdev("gateway", "up")
+        igdev("gateway", "reset", "--timeout", "10m")
         igdev("gateway", "wait", "--timeout", "10m")
         url = igdev("gateway", "url")["url"]
         namespace = setup["namespace"]

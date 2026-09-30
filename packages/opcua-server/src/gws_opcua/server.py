@@ -10,7 +10,8 @@ It publishes the points it is given, and nothing else:
   Document are JSON text in a String.
 - The StatusCode follows the value's quality, with the specific code its reason names
   (`comm_lost` → BadCommunicationError, `sensor_failed` → BadSensorFailure, `out_of_range` →
-  UncertainEngineeringUnitsExceeded, …). SourceTimestamp is the value's timestamp.
+  UncertainEngineeringUnitsExceeded, …). SourceTimestamp is the timestamp of the value's last
+  change: points are published by exception.
 - A command point is readable and writable. A write is converted to the point's data type and
   handed to the WriteHandler; the server answers Good only when the handler accepts it.
   Every other point answers BadNotWritable, whoever the client is.
@@ -131,7 +132,7 @@ class PointServer:
         self._server: Server | None = None
         self._folders: set[str] = set()
         self._by_node: dict[ua.NodeId, str] = {}
-        self._last: dict[str, tuple[Any, int, datetime | None]] = {}
+        self._last: dict[str, tuple[Any, str, str]] = {}
 
     # --- lifecycle -------------------------------------------------------------------------
 
@@ -349,20 +350,20 @@ class PointServer:
         )
 
     async def publish(self, values: Mapping[str, PointValue]) -> int:
-        """Write the points' current values. Unknown paths are ignored; a point whose value,
-        status and timestamp are all unchanged is not written again. Returns how many were
-        written."""
+        """Write the points' current values by exception: unknown paths are ignored, and a
+        point whose value, quality and reason are unchanged is not written again, so it keeps
+        the SourceTimestamp of the step that last changed it (ADR-0003 Amendment 2). Returns
+        how many were written."""
         iserver = self.server.iserver
         written = 0
         for path, value in values.items():
             spec = self.specs.get(path)
             if spec is None:
                 continue
-            dv = self.data_value(spec, value)
-            assert dv.Value is not None and dv.StatusCode is not None
-            key = (dv.Value.Value, dv.StatusCode.value, dv.SourceTimestamp)
+            key = (value.value, value.quality, value.reason)
             if self._last.get(path) == key:
                 continue
+            dv = self.data_value(spec, value)
             await iserver.write_attribute_value(self.node_id(path), dv)
             self._last[path] = key
             written += 1

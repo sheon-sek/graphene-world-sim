@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "facts": {
+    "generated": {
+      "points": 8811
+    }
+  },
+  "checks": [
+    {
+      "name": "every [DemoTwin] tag reads Good in Ignition",
+      "passed": true,
+      "detail": {
+        "tags": 8811,
+        "qualities": {
+          "Good": 8811
+        },
+        "bad": []
+      }
+    },
+    {
+      "name": "the whole site keeps real time (1 s step)",
+      "passed": true,
+      "detail": {
+        "simulated_s": 600.0,
+        "wall_s": 600.0,
+        "rtf": 0.9999854387353662
+      }
+    },
+    {
+      "name": "every tag is still Good after the run",
+      "passed": true,
+      "detail": {
+        "qualities": {
+          "Good": 8811
+        },
+        "bad": []
+      }
+    }
+  ]
+}

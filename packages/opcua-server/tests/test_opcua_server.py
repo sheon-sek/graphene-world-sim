@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import socket
 from collections.abc import Awaitable, Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -99,6 +99,26 @@ def test_values_carry_quality_and_the_simulation_timestamp() -> None:
         assert rack.Value.Value == '{"rows": [1, 2]}'
         empty = await _node(client, "Dashboard/Load 50%").read_data_value(raise_on_bad_status=False)
         assert empty.StatusCode.value == ua.StatusCodes.BadWaitingForInitialData
+
+    _run(scenario)
+
+
+def test_points_are_published_by_exception() -> None:
+    later = T0 + timedelta(seconds=1)
+
+    async def scenario(server: PointServer, client: Client) -> None:
+        power, voltage = "Chiller/R_C1/Input Power", "Genset/Genset 1/AC Voltage: L1-N"
+        await server.publish(
+            {power: PointValue(130.0, "good", T0), voltage: PointValue(230.0, "good", T0)}
+        )
+        written = await server.publish(
+            {power: PointValue(130.0, "good", later), voltage: PointValue(231.0, "good", later)}
+        )
+        assert written == 1
+        unchanged = await _node(client, power).read_data_value()
+        changed = await _node(client, voltage).read_data_value()
+        assert unchanged.SourceTimestamp == T0 and changed.SourceTimestamp == later
+        assert await server.publish({power: PointValue(130.0, "bad", later, "comm_lost")}) == 1
 
     _run(scenario)
 
