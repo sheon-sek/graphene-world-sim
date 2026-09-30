@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 from pathlib import Path
 
 import pytest
 
+from gws_runtime.compiler import CACHE, plan
 from gws_runtime.gate import SLICE
 from gws_runtime.lifecycle import Session
 from gws_runtime.master import Simulation
@@ -78,9 +81,17 @@ def test_a_broken_edit_leaves_the_session_running(
     assert [e.kind for e in session.events] == ["init"]
 
 
+def _slice_available(doc: WorldModel) -> bool:
+    if all((CACHE / f"{p.name}.fmu").exists() for p in plan(doc, SLICE).partitions):
+        return True
+    return shutil.which("docker") is not None and "GWS_OMLIB" in os.environ
+
+
 def test_unchanged_partitions_keep_running_through_a_swap(
     revisions: dict[int, WorldModel],
 ) -> None:
+    if not _slice_available(revisions[1]):
+        pytest.skip("needs OpenModelica or a cached slice FMU")
     session = _session(revisions, list(SLICE))
     session.step(2)
     running = dict(session.sim.fmus)

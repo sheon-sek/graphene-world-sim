@@ -208,7 +208,7 @@ def test_a_removed_asset_reads_bad_then_its_nodes_go(
                 code = (await _read(client, removed)).StatusCode.value
                 return bool(code == ua.StatusCodes.BadNotFound)
 
-            await _eventually(bad)
+            await _eventually(bad, 30.0)  # the swap rebuilds the session first
             assert http.get(f"{API}/runtime/sessions/{sid}/swap").json()["state"] == "applied"
             assert (await _read(client, IT_LOAD)).StatusCode.is_good()
 
