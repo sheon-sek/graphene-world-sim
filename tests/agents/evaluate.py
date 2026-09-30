@@ -23,7 +23,8 @@ wall-clock window for the grader; the agents never read it.
 It needs what `tests/ignition/live.py` needs, plus an ignition-mcp checkout (`IGNITION_MCP`,
 default `../ignition-mcp`) whose setup CLI is installed (`uv sync`). ignition-mcp's setup
 refuses a setup key whose security level is not ticked under every permission in
-Security > General Settings, Designer included; granting that is the operator's decision.
+Security > General Settings, Designer included, so the harness ticks it on this disposable
+gateway (the owner's decision, 2026-09-30).
 """
 
 from __future__ import annotations
@@ -66,6 +67,23 @@ def stage_mcp_module() -> bool:
     modl = next((IGNITION_MCP / "tests" / "fixtures" / "modules").glob("*.modl"))
     igdev("module", "add", str(modl))
     return True
+
+
+def grant_designer(gateway: Gateway) -> None:
+    """Tick the disposable token's security level under Designer in Security > General
+    Settings, which ignition-mcp's setup requires of its setup key. The owner approved this for
+    the local igdev test gateway only (2026-09-30); `bootstrap_token` already grants access,
+    read and write."""
+    path = "/data/api/v1/resources/singleton/ignition/security-properties"
+    status, props = gateway.request("GET", path)
+    if status != 200:
+        raise GatewayError(f"read security properties: {status}")
+    config = props["config"]
+    config["designerPermissions"] = config["writePermissions"]
+    gateway.update(
+        "ignition/security-properties",
+        {"collection": props["collection"], "signature": props["signature"], "config": config},
+    )
 
 
 def create_historian(gateway: Gateway) -> None:
@@ -157,6 +175,7 @@ def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
     admin = AGENTS / "gateway.json"  # the disposable token, for inspecting this run by hand
     admin.write_text(json.dumps({"url": gateway.url, "token": gateway.token}))
     admin.chmod(0o600)
+    grant_designer(gateway)
     create_historian(gateway)
     sim = live.Simulator.start(work)
     session = sim.call(
