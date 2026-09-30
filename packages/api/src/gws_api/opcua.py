@@ -7,7 +7,8 @@ meet. The Bridge:
   session's World Model, or the store's head revision while no session is attached;
 - follows the attached session's frames and publishes every point's value, quality and
   timestamp. A point outside the session's scope reads Bad `out_of_scope`;
-- maps simulation time to SourceTimestamps: the session's current simulation time is the wall
+- maps simulation time to SourceTimestamps (and DateTime point values, which the runtime gives
+  as simulation times): the session's current simulation time is the wall
   clock at the moment it is attached, and time then advances with the simulation;
 - hands a write to a command point to the session as a runtime command, recorded in its event
   log exactly like a command from the web application;
@@ -29,7 +30,7 @@ from pydantic import BaseModel, ConfigDict
 from gws_api.runtime import Registry, _do, _Live, get_registry
 from gws_opcua.points import PointSpec, PointValue, Scalar
 from gws_opcua.server import PointServer
-from gws_world_model.model import Access, WorldModel
+from gws_world_model.model import Access, PointBinding, WorldModel
 from gws_world_model.store import SqliteStore
 
 OUT_OF_SCOPE = "out_of_scope"
@@ -160,8 +161,14 @@ class Bridge:
 
     async def _publish(self, frame: dict[str, Any]) -> None:
         points: dict[str, dict[str, Any]] = frame["points"]
+        bindings = self.doc.point_bindings if self.doc is not None else {}
         values = {
-            path: PointValue(p["value"], p["quality"], self.timestamp(p["t"]), p.get("reason", ""))
+            path: PointValue(
+                self._value(p["value"], bindings.get(path)),
+                p["quality"],
+                self.timestamp(p["t"]),
+                p.get("reason", ""),
+            )
             for path, p in points.items()
         }
         left = self._scoped - set(points)
@@ -170,6 +177,18 @@ class Bridge:
             values.update({path: PointValue(None, "bad", stamp, OUT_OF_SCOPE) for path in left})
         self._scoped = set(points)
         await self.server.publish(values)
+
+    def _value(self, value: Any, binding: PointBinding | None) -> Any:
+        """A DateTime point's value is a simulation time: it reads as the wall-clock time it
+        maps to, like every SourceTimestamp."""
+        if (
+            binding is not None
+            and binding.data_type == "DateTime"
+            and isinstance(value, int | float)
+            and not isinstance(value, bool)
+        ):
+            return self.timestamp(float(value))
+        return value
 
     # --- writes ----------------------------------------------------------------------------
 

@@ -50,8 +50,9 @@ def split_ref(reference: str) -> tuple[str, str]:
 class StateView(Protocol):
     """Read access to the true state the models computed at the current step."""
 
-    def get(self, asset: str, signal: str) -> float | bool | None:
-        """The value in SI units, or None when no model computes this signal."""
+    def get(self, asset: str, signal: str) -> float | bool | str | None:
+        """The value in SI units (or text, for a state such as a lift's direction), or None
+        when no model computes this signal."""
         ...
 
     def unit(self, asset: str, signal: str) -> str | None:

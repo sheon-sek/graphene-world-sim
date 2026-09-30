@@ -445,6 +445,10 @@ class ElectricalNetwork:
     def set_utility(self, available: bool) -> None:
         self._utility = bool(available)
 
+    def set_fuel(self, genset: str, fuelled: bool) -> None:
+        """Whether a genset's day tank has fuel (the site services' fuel system)."""
+        self._gensets[genset].fuelled = bool(fuelled)
+
     def set_grid_frequency(self, hz: float) -> None:
         """The utility grid's frequency (an operating condition)."""
         self._grid_hz = float(hz)

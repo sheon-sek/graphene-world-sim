@@ -1,5 +1,7 @@
 """Operating conditions (ADR-0002): the inputs from outside the facility that an engineer
-changes live — weather, each hall's IT load, whether the utility supply is there.
+changes live — weather, each hall's IT load, whether the utility supply and the water main
+are there — and the events that happen to the building: a fire in a room, water leaking onto a
+floor, the lift traffic.
 
 They start from the World Model's `conditions` and change only by an explicit command, which
 the lifecycle's event log records. The models react: the wet bulb is a cooling tower input,
@@ -43,6 +45,16 @@ class Conditions:
     """Room -> operating fraction of design."""
     liquid_fraction: dict[str, float] = field(default_factory=dict)
     """Room -> share of its IT heat removed by liquid cooling (CDUs) rather than the air."""
+    wind_speed_m_s: float = 3.0
+    wind_direction_deg: float = 180.0
+    precipitation_mm: float = 0.0
+    water_mains_available: bool = True
+    lift_trips_per_hour: float = 12.0
+    """Passenger calls per hour on each lift."""
+    fires: dict[str, dict[str, float]] = field(default_factory=dict)
+    """Room -> {`smoke_pct_m`: obscuration, `temperature_c`: hot-layer temperature}."""
+    leaks: dict[str, dict[str, float]] = field(default_factory=dict)
+    """Room -> {`flow_kg_s`, and optionally `x`, `y` in plan metres}: water onto the floor."""
 
     @classmethod
     def from_world(cls, c: WorldConditions) -> Conditions:
@@ -69,7 +81,9 @@ class Conditions:
 
     def set(self, changes: Mapping[str, Any]) -> None:
         """Apply a change: any of `dry_bulb_c`, `wet_bulb_c`, `relative_humidity`,
-        `utility_available`, or `it_fraction` as {room: fraction}."""
+        `wind_speed_m_s`, `wind_direction_deg`, `precipitation_mm`, `utility_available`,
+        `water_mains_available`, `lift_trips_per_hour`, `it_fraction` as {room: fraction},
+        or `fires` / `leaks` as {room: {...}} (the whole set: a room left out has none)."""
         for key, value in changes.items():
             if key == "it_fraction":
                 for room, fraction in dict(value).items():
@@ -78,10 +92,22 @@ class Conditions:
                     if not 0 <= float(fraction) <= 1.5:
                         raise ValueError(f"IT load fraction {fraction} is outside 0–1.5")
                     self.it_fraction[room] = float(fraction)
-            elif key == "utility_available":
-                self.utility_available = bool(value)
-            elif key in ("dry_bulb_c", "wet_bulb_c", "relative_humidity"):
+            elif key in ("utility_available", "water_mains_available"):
+                setattr(self, key, bool(value))
+            elif key in (
+                "dry_bulb_c",
+                "wet_bulb_c",
+                "relative_humidity",
+                "wind_speed_m_s",
+                "wind_direction_deg",
+                "precipitation_mm",
+                "lift_trips_per_hour",
+            ):
                 setattr(self, key, float(value))
+            elif key == "fires":
+                self.fires = _events(value, {"smoke_pct_m", "temperature_c"}, key)
+            elif key == "leaks":
+                self.leaks = _events(value, {"flow_kg_s", "x", "y"}, key)
             else:
                 raise KeyError(f"unknown operating condition {key!r}")
         if self.wet_bulb_c > self.dry_bulb_c:
@@ -96,6 +122,13 @@ class Conditions:
             "it_load_kw": dict(self.it_load_kw),
             "it_fraction": dict(self.it_fraction),
             "liquid_fraction": dict(self.liquid_fraction),
+            "wind_speed_m_s": self.wind_speed_m_s,
+            "wind_direction_deg": self.wind_direction_deg,
+            "precipitation_mm": self.precipitation_mm,
+            "water_mains_available": self.water_mains_available,
+            "lift_trips_per_hour": self.lift_trips_per_hour,
+            "fires": {r: dict(f) for r, f in self.fires.items()},
+            "leaks": {r: dict(f) for r, f in self.leaks.items()},
         }
 
     @classmethod
@@ -108,4 +141,21 @@ class Conditions:
             it_load_kw={k: float(v) for k, v in d["it_load_kw"].items()},
             it_fraction={k: float(v) for k, v in d["it_fraction"].items()},
             liquid_fraction={k: float(v) for k, v in d.get("liquid_fraction", {}).items()},
+            wind_speed_m_s=float(d.get("wind_speed_m_s", 3.0)),
+            wind_direction_deg=float(d.get("wind_direction_deg", 180.0)),
+            precipitation_mm=float(d.get("precipitation_mm", 0.0)),
+            water_mains_available=bool(d.get("water_mains_available", True)),
+            lift_trips_per_hour=float(d.get("lift_trips_per_hour", 12.0)),
+            fires={r: dict(f) for r, f in d.get("fires", {}).items()},
+            leaks={r: dict(f) for r, f in d.get("leaks", {}).items()},
         )
+
+
+def _events(value: Any, fields: set[str], key: str) -> dict[str, dict[str, float]]:
+    out: dict[str, dict[str, float]] = {}
+    for room, spec in dict(value or {}).items():
+        unknown = set(spec) - fields
+        if unknown:
+            raise KeyError(f"{key} of {room!r} has no fields {sorted(unknown)}")
+        out[str(room)] = {k: float(v) for k, v in spec.items()}
+    return out

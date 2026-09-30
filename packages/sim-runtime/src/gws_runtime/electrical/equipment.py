@@ -104,7 +104,8 @@ class Genset:
     power. Commands: `start` (true runs, false stops), `reset` (clears a lockout whose cause is
     gone).
 
-    Its engine reports coolant temperature (K, first order towards the thermostat's
+    A set whose day tank runs dry stops and locks out (`fuel`); one cranked without fuel
+    over-cranks. Its engine reports coolant temperature (K, first order towards the thermostat's
     temperature for its load), oil pressure (Pa), starter battery volts, engine speed (rev/s)
     and run time (s).
     """
@@ -119,12 +120,14 @@ class Genset:
     locked_out: bool = False
     lockout: str = ""
     """Why it is locked out: `over_crank`, `short_circuit`, `overload`, `emergency_stop`,
-    `oil_pressure` or `coolant_temperature`."""
+    `oil_pressure`, `coolant_temperature` or `fuel`."""
     overload_s: float = 0.0
     p_w: float = 0.0
     """Output at the last load-flow solution."""
     coolant_k: float = COOLANT_STANDBY_K
     run_s: float = 0.0
+    fuelled: bool = True
+    """Whether its day tank has fuel (the fuel system sets it)."""
 
     def available_w(self, faults: Faults) -> float:
         if not self.running:
@@ -175,6 +178,8 @@ class Genset:
             self._stop(lock=True, reason="oil_pressure")
         if self.running and self.coolant_k >= COOLANT_SHUTDOWN_K:
             self._stop(lock=True, reason="coolant_temperature")
+        if self.running and not self.fuelled:
+            self._stop(lock=True, reason="fuel")
         if self.running:
             self.run_s += dt
             limit = self.overload_limit * self.available_w(faults)
@@ -187,7 +192,7 @@ class Genset:
             self.starting_s += dt
             if self.starting_s >= self.start_time - 1e-9:
                 self.starting_s = 0.0
-                if "fail_to_start" in faults:
+                if "fail_to_start" in faults or not self.fuelled:
                     self.locked_out = True
                     self.lockout = "over_crank"
                 else:
@@ -206,7 +211,7 @@ class Genset:
         elif signal == "reset":
             causes = {"fail_to_start", "shutdown", "emergency_stop", "low_oil_pressure"}
             hot = self.coolant_k >= COOLANT_SHUTDOWN_K or "coolant_loss" in faults
-            if _flag(value) and not causes & faults.keys() and not hot:
+            if _flag(value) and not causes & faults.keys() and not hot and self.fuelled:
                 self.locked_out = False
                 self.lockout = ""
                 self.overload_s = 0.0
@@ -224,6 +229,7 @@ class Genset:
             "p_w": self.p_w,
             "coolant_k": self.coolant_k,
             "run_s": self.run_s,
+            "fuelled": self.fuelled,
         }
 
     def restore(self, state: Mapping[str, Any]) -> None:
@@ -236,6 +242,7 @@ class Genset:
         self.p_w = float(state["p_w"])
         self.coolant_k = float(state.get("coolant_k", COOLANT_STANDBY_K))
         self.run_s = float(state.get("run_s", 0.0))
+        self.fuelled = bool(state.get("fuelled", True))
 
 
 @dataclass(slots=True)

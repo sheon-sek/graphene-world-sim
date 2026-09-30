@@ -158,3 +158,30 @@ The operator station is part of the runtime state: it is in snapshots, and the c
 set it are in the event log, so replay stays exact. Command points whose signal is none of
 these and not a model input (valve open and close commands on the buffer tanks, for example)
 are rejected until their equipment is modelled.
+
+## Amendment 4: Site services and the site's air units (2026-09-30)
+
+Modelling the whole site (Phase 6, #7) changed the decision in four places.
+
+1. **Site services are Python models, not Modelica partitions.** Cold water, leak detection,
+   fire detection and protection, lifts, diesel fuel, and the room and weather sensors live in
+   `gws_runtime.services`. They are mass balances and state machines with no stiff physics, so
+   a compiled FMU would add build time and nothing else. The master steps them once per macro
+   step after the thermofluid models, on the state those published. Their pumps, lifts and
+   fire pumps are electrical loads like any other.
+2. **The causes they react to are operating conditions or commands.** A fire in a room (smoke
+   obscuration and hot-layer temperature), water leaking onto a floor, the lift traffic and the
+   water main are conditions; operating a call point is a command. Every consequence follows
+   from the World Model's connections: a fire zone shuts down the PAHUs its `fire` port is
+   connected to and recalls the lifts, an alarm valve starts the fire pumps connected to it, a
+   bulk diesel tank feeds the gensets connected to it. No rule names another asset's fault.
+3. **The electrical network reports what a power meter reads.** Beyond the load flow's
+   voltage and powers, it computes frequency by island (grid, genset governor droop, UPS
+   oscillator), harmonic current and voltage distortion by load kind, and neutral current, so
+   meters read realistic power quality from the network's state rather than constants.
+   Gensets gain an engine model (coolant, oil pressure, starter battery, speed, run time) and
+   stop on its protections and on an empty day tank.
+4. **The compiler models only loops that reach a modelled unit.** A CRAC or PAHU takes outside
+   air or rejects heat to it through the weather conditions; a CDU moves the liquid-cooled
+   share of its room's IT heat into chilled water. A unit with no connection to any modelled
+   loop is left out of the plan and listed as not modelled.

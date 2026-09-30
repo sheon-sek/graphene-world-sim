@@ -267,8 +267,7 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
       yMax = 1,
       yMin = 0,
       reverseActing = false,
-      initType = Modelica.Blocks.Types.Init.InitialState,
-      xi_start = xi_start)
+      initType = Modelica.Blocks.Types.Init.NoInit)
       "Opens the valve while the supply air is warmer than its set point";
     Buildings.Fluid.Actuators.Valves.TwoWayEqualPercentage val(
       redeclare package Medium = MediumW,
@@ -276,6 +275,9 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
       dpValve_nominal = dp_nominal,
       use_inputFilter = false,
       l = 0.002);
+  initial equation
+    // Set here rather than through xi_start, so the start stays a settable FMU parameter.
+    con.I.y = xi_start;
   equation
     con.u_s = TSet;
     con.u_m = TMea;
@@ -573,9 +575,11 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
       yMax = 1,
       yMin = 0,
       reverseActing = false,
-      initType = Modelica.Blocks.Types.Init.InitialState,
-      xi_start = xiCom_start)
+      initType = Modelica.Blocks.Types.Init.NoInit)
       "The unit's own control: compressor speed holds the supply air at its set point";
+  initial equation
+    // Set here rather than through xi_start, so the start stays a settable FMU parameter.
+    con.I.y = xiCom_start;
   equation
     highPressure = TOut > TAmbTrip;
     fan.speed = fanSpeed * airFactor;

@@ -164,7 +164,7 @@ class _Fault:
 
 
 class _NoState:
-    def get(self, asset: str, signal: str) -> float | bool | None:
+    def get(self, asset: str, signal: str) -> float | bool | str | None:
         return None
 
     def unit(self, asset: str, signal: str) -> str | None:
@@ -333,7 +333,7 @@ class Instrumentation:
 
     # --- evaluation ------------------------------------------------------------------------
 
-    def _true(self, asset: str, signal: str) -> float | bool | None:
+    def _true(self, asset: str, signal: str) -> float | bool | str | None:
         value = self._state.get(asset, signal)
         if value is None and self.network.is_network_asset(asset):
             value = self.network.signal(asset, signal)
