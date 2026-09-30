@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { shortName } from "../app/format";
-import { lifecycle, useSession } from "../app/session";
+import { lifecycle, usePoll, useSession } from "../app/session";
 import { useDraft } from "./draft";
 
 const CLASS_NOTE: Record<string, string> = {
@@ -10,6 +10,15 @@ const CLASS_NOTE: Record<string, string> = {
   reinitialise: "whole simulation rebuilt",
 };
 
+interface SwapInfo {
+  revision: number;
+  state: "compiling" | "ready" | "applied" | "failed";
+  reason: string;
+  compiling: string[];
+  added: string[];
+  removed: string[];
+}
+
 /** The staged edits: whether they validate, what they change and how, and applying them. */
 export function DraftPanel({ sid }: { sid: string }) {
   const { draft, validation, diff, applied, error, head, simulate, apply, discard, forgetApplied } = useDraft();
@@ -17,11 +26,18 @@ export function DraftPanel({ sid }: { sid: string }) {
   const [message, setMessage] = useState("");
   const issues = validation?.issues ?? [];
 
+  const swap = info?.swap as SwapInfo | null | undefined;
+  const swapping = swap?.state === "compiling" || swap?.state === "ready";
+  const refresh = useSession((s) => s.refresh);
+  usePoll(() => (swapping ? refresh() : undefined), 2000, [swapping]);
+
+  /** Apply the revision to the session without stopping it: the changed partitions compile in
+   * the background and swap in between two steps; a failure keeps the session as it was. */
   async function reinit(revision: number) {
     if (!info) return;
     const scope = [...new Set([...info.scope, ...simulate])];
-    const frame = await lifecycle.reinit(sid, revision, scope);
-    if (frame) forgetApplied();
+    const started = await lifecycle.swap(sid, revision, scope);
+    if (started) forgetApplied();
   }
 
   const behind = info?.revision != null && head != null && info.revision < head;
@@ -48,11 +64,19 @@ export function DraftPanel({ sid }: { sid: string }) {
               Revision {applied.number} applied: {applied.message}
             </p>
           )}
-          <button className="primary" onClick={() => void reinit(applied?.number ?? head ?? 0)} data-testid="reinit">
-            Reinitialise the session on revision {applied?.number ?? head}
+          <button className="primary" onClick={() => void reinit(applied?.number ?? head ?? 0)} data-testid="reinit" disabled={swapping}>
+            Apply revision {applied?.number ?? head} to the running session
           </button>
           {simulate.length > 0 && <p className="muted">Adds to the scope: {simulate.map(shortName).join(", ")}.</p>}
         </div>
+      )}
+      {swap && swap.state !== "applied" && (
+        <p className={swap.state === "failed" ? "error-text" : "muted"} data-testid="swap" role={swap.state === "failed" ? "alert" : undefined}>
+          {swap.state === "compiling" &&
+            `Compiling ${swap.compiling.length} changed partition${swap.compiling.length === 1 ? "" : "s"} for revision ${swap.revision}; the session keeps running meanwhile.`}
+          {swap.state === "ready" && `Revision ${swap.revision} compiled; swapping in at the next step.`}
+          {swap.state === "failed" && `Revision ${swap.revision} was not applied; the session keeps its models. ${swap.reason}`}
+        </p>
       )}
       {draft && (
         <>

@@ -466,6 +466,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runtime/sessions/{sid}/swap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Swap State */
+        get: operations["swap_state_api_runtime_sessions__sid__swap_get"];
+        put?: never;
+        /**
+         * Swap
+         * @description Apply another World Model revision without stopping the session: the partitions it
+         *     changes compile in the background while the session keeps running, and the swap happens
+         *     between two steps. If it fails, the session keeps its current models and the swap says
+         *     why. `GET` on the same path follows it.
+         */
+        post: operations["swap_api_runtime_sessions__sid__swap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/world-model/assets": {
         parameters: {
             query?: never;
@@ -1322,8 +1346,8 @@ export interface components {
             /** Writable */
             writable: number;
         };
-        "Operation-Input": components["schemas"]["Put"] | components["schemas"]["Delete"] | components["schemas"]["SetConditions-Input"] | components["schemas"]["SetSite-Input"];
-        "Operation-Output": components["schemas"]["Put"] | components["schemas"]["Delete"] | components["schemas"]["SetConditions-Output"] | components["schemas"]["SetSite-Output"];
+        "Operation-Input": components["schemas"]["Put"] | components["schemas"]["Delete"] | components["schemas"]["Place"] | components["schemas"]["Remove"] | components["schemas"]["SetConditions-Input"] | components["schemas"]["SetSite-Input"];
+        "Operation-Output": components["schemas"]["Put"] | components["schemas"]["Delete"] | components["schemas"]["Place"] | components["schemas"]["Remove"] | components["schemas"]["SetConditions-Output"] | components["schemas"]["SetSite-Output"];
         /** Page[PointBinding] */
         Page_PointBinding_: {
             /** Items */
@@ -1352,6 +1376,22 @@ export interface components {
             min?: number | null;
             /** Unit */
             unit?: string | null;
+        };
+        /**
+         * Place
+         * @description Add an asset. An exported asset also gets a point binding for every member of its
+         *     type's point template, at `<asset id>/<member>`, reading the member's signal.
+         */
+        Place: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "place";
+            /** Value */
+            value: {
+                [key: string]: unknown;
+            };
         };
         /**
          * PointBinding
@@ -1480,6 +1520,22 @@ export interface components {
             /** Scope */
             scope?: string[] | null;
         };
+        /**
+         * Remove
+         * @description Remove an asset and everything that only exists through it: its connections,
+         *     instruments and point bindings, and the controller bindings it runs. References to it
+         *     elsewhere (a controller reading it, an aggregate summing it, an instrument reporting
+         *     through it) are dropped from those entities.
+         */
+        Remove: {
+            /** Key */
+            key: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "remove";
+        };
         /** ResetIn */
         ResetIn: {
             /** Target */
@@ -1601,6 +1657,10 @@ export interface components {
             speed: number;
             /** Step */
             step: number;
+            /** Swap */
+            swap?: {
+                [key: string]: unknown;
+            } | null;
             /** T */
             t: number;
         };
@@ -2709,6 +2769,76 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swap_state_api_runtime_sessions__sid__swap_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swap_api_runtime_sessions__sid__swap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReinitIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };

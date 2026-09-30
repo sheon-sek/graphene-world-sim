@@ -176,3 +176,47 @@ def test_attaching_an_unknown_session_is_404(served: tuple[TestClient, str, Sqli
 def test_without_an_endpoint_there_is_no_opcua_surface() -> None:
     with TestClient(create_app(SqliteStore())) as client:
         assert client.get(f"{API}/opcua").status_code == 404
+
+
+def test_a_removed_asset_reads_bad_then_its_nodes_go(
+    served: tuple[TestClient, str, SqliteStore],
+) -> None:
+    http, endpoint, store = served
+    removed = "UPS/UPS 1/Frequency"
+    doc = store.get(1)
+    assert doc is not None
+    revision = store.create_revision(ops.apply(doc, [ops.Remove(key="UPS/UPS 1")]), "remove", "t")
+    sid = http.post(f"{API}/runtime/sessions", json={"scope": SCOPE, "revision": 1}).json()["id"]
+    bridge = http.app.state.opcua  # type: ignore[attr-defined]
+    bridge.removal_grace = 1.0
+
+    async def main() -> None:
+        async with Client(endpoint) as client:
+            http.put(f"{API}/opcua/session", json={"session": sid})
+            http.post(f"{API}/runtime/sessions/{sid}/step", json={"steps": 2})
+
+            async def good() -> bool:
+                return bool((await _read(client, removed)).StatusCode.is_good())
+
+            await _eventually(good)
+            swap = http.post(
+                f"{API}/runtime/sessions/{sid}/swap", json={"revision": revision.number}
+            )
+            assert swap.status_code == 202 and swap.json()["removed"] == ["UPS/UPS 1"]
+
+            async def bad() -> bool:
+                code = (await _read(client, removed)).StatusCode.value
+                return bool(code == ua.StatusCodes.BadNotFound)
+
+            await _eventually(bad)
+            assert http.get(f"{API}/runtime/sessions/{sid}/swap").json()["state"] == "applied"
+            assert (await _read(client, IT_LOAD)).StatusCode.is_good()
+
+            async def gone() -> bool:
+                code = (await _read(client, removed)).StatusCode.value
+                return bool(code == ua.StatusCodes.BadNodeIdUnknown)
+
+            await _eventually(gone)
+            http.delete(f"{API}/runtime/sessions/{sid}")
+
+    asyncio.run(main())

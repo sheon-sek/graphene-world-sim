@@ -45,3 +45,13 @@ so a fresh trial period and nothing left from an earlier run), and leaves it run
    `gws_probe` WebDev project in `project/`, whose `probe` endpoint reads and writes tags and
    queries alarms inside the gateway.
 5. Runs the checks and prints PASS or FAIL for each. The exit status is 0 only when all pass.
+
+## Phase 7: structural edits
+
+```sh
+uv run python tests/ignition/live.py --reconfigure --evidence docs/reports/phase7-ignition.json
+```
+
+Adds a chiller to the World Model while the slice runs, applies it to the running session
+(`POST /api/runtime/sessions/{id}/swap`), imports the new chiller's tags and reads them in
+Ignition, then removes the chiller and checks its tags go Bad.

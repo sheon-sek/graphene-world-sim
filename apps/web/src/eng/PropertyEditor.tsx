@@ -100,10 +100,8 @@ function Editor({
   }
 
   function remove() {
-    void stage([
-      ...connections.map((c): Edit => ({ op: "delete", collection: "connections", key: c.id })),
-      { op: "delete", collection: "assets", key: asset.id },
-    ]);
+    // Removing takes the asset's connections, instruments and points with it.
+    void stage([{ op: "remove", key: asset.id }]);
   }
 
   const inScope = scope.has(asset.id);

@@ -55,9 +55,10 @@ export function Library({
       location: { room: r?.id ?? null, x: r ? Math.round(r.w * 5) / 10 : null, y: r ? Math.round(r.h * 5) / 10 : null },
       system: "",
       role: "Added in the Engineering workspace",
-      exported: false,
+      // A type with member points is exported: placing it binds them, so Ignition can read it.
+      exported: Object.keys(picked.point_template ?? {}).length > 0,
     };
-    if (await stage([{ op: "put", collection: "assets", value: asset as unknown as Record<string, unknown> }])) {
+    if (await stage([{ op: "place", value: asset as unknown as Record<string, unknown> }])) {
       if (picked.behaviour) setSimulate(id, true);
       select(id);
       setPicked(null);

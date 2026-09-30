@@ -92,3 +92,13 @@ new SourceTimestamp made every point a change, and the served run fell to 0.65x 
 - **Liveness.** A client that needs to know the simulation is still running reads a point that
   changes every step (for example a clock or an energy counter), not the timestamp of an
   arbitrary point.
+
+## Amendment 3: Structural edits (2026-09-30)
+
+When the served session swaps to another revision (ADR-0002 Amendment 5):
+
+- Points the new revision keeps keep their values until the next frame; only new points read
+  BadOutOfService until then.
+- Points the new revision removes read **BadNotFound** for ten seconds, so a client sees them
+  go Bad, and then their nodes are removed with a GeneralModelChangeEvent. An Ignition tag on
+  a removed point then reports that its item no longer exists.

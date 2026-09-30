@@ -144,6 +144,16 @@ export function overlay(world: WorldData, operations: readonly Operation[]): Edi
     } else if (op.op === "delete" && op.collection === "assets") {
       assets.delete(op.key);
       touched.add(op.key);
+    } else if (op.op === "place") {
+      const value = op.value as unknown as Asset;
+      assets.set(value.id, value);
+      touched.add(value.id);
+    } else if (op.op === "remove") {
+      assets.delete(op.key);
+      touched.add(op.key);
+      for (const [id, c] of connections) {
+        if (c.source.node === op.key || c.target.node === op.key) connections.delete(id);
+      }
     } else if (op.op === "delete" && op.collection === "connections") {
       connections.delete(op.key);
       touched.add(op.key);

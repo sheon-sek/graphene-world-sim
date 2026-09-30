@@ -72,6 +72,7 @@ _REASON = {
     "unbound": ua.StatusCodes.BadConfigurationError,
     "not_simulated": ua.StatusCodes.BadConfigurationError,
     "out_of_scope": ua.StatusCodes.BadOutOfService,
+    "removed": ua.StatusCodes.BadNotFound,
 }
 MODEL_CHANGE_DETAIL = 1000
 """Up to this many changes, the model-change event lists each node; above it, one change on

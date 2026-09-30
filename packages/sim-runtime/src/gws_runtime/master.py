@@ -333,7 +333,10 @@ class Simulation:
         cache: Path = CACHE,
         start_time: float = 0.0,
         conditions: Conditions | None = None,
+        adopt: Simulation | None = None,
     ) -> None:
+        """`adopt` is a running simulation of another revision: its partitions that this one
+        has unchanged keep running as they are, and only the others start afresh."""
         self.doc = doc
         self.scope = frozenset(scope)
         self.seed = seed
@@ -465,8 +468,22 @@ class Simulation:
         }
 
         self.fmus: dict[str, FmuUnit] = {}
-        for name, part in self.partitions.items():
-            self.fmus[name] = FmuUnit(self.fmu_paths[name], part, self.t)
+        self.adopted = frozenset(
+            name for name in self.partitions if adopt is not None and name in adopt.fmus
+        )
+        """Partitions taken over running from the simulation this one replaced."""
+        self._keep = set(self.adopted)
+        try:
+            for name, part in self.partitions.items():
+                if name in self.adopted and adopt is not None:
+                    self.fmus[name] = adopt.fmus[name]
+                    self._rebuild[name] = dict(adopt._rebuild.get(name, {}))
+                else:
+                    self.fmus[name] = FmuUnit(self.fmu_paths[name], part, self.t)
+        except BaseException:
+            self.detach(self.adopted)
+            self.close()
+            raise
         for name, unit in self.fmus.items():
             for v in self.partitions[name].inputs:
                 if v.asset is not None and v.name in unit.input_starts:
@@ -1102,7 +1119,8 @@ class Simulation:
         self._frozen = {(k[0], k[1]): k[2] for k in snap["frozen"]}
         self.conditions = Conditions.from_snapshot(snap["conditions"])
         self.faults.restore(snap["faults"])
-        self._applied_sensor, self._applied_electrical, self._rebuild = {}, {}, {}
+        self._applied_sensor, self._applied_electrical = {}, {}
+        self._rebuild = {n: r for n, r in self._rebuild.items() if n in self._keep}
         self._applied_services = {}
         self.electrical.restore(snap["electrical"])
         if "services" in snap:
@@ -1116,6 +1134,8 @@ class Simulation:
         self._route_faults()
         thermo = snap["thermofluid"]
         for name, part in self.partitions.items():
+            if name in self._keep:
+                continue  # taken over running: its state is already the live one
             self.fmus[name].close()
             inputs = {
                 v.name: self.commands[v.asset][v.signal]
@@ -1131,8 +1151,14 @@ class Simulation:
                 inputs,
             )
             self._maybe_rebuild(name)
+        self._keep = set()
         self._services = self.services.signals(self._env(0.0), self.conditions)
         self._publish()
+
+    def detach(self, names: Collection[str]) -> None:
+        """Let go of partitions another simulation has taken over, without closing them."""
+        for name in names:
+            self.fmus.pop(name, None)
 
     def close(self) -> None:
         for unit in self.fmus.values():

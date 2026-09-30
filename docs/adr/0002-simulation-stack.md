@@ -192,3 +192,25 @@ Modelling the whole site (Phase 6, #7) changed the decision in five places.
    through the network like any other feeder, and the E820's 126 branch circuits split its
    bank. The duty cycle is the one place demand is scripted rather than caused, because a
    demonstration rack exists to show changing readings.
+
+## Amendment 5: Structural edits on a running session (2026-09-30)
+
+Phase 7 (#8) built decision 4 of Amendment 1.
+
+- **Swap.** `POST /sessions/{id}/swap` validates the revision and plans it, then compiles the
+  partitions it changes on a background thread while the session keeps stepping. Once they
+  are compiled, the swap happens between two steps and is logged as a `reinit` event with
+  the scope it chose, so a replay reproduces it.
+- **Only the changed partitions restart.** A partition's name is the hash of its generated
+  source, so a partition the edit leaves unchanged keeps its name: the new simulation takes
+  its running FMU instance over as it is. Only the changed partitions start afresh, from the
+  state carried over by asset id. Replay takes the same path, so its trajectory is identical.
+- **Scope.** Unless the request names one, the new scope is the old one less the assets the
+  revision removes, plus the ones it adds.
+- **Rollback.** If validation, planning, compilation or initialisation fails, the old models
+  keep running, no event is logged and the swap reports `failed` with the reason. The old
+  simulation is only closed after the new one has taken the state.
+- **Edits that add or remove assets.** The draft operation `place` adds an asset and, when
+  it is exported, a point binding for each member of its type's point template; `remove`
+  takes an asset out with its connections, instruments and point bindings, and drops the
+  references other entities hold to it.

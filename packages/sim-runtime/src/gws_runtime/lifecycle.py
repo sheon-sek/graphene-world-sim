@@ -11,20 +11,26 @@ logged for the audit trail but never change what is computed.
 A snapshot holds the complete runtime state and the log up to that point. Restoring it
 continues from there on a new branch: events after the snapshot are dropped from the log.
 Reinit rebuilds the models from another revision of the World Model (a structural edit) and
-carries the state over by asset id.
+carries the state over by asset id. A swap does the same without stopping the run: the
+partitions the edit changes compile in the background while the old models keep stepping,
+and the swap happens between two steps. Partitions the edit leaves unchanged are taken over
+running; only the changed ones start afresh, from the state carried over. If validation,
+compilation or initialisation fails, the old models keep running and the swap reports why.
 """
 
 from __future__ import annotations
 
 import copy
+import threading
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from gws_runtime.compiler import CACHE
+from gws_runtime.compiler import CACHE, cached, compile_partition, plan
 from gws_runtime.master import Frame, RuntimeProblem, Simulation
 from gws_world_model.model import WorldModel
+from gws_world_model.validate import errors, validate
 
 TRAJECTORY_EVENTS = frozenset({"command", "fault", "clear", "reset", "conditions", "reinit"})
 
@@ -48,6 +54,37 @@ class Snapshot:
     state: dict[str, Any]
     events: list[Event]
     revision: int | None
+
+
+@dataclass
+class Swap:
+    """A structural edit being applied to a running session."""
+
+    revision: int
+    scope: frozenset[str]
+    requested_t: float
+    state: str = "compiling"
+    """`compiling`, `ready` (compiled, waiting for the next step boundary), `applied` or
+    `failed`."""
+    reason: str = ""
+    """Why it failed; the old models are still running."""
+    compiling: tuple[str, ...] = ()
+    """The partitions the edit changes, compiled in the background."""
+    added: tuple[str, ...] = ()
+    removed: tuple[str, ...] = ()
+    applied_t: float | None = None
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "revision": self.revision,
+            "state": self.state,
+            "reason": self.reason,
+            "requested_t": self.requested_t,
+            "applied_t": self.applied_t,
+            "compiling": list(self.compiling),
+            "added": list(self.added),
+            "removed": list(self.removed),
+        }
 
 
 class Session:
@@ -76,6 +113,9 @@ class Session:
         self.running = False
         self.speed = 1.0
         """Simulated seconds per wall-clock second while running; 0 runs flat out."""
+        self.swap: Swap | None = None
+        """The latest structural edit applied without stopping, or being applied."""
+        self._compiler: threading.Thread | None = None
         self._log("init", {"scope": sorted(self.scope), "seed": seed, "dt": float(dt)})
 
     # --- log -----------------------------------------------------------------------------
@@ -182,14 +222,28 @@ class Session:
         return self.resolve(revision)
 
     def _rebuild(self, doc: WorldModel, scope: Collection[str]) -> None:
+        """Replace the simulation with one of `doc`, carrying the state over. Partitions both
+        have are taken over running. If the new one cannot be built, the old one is kept."""
         state = self.sim.snapshot()
         old = self.sim
-        self.scope = frozenset(scope)
-        self.sim = Simulation(
-            doc, self.scope, seed=old.seed, dt=old.dt, cache=self.cache, start_time=old.t
+        new = Simulation(
+            doc,
+            frozenset(scope),
+            seed=old.seed,
+            dt=old.dt,
+            cache=self.cache,
+            start_time=old.t,
+            adopt=old,
         )
+        try:
+            new.restore(state)
+        except BaseException:
+            new.detach(new.adopted)
+            new.close()
+            raise
+        old.detach(new.adopted)
         old.close()
-        self.sim.restore(state)
+        self.sim, self.scope = new, frozenset(scope)
 
     def _reinit(self, revision: int, scope: Collection[str] | None) -> None:
         self._rebuild(self._doc(revision), scope if scope is not None else self.scope)
@@ -202,6 +256,86 @@ class Session:
         if scope is not None:
             payload["scope"] = sorted(scope)
         self.apply("reinit", payload)
+        return self.sim.frame()
+
+    # --- swap ----------------------------------------------------------------------------
+
+    def next_scope(self, revision: int) -> frozenset[str]:
+        """The scope a swap to `revision` keeps: the current one, less the assets the revision
+        removes, plus the ones it adds."""
+        before, after = self.sim.doc, self._doc(revision)
+        return frozenset(
+            (self.scope & after.assets.keys()) | (after.assets.keys() - before.assets.keys())
+        )
+
+    def prepare(self, revision: int, scope: Collection[str] | None = None) -> Swap:
+        """Start applying another World Model revision without stopping: validate it, plan it
+        and compile the partitions it changes in the background. `apply_swap` swaps it in
+        once compiled. A swap already compiling is replaced."""
+        doc = self._doc(revision)
+        # Assets the revision removes leave the scope.
+        chosen = (
+            frozenset(scope) & doc.assets.keys() if scope is not None else self.next_scope(revision)
+        )
+        before = self.sim.doc.assets.keys()
+        swap = Swap(
+            revision,
+            chosen,
+            self.sim.t,
+            added=tuple(sorted(doc.assets.keys() - before)),
+            removed=tuple(sorted(before - doc.assets.keys())),
+        )
+        self.swap = swap
+        problems = errors(validate(doc))
+        if problems:
+            swap.state = "failed"
+            swap.reason = "; ".join(f"{i.path}: {i.message}" for i in problems[:5])
+            return swap
+        try:
+            partitions = plan(doc, chosen).partitions
+        except (RuntimeProblem, ValueError) as e:
+            swap.state, swap.reason = "failed", str(e)
+            return swap
+        todo = [p for p in partitions if cached(p, self.cache) is None]
+        swap.compiling = tuple(p.name for p in todo)
+        if not todo:
+            swap.state = "ready"
+            return swap
+
+        def work() -> None:
+            try:
+                for p in todo:
+                    compile_partition(p, self.cache)
+            except Exception as e:  # noqa: BLE001 - a failed compile is reported, not raised
+                if self.swap is swap:
+                    swap.state, swap.reason = "failed", str(e).strip() or type(e).__name__
+                return
+            if self.swap is swap and swap.state == "compiling":
+                swap.state = "ready"
+
+        self._compiler = threading.Thread(target=work, name="gws-swap-compile", daemon=True)
+        self._compiler.start()
+        return swap
+
+    def wait_compiled(self, timeout: float | None = None) -> Swap | None:
+        """Block until the swap being prepared is compiled (for tests and scripts)."""
+        if self._compiler is not None:
+            self._compiler.join(timeout)
+        return self.swap
+
+    def apply_swap(self) -> Frame | None:
+        """At a step boundary: swap in the prepared revision if it is compiled. Returns the new
+        frame, or None when there is nothing to swap or the swap failed (the old models keep
+        running and `swap.reason` says why)."""
+        swap = self.swap
+        if swap is None or swap.state != "ready":
+            return None
+        try:
+            self.apply("reinit", {"revision": swap.revision, "scope": sorted(swap.scope)})
+        except Exception as e:  # noqa: BLE001 - initialisation failure rolls back
+            swap.state, swap.reason = "failed", str(e).strip() or type(e).__name__
+            return None
+        swap.state, swap.applied_t = "applied", self.sim.t
         return self.sim.frame()
 
     # --- replay --------------------------------------------------------------------------
