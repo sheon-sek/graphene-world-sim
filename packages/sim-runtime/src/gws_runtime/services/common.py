@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import zlib
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -51,3 +52,11 @@ def number(state: Mapping[str, float | bool | str], signal: str) -> float | None
     if isinstance(value, bool) or not isinstance(value, int | float):
         return None
     return float(value)
+
+
+def smooth(key: str, t: float, period: float) -> float:
+    """A seeded value in [0, 1) that varies smoothly with time."""
+    b = math.floor(t / period)
+    f = t / period - b
+    a, c = unit_fraction(f"{key}:{b}"), unit_fraction(f"{key}:{b + 1}")
+    return a + (c - a) * f * f * (3 - 2 * f)

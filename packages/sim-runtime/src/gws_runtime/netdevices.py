@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from gws_runtime.network import LINK_UP, ControlNetwork
-from gws_runtime.services.common import number, unit_fraction
+from gws_runtime.services.common import number, smooth, unit_fraction
 from gws_world_model.model import ROOM_PREFIX, WorldModel
 
 UNITS = {
@@ -50,14 +50,6 @@ POOR_CABLE = 0.1
 """Share of ports with a poor cable, which count errors a hundred times faster."""
 POE_SHARE = 0.4
 DEFAULT_ROOM_K = 298.15
-
-
-def smooth(key: str, t: float, period: float = PERIOD_S) -> float:
-    """A seeded value in [0, 1) that varies smoothly with time."""
-    b = math.floor(t / period)
-    f = t / period - b
-    a, c = unit_fraction(f"{key}:{b}"), unit_fraction(f"{key}:{b + 1}")
-    return a + (c - a) * f * f * (3 - 2 * f)
 
 
 @dataclass
@@ -85,10 +77,10 @@ class DeviceTelemetry:
             if uplink
             else (0.005 + 0.08 * unit_fraction(f"{key}:level"))
         )
-        swing = 0.6 + 0.8 * smooth(f"{key}:in", t)
+        swing = 0.6 + 0.8 * smooth(f"{key}:in", t, PERIOD_S)
         ratio = 0.5 + unit_fraction(f"{key}:ratio")
         u_in = min(level * swing, 1.0)
-        u_out = min(level * ratio * (0.6 + 0.8 * smooth(f"{key}:out", t)), 1.0)
+        u_out = min(level * ratio * (0.6 + 0.8 * smooth(f"{key}:out", t, PERIOD_S)), 1.0)
         return u_in, u_out
 
     def signals(
@@ -107,7 +99,7 @@ class DeviceTelemetry:
             up = net.up(node)
             values: dict[str, float | bool | str] = {}
             count = net.port_counts.get(asset, net.port_counts.get(node))
-            traffic = 0.05 * smooth(f"{node}:host", t)
+            traffic = 0.05 * smooth(f"{node}:host", t, PERIOD_S)
             if count is not None:
                 uplinks = len(list(net.graph.adj[node]))
                 for n in range(1, count + 1):
@@ -123,7 +115,7 @@ class DeviceTelemetry:
                         poe = (
                             3.0
                             + 10.0 * unit_fraction(f"{key}:poe_w")
-                            + 0.3 * smooth(f"{key}:poe", t)
+                            + 0.3 * smooth(f"{key}:poe", t, PERIOD_S)
                         )
                     values |= {
                         f"{name}/Description": f"Port {n:02d}",
@@ -136,7 +128,7 @@ class DeviceTelemetry:
                     traffic += (u_in + u_out) / (2 * count)
             load[node] = traffic
             cpu = min(0.04 + 0.08 * unit_fraction(f"{node}:cpu") + 0.6 * traffic, 1.0)
-            cpu += 0.02 * smooth(f"{node}:cpu", t)
+            cpu += 0.02 * smooth(f"{node}:cpu", t, PERIOD_S)
             room = self.room.get(asset)
             air = number(state.get(f"{ROOM_PREFIX}{room}", {}), "TAir") if room else None
             values |= {
@@ -149,9 +141,8 @@ class DeviceTelemetry:
             }
             hops = net.path(asset)
             path_load = max((load.get(h, 0.0) for h in hops), default=0.0)
-            values["Ping Time"] = (
-                2e-4 + 2.5e-4 * len(hops) + 4e-3 * path_load + 1e-4 * smooth(f"{node}:ping", t)
-            )
+            jitter = 1e-4 * smooth(f"{node}:ping", t, PERIOD_S)
+            values["Ping Time"] = 2e-4 + 2.5e-4 * len(hops) + 4e-3 * path_load + jitter
             if not up:
                 values = {k: v for k, v in values.items() if k.endswith("/Description")}
             out[asset] = values

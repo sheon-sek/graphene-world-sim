@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from gws_runtime.conditions import Conditions
+from gws_runtime.electrical import ElectricalNetwork
 from gws_runtime.services import Env, SiteServices
 from gws_world_model.importers.graphene import Sources, build
 from gws_world_model.model import WorldModel
@@ -157,3 +158,33 @@ def test_a_leak_is_found_on_the_cable_that_covers_it(site: WorldModel) -> None:
     s.services.fault(cables[1], "cable_fault", {})
     out = s.step()
     assert out[cables[1]]["status"] == 1.0 and out[cables[1]]["leak_position"] == 0.0
+
+
+def test_demo_rack_meters_measure_the_load_banks_behind_them(site: WorldModel) -> None:
+    s = Site(site)
+    s.state["DemoRack/E820"] = {"V_ln": 230.0}
+    out = s.step(30)
+    banks = sorted(a for a in site.assets if a.startswith("~DEMO-LOAD-"))
+    demand = {b: s.services.demand_w(b) for b in banks}
+    assert all(0 < demand[b] <= site.assets[b].parameters["design_power"] * 1e3 for b in banks)
+    circuits = {k: v for k, v in out["DemoRack/E820"].items() if k.endswith("_P")}
+    assert len(circuits) == 126
+    assert sum(circuits.values()) == pytest.approx(demand["~DEMO-LOAD-E820"])
+    p, s1 = out["DemoRack/E820"]["Ba1_I01_P"], out["DemoRack/E820"]["Ba1_I01_S"]
+    assert out["DemoRack/E820"]["Ba1_I01_Current"] == pytest.approx(float(s1) / 230.0)
+    assert float(p) < float(s1)
+
+    net = ElectricalNetwork.from_world(site, [*banks, "~DEMO-RACK-SUPPLY"])
+    for b in banks:
+        net.set_demand(b, demand[b])
+    net.step(s.t, 1.0)
+    meters = net.signals()
+    assert meters["DemoRack/GEM630"]["P"] == pytest.approx(demand["~DEMO-LOAD-GEM630"], rel=1e-3)
+    assert meters["DemoRack/GPQM144 Pro"]["P"] >= sum(demand.values())
+
+    s.services.fault("~DEMO-LOAD-GEM630", "trip", {})
+    s.step()
+    assert s.services.demand_w("~DEMO-LOAD-GEM630") == 0.0
+    assert s.services.demand_w("~DEMO-LOAD-GEM130") > 0.0
+    later = s.step(300)
+    assert later["DemoRack/E820"]["Ba1_I01_P"] != p  # the duty cycle moves on

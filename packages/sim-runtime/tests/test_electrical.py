@@ -298,7 +298,10 @@ def test_site_rides_through_utility_loss_on_gensets(site: WorldModel) -> None:
     s = plant.step(14)
     assert s["~ATS-A"]["source"] == 2.0 and s["~ATS-B"]["source"] == 2.0
     assert all(s[a]["energised"] for a in it_loads)
-    assert all(s[a]["energised"] for a in plant.net.loads)
+    # The standalone demo rack has its own utility incomer and no genset behind it.
+    site_loads = [a for a in plant.net.loads if not a.startswith("~DEMO-LOAD-")]
+    assert all(s[a]["energised"] for a in site_loads)
+    assert not any(s[a]["energised"] for a in plant.net.loads if a not in site_loads)
     gensets = [f"Genset/Genset {n}" for n in range(1, 7)]
     assert all(s[g]["running"] and s[g]["P"] > 0 for g in gensets)
     assert sum(s[g]["P"] for g in gensets) == pytest.approx(

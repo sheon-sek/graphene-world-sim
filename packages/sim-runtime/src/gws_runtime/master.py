@@ -52,7 +52,6 @@ from gws_runtime.fmu import FmuUnit, Scalar
 from gws_runtime.instrumentation import Instrumentation
 from gws_runtime.netdevices import DeviceTelemetry
 from gws_runtime.network import ControlNetwork
-from gws_runtime.services import UNITS as SERVICE_UNITS
 from gws_runtime.services import Env, SiteServices
 from gws_runtime.values import Sample, Value, split_ref
 from gws_world_model.model import (
@@ -136,6 +135,9 @@ _ELECTRICAL_POINTS = {
     "Active Power": "P",
     "Current": "I",
     "Accumulated Energy": "energy:P",
+    # Branch circuit monitor totals.
+    "Iasys": "I",
+    "Wh_Ima": "energy:P",
     # IT load.
     "E": "energy:P",
     # UPS.
@@ -177,6 +179,7 @@ _ELECTRICAL_POINTS = {
 def electrical_points(members: Collection[str]) -> dict[str, str]:
     """Point aliases of an electrical asset whose type has these point members."""
     aliases = {m: s for m, s in _ELECTRICAL_POINTS.items() if m in members}
+    aliases |= {m: f"energy:{m[:-6]}_P" for m in members if m.endswith("_Wh_Im")}
     if "P1" in members and "P2" not in members:
         aliases |= {m: s for m, s in _SINGLE_PHASE_POINTS.items() if m in members}
     return aliases
@@ -863,8 +866,8 @@ class Simulation:
         for asset, service in self._services.items():
             state.setdefault(asset, {}).update(service)
             for signal in service:
-                if signal in SERVICE_UNITS:
-                    self.units[(asset, signal)] = SERVICE_UNITS[signal]
+                if (service_unit := self.services.unit(signal)) is not None:
+                    self.units[(asset, signal)] = service_unit
         for asset, device in self.telemetry.signals(self.t, dt, self.state).items():
             state.setdefault(asset, {}).update(device)
             for signal in device:

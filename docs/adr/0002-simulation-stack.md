@@ -161,7 +161,7 @@ are rejected until their equipment is modelled.
 
 ## Amendment 4: Site services and the site's air units (2026-09-30)
 
-Modelling the whole site (Phase 6, #7) changed the decision in four places.
+Modelling the whole site (Phase 6, #7) changed the decision in five places.
 
 1. **Site services are Python models, not Modelica partitions.** Cold water, leak detection,
    fire detection and protection, lifts, diesel fuel, and the room and weather sensors live in
@@ -185,3 +185,10 @@ Modelling the whole site (Phase 6, #7) changed the decision in four places.
    air or rejects heat to it through the weather conditions; a CDU moves the liquid-cooled
    share of its room's IT heat into chilled water. A unit with no connection to any modelled
    loop is left out of the plan and listed as not modelled.
+5. **The standalone demo rack measures load banks.** The asset source has only its meters. The
+   graphene supplement wires them as a demonstration rack: incomer through the GPQM144 Pro onto
+   a busbar, and every other meter feeding an unexported load bank (`Demo Load`). The load
+   banks are site services that step through a seeded duty cycle; the meters measure them
+   through the network like any other feeder, and the E820's 126 branch circuits split its
+   bank. The duty cycle is the one place demand is scripted rather than caused, because a
+   demonstration rack exists to show changing readings.

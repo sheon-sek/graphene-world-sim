@@ -1,6 +1,6 @@
 """Site services: the building systems outside the thermofluid and electrical models (ADR-0002
 Amendment 4). Cold water, leak detection, fire detection and protection, lifts, diesel fuel,
-and the sensors that read rooms and the weather.
+the sensors that read rooms and the weather, and the demo rack's load banks.
 
 Each is a small Python model stepped once per macro step after the thermofluid models, reading
 the state they published and the operating conditions. Their pumps, lifts and fire pumps are
@@ -16,6 +16,7 @@ from typing import Any
 
 from gws_runtime.conditions import Conditions
 from gws_runtime.services.common import Env, Signals
+from gws_runtime.services.demorack import DemoRack
 from gws_runtime.services.fire import FIRE_PUMP, FireSystem, RoomFire
 from gws_runtime.services.fuel import FuelSystem
 from gws_runtime.services.lifts import Lifts
@@ -109,6 +110,7 @@ class SiteServices:
     leaks: LeakDetection
     rooms: RoomSensors
     weather_stations: list[str]
+    demo: DemoRack
 
     @classmethod
     def from_world(cls, doc: WorldModel, scope: Collection[str]) -> SiteServices:
@@ -122,6 +124,7 @@ class SiteServices:
             leaks=LeakDetection.from_world(doc, scope),
             rooms=RoomSensors.from_world(doc, scope),
             weather_stations=[a for a in scope if doc.assets[a].type == WEATHER],
+            demo=DemoRack.from_world(doc, scope),
         )
 
     @property
@@ -134,12 +137,19 @@ class SiteServices:
             | self.leaks.assets
             | set(self.rooms.room)
             | set(self.weather_stations)
+            | self.demo.assets
         )
 
     @property
     def loads(self) -> set[str]:
         """Assets whose electrical demand the services set."""
-        return set(self.water.pumps) | self.fire.loads | self.lifts.assets | self.fuel.assets
+        return (
+            set(self.water.pumps)
+            | self.fire.loads
+            | self.lifts.assets
+            | self.fuel.assets
+            | self.demo.assets
+        )
 
     def handles(self, asset: str, mode: str) -> bool:
         """Whether a fault mode on this asset acts in the services (rather than as a sensor
@@ -152,14 +162,12 @@ class SiteServices:
             return True
         if asset in self.fuel.assets:
             return mode != "flowmeter"
-        if asset in self.leaks.assets:
-            return True
-        return False
+        return asset in self.leaks.assets or asset in self.demo.assets
 
     # --- faults and commands -----------------------------------------------------------------
 
     def _owner(self, asset: str) -> Any:
-        for system in (self.water, self.fire, self.lifts, self.fuel):
+        for system in (self.water, self.fire, self.lifts, self.fuel, self.demo):
             if asset in system.assets:
                 return system
         return None
@@ -207,6 +215,7 @@ class SiteServices:
                 flow = leak.get("leak_flow", 0.0) * tank.level
                 sources.setdefault(loc.room, {})[tank.asset] = Leak(flow, loc.x, loc.y)
         self.leaks.step(env, sources)
+        self.demo.step(env)
 
     def demand_w(self, asset: str) -> float:
         if asset in self.water.pumps:
@@ -221,6 +230,8 @@ class SiteServices:
             return self.lifts.demand_w(asset)
         if asset in self.fuel.assets:
             return self.fuel.demand_w(asset)
+        if asset in self.demo.assets:
+            return self.demo.demand_w(asset)
         return 0.0
 
     def fire_shutdown(self, asset: str) -> bool:
@@ -238,12 +249,17 @@ class SiteServices:
             self.fuel.signals(env),
             self.leaks.signals(env),
             self.rooms.signals(env),
+            self.demo.signals(env),
         ):
             for asset, s in part.items():
                 out.setdefault(asset, {}).update(s)
         for station in self.weather_stations:
             out[station] = weather(conditions)
         return out
+
+    def unit(self, signal: str) -> str | None:
+        """SI unit of a signal the services publish."""
+        return UNITS.get(signal) or self.demo.unit(signal)
 
     def points(self, asset: str) -> dict[str, str]:
         """Point member -> signal, for an asset the services own."""
@@ -268,6 +284,7 @@ class SiteServices:
             "lifts": self.lifts.snapshot(),
             "fuel": self.fuel.snapshot(),
             "leaks": self.leaks.snapshot(),
+            "demo": self.demo.snapshot(),
         }
 
     def restore(self, s: Mapping[str, Any]) -> None:
@@ -276,3 +293,4 @@ class SiteServices:
         self.lifts.restore(s["lifts"])
         self.fuel.restore(s["fuel"])
         self.leaks.restore(s["leaks"])
+        self.demo.restore(s.get("demo", {}))

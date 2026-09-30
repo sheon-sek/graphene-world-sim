@@ -1,0 +1,301 @@
+{
+  "note": "The standalone demo rack (issue #63) shows the meter range, and the asset source only has the meters: the E820 feeding its breakers, and seven meters connected to nothing. The rack is wired as a demonstration rack is: its incomer (~DEMO-RACK-SUPPLY, electrical.json) comes in through the GPQM144 Pro power quality meter onto the rack busbar, and every other meter feeds a load bank from it (~DEMO-LOAD-*, assumed ratings, 72.5 kW in all against the 100 kVA incomer). The load behind the E820 branch circuit monitor is split over its 126 circuits. The load banks step through a demonstration duty cycle; the meters measure it.",
+  "assets": [
+    {
+      "id": "~DEMO-LOAD-E820",
+      "type": "Demo Load",
+      "name": "Demo load E820",
+      "parameters": {
+        "design_power": 40.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 84.0,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank split over the E820's 126 branch circuits",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GPQM96",
+      "type": "Demo Load",
+      "name": "Demo load GPQM96",
+      "parameters": {
+        "design_power": 8.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 84.6,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GPQM96",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GPM96",
+      "type": "Demo Load",
+      "name": "Demo load GPM96",
+      "parameters": {
+        "design_power": 6.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 85.2,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GPM96",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GEM630",
+      "type": "Demo Load",
+      "name": "Demo load GEM630",
+      "parameters": {
+        "design_power": 10.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 85.8,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GEM630",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GEM130",
+      "type": "Demo Load",
+      "name": "Demo load GEM130",
+      "parameters": {
+        "design_power": 5.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 86.4,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GEM130",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GEM230",
+      "type": "Demo Load",
+      "name": "Demo load GEM230",
+      "parameters": {
+        "design_power": 2.0
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 87.0,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GEM230",
+      "exported": false
+    },
+    {
+      "id": "~DEMO-LOAD-GDC230",
+      "type": "Demo Load",
+      "name": "Demo load GDC230",
+      "parameters": {
+        "design_power": 1.5
+      },
+      "location": {
+        "room": "G-NOC",
+        "x": 87.6,
+        "y": 55.0
+      },
+      "system": "Electrical",
+      "role": "Load bank behind the GDC230",
+      "exported": false
+    }
+  ],
+  "connections": [
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/E820",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/E820",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/E820->~DEMO-LOAD-E820",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/E820",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-E820",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GPQM96",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GPQM96",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GPQM96->~DEMO-LOAD-GPQM96",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM96",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GPQM96",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GPM96",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GPM96",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GPM96->~DEMO-LOAD-GPM96",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPM96",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GPM96",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GEM630",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GEM630",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GEM630->~DEMO-LOAD-GEM630",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GEM630",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GEM630",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GEM130",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GEM130",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GEM130->~DEMO-LOAD-GEM130",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GEM130",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GEM130",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GEM230",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GEM230",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GEM230->~DEMO-LOAD-GEM230",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GEM230",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GEM230",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    },
+    {
+      "id": "power:DemoRack/GPQM144 Pro->DemoRack/GDC230",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GPQM144 Pro",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "DemoRack/GDC230",
+        "port": "power_in"
+      },
+      "label": "demo rack busbar"
+    },
+    {
+      "id": "power:DemoRack/GDC230->~DEMO-LOAD-GDC230",
+      "domain": "power",
+      "source": {
+        "node": "DemoRack/GDC230",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~DEMO-LOAD-GDC230",
+        "port": "power_in"
+      },
+      "label": "demo load"
+    }
+  ]
+}

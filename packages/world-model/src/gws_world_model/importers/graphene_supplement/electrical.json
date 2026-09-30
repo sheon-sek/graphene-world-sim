@@ -408,17 +408,17 @@
       "label": "ATS-DB"
     },
     {
-      "id": "power:~DEMO-RACK-SUPPLY->DemoRack/E820",
+      "id": "power:~DEMO-RACK-SUPPLY->DemoRack/GPQM144 Pro",
       "domain": "power",
       "source": {
         "node": "~DEMO-RACK-SUPPLY",
         "port": "power_out"
       },
       "target": {
-        "node": "DemoRack/E820",
+        "node": "DemoRack/GPQM144 Pro",
         "port": "power_in"
       },
-      "label": "demo rack incomer"
+      "label": "demo rack incomer, through its power quality meter"
     }
   ],
   "control_bindings": [
