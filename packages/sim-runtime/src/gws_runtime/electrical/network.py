@@ -763,6 +763,7 @@ class ElectricalNetwork:
                 s |= {
                     "V_in_pu": float(self._vm[bus_in]),
                     "P_in": p_in,
+                    "PLoss": max(p_in - float(s.get("P", 0.0)) - u.charge_w(faults), 0.0),
                     "Q_in": q_in,
                     "P_charge": u.charge_w(faults),
                     "soc": u.soc(faults),

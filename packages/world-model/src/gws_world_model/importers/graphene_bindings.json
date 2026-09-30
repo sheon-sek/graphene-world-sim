@@ -5188,6 +5188,14 @@
         "signal": "movingUntil"
       },
       "note": "lift state (A18)"
+    },
+    {
+      "pattern": "TIW/CDU-0[1-3]/New\\ Tag",
+      "source": {
+        "kind": "static",
+        "value": 0
+      },
+      "note": "an unused spare register in the CDU's template"
     }
   ]
 }

@@ -50,6 +50,12 @@ MIN_SPEED = 0.3
 NOMINAL_HZ = 50.0
 MAINS_FLOW = 16.0
 """Flow the main delivers into one tank through a fully open float valve, kg/s."""
+BASIN_KG = 8000.0
+"""Water a cooling tower's basin holds between empty and its overflow."""
+BASIN_NORMAL = 0.75
+"""A basin's level while its makeup keeps up: the float valve holds it there."""
+REFILL_S = 600.0
+"""Time constant of a float valve refilling a basin that fell below normal."""
 
 
 @dataclass(slots=True)
@@ -120,6 +126,11 @@ class WaterSystem:
     faults: dict[str, dict[str, dict[str, float]]] = field(default_factory=dict)
     stuck: dict[str, float] = field(default_factory=dict)
     mains_available: bool = True
+    basins: dict[str, float] = field(default_factory=dict)
+    """Cooling tower -> basin level (fraction of full): it falls while makeup falls short."""
+    _fed: dict[str, float] = field(default_factory=dict)
+    _through: dict[str, float] = field(default_factory=dict)
+    """Valve -> the flow through it this step, kg/s."""
 
     # --- construction ------------------------------------------------------------------------
 
@@ -273,8 +284,15 @@ class WaterSystem:
         return env.supply(pump.asset) >= pump.v_trip
 
     def _consumer_demand(self, asset: str, env: Env) -> float:
+        """What a tower's float valve asks for: its losses, plus a refill while its basin is
+        below normal."""
         if self.consumers.get(asset) != "tower":
             return 0.0
+        refill = max(BASIN_NORMAL - self.basins.get(asset, BASIN_NORMAL), 0.0) * BASIN_KG
+        return self._loss(asset, env) + refill / REFILL_S
+
+    def _loss(self, asset: str, env: Env) -> float:
+        """Water a tower evaporates and bleeds off, kg/s."""
         s = env.state.get(asset, {})
         m, t_in, t_out = number(s, "m_flow"), number(s, "TEnt"), number(s, "TLvg")
         if m is None or t_in is None or t_out is None:
@@ -303,6 +321,9 @@ class WaterSystem:
         demand: dict[str, float] = {
             c: self._consumer_demand(c, env) for c in sorted(self.consumers)
         }
+        self._demand = demand
+        self._fed = {c: 0.0 for c in demand}
+        self._through = {v: 0.0 for v in self.valves}
         available = {p: self._available(pump, env) for p, pump in self.pumps.items()}
         # Suction: upstream-first, so a header is wet only while a pump feeding it runs.
         delivering: set[str] = set()
@@ -328,6 +349,12 @@ class WaterSystem:
             if group.level_controlled:
                 self._level_control(group, available, delivering, pulled, env)
         self._mains(env)
+        for c, kind in self.consumers.items():
+            if kind == "tower":
+                # Makeup short of what the tower loses drains its basin.
+                level = self.basins.get(c, BASIN_NORMAL)
+                net = self._fed.get(c, 0.0) - self._loss(c, env)
+                self.basins[c] = min(max(level + net * dt / BASIN_KG, 0.0), 1.0)
         for tank in self.tanks.values():
             leak = self._faults(tank.asset).get("leak")
             leak_kg_s = leak.get("leak_flow", 0.0) * tank.level if leak is not None else 0.0
@@ -380,6 +407,13 @@ class WaterSystem:
             n = max(n, 1)
         wet = self._call(group, n, available, delivering)
         flow = min(want, sum(self._capacity(p) for p in wet))
+        share = flow / want if want > 0 else 0.0
+        for p in group.pumps:
+            for d in self.pumps[p].dests:
+                if d.terminal in self._fed and self._path_open(d):
+                    self._fed[d.terminal] += (
+                        share * self._demand[d.terminal] / self._feeders(d.terminal)
+                    )
         for p in group.pumps:
             pump = self.pumps[p]
             pump.flow = flow / len(wet) if p in wet else 0.0
@@ -392,6 +426,8 @@ class WaterSystem:
             for d in self.pumps[p].dests:
                 if d.terminal in self.tanks and self._path_open(d):
                     self.tanks[d.terminal].inflow += self.pumps[p].flow
+                    for v in d.valves:
+                        self._through[v] += self.pumps[p].flow
 
     def _call(
         self, group: _Group, n: int, available: Mapping[str, bool], delivering: set[str]
@@ -456,6 +492,8 @@ class WaterSystem:
                     opening = min(max((tank.normal - tank.level) / FLOAT_BAND, 0.0), 1.0)
                     cap = min((self.valves[v] for v in inlet.valves), default=1.0)
                     tank.inflow += opening * MAINS_FLOW * cap
+                    for v in inlet.valves:
+                        self._through[v] += opening * MAINS_FLOW * cap
                     break
 
     # --- outputs -----------------------------------------------------------------------------
@@ -497,7 +535,14 @@ class WaterSystem:
                 "outflow": tank.outflow,
             }
         for v in self.valves:
-            out[v] = {"open": self._open(v), "position": self.stuck.get(v, self.valves[v])}
+            out[v] = {
+                "open": self._open(v),
+                "position": self.stuck.get(v, self.valves[v]),
+                "m_flow": self._through.get(v, 0.0),
+            }
+        for c, kind in self.consumers.items():
+            if kind == "tower":
+                out.setdefault(c, {})["basinLevel"] = self.basins.get(c, BASIN_NORMAL)
         return out
 
     def snapshot(self) -> dict[str, Any]:
@@ -510,6 +555,7 @@ class WaterSystem:
             "valves": dict(self.valves),
             "stuck": dict(self.stuck),
             "groups": [g.on for g in self.groups],
+            "basins": dict(self.basins),
             "faults": {a: {m: dict(v) for m, v in f.items()} for a, f in self.faults.items()},
         }
 
@@ -529,6 +575,7 @@ class WaterSystem:
             for g, on in zip(self.groups, s["groups"], strict=True):
                 g.on = bool(on)
         self.faults = {a: {m: dict(v) for m, v in f.items()} for a, f in s["faults"].items()}
+        self.basins = {c: float(x) for c, x in s.get("basins", {}).items() if c in self.consumers}
 
 
 def _water_pump(doc: WorldModel, asset: str) -> bool:

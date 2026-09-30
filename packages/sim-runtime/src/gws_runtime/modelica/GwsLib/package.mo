@@ -226,6 +226,7 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
     Modelica.Blocks.Interfaces.RealOutput T(unit="K");
     Modelica.Blocks.Interfaces.RealOutput TEnt(unit="K");
     Modelica.Blocks.Interfaces.RealOutput m_flow(unit="kg/s");
+    Modelica.Blocks.Interfaces.RealOutput p(unit="Pa") "Water pressure in the tank";
     Buildings.Fluid.MixingVolumes.MixingVolume vol(
       redeclare package Medium = MediumW,
       V = V,
@@ -242,6 +243,7 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
     T = vol.T;
     TEnt = TWater(inlet.p, inStream(inlet.h_outflow));
     m_flow = sen.m_flow;
+    p = outlet.p;
     connect(inlet, sen.port_a);
     connect(sen.port_b, res.port_a);
     connect(res.port_b, vol.ports[1]);

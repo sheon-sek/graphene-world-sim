@@ -8,12 +8,15 @@ from pathlib import Path
 import pytest
 
 import gws_runtime.master as master
+from gws_runtime.behaviours import BEHAVIOURS
 from gws_runtime.compiler import Plan, plan
+from gws_runtime.services import SiteServices
 from gws_runtime.values import Quality, split_ref
 from gws_world_model.importers.graphene import Sources, build
 from gws_world_model.model import (
     Aggregate,
     AssetSignal,
+    Domain,
     InstrumentSource,
     PointClass,
     StaticValue,
@@ -101,3 +104,64 @@ def test_without_the_thermofluid_models_every_other_point_reads(
         if s.quality is not Quality.GOOD and not depends(p)
     )
     assert unexplained == []
+
+
+RUNTIME_SIGNALS = {"tripped", "alarm", "run_hours", "starts_day", "short_cycling"}
+"""Signals the runtime keeps for every modelled unit, beside its model's."""
+RETURN_AIR = {"TRetAir", "phiRet"}
+"""What a unit that supplies a room reads of that room's air, when its model has no return."""
+
+
+def test_every_thermofluid_point_names_a_signal_its_unit_reports(doc: WorldModel) -> None:
+    modelled = plan(doc, doc.assets.keys()).modelled
+    bound: dict[str, set[str]] = {}
+    for binding in doc.point_bindings.values():
+        if isinstance(binding.source, AssetSignal):
+            bound.setdefault(binding.source.asset, set()).add(binding.source.signal)
+
+    powered = {c.target.node for c in doc.connections.values() if c.domain is Domain.POWER}
+    towers = {
+        c
+        for c, kind in SiteServices.from_world(doc, doc.assets.keys()).water.consumers.items()
+        if kind == "tower"
+    }
+    supplies = {
+        c.source.node
+        for c in doc.connections.values()
+        if c.source.port == "air_out" and c.target.is_room
+    }
+
+    def reports(asset: str, signal: str) -> bool:
+        a = doc.assets[asset]
+        ctype = doc.component_types[a.type]
+        b = BEHAVIOURS[ctype.behaviour or ""]
+        members = set(ctype.point_template) | bound.get(asset, set())
+        electrical = master.electrical_points(members, a.type)
+        alias = b.points.get(signal) or electrical.get(signal) or signal
+        name = alias.removeprefix("on:").removeprefix("energy:")
+        own = set(b.outputs) | set(b.inputs) | set(b.derived) | set(b.settings)
+        return (
+            name in own
+            or name in RUNTIME_SIGNALS
+            or (name in RETURN_AIR and asset in supplies)
+            or (name in master.ELECTRICAL_UNITS and asset in powered)
+            or (name == "basinLevel" and asset in towers)
+            or alias in master.OPERATOR_SIGNALS | {master.COMM_LOST}
+            or signal in electrical
+        )
+
+    references: list[tuple[str, str, str]] = []
+    for p, b in doc.point_bindings.items():
+        if isinstance(b.source, AssetSignal):
+            references.append((b.source.asset, b.source.signal, p))
+        elif isinstance(b.source, Aggregate):
+            for r in b.source.inputs:
+                if r not in doc.point_bindings and r not in doc.instruments:
+                    asset, signal = split_ref(r)
+                    references.append((asset, signal, p))
+    unreported = sorted(
+        f"{asset}:{signal} ({p})"
+        for asset, signal, p in references
+        if asset in modelled and not reports(asset, signal)
+    )
+    assert unreported == []

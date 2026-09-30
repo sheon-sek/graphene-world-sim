@@ -541,7 +541,8 @@ class Instrumentation:
         else:
             unit = f"{u0}/{ud}" if u0 and ud and not (si0 or sid) else None
         if denominator == 0:
-            return None
+            # Nothing over nothing: an idle unit's efficiency reads zero, not undefined.
+            return 0.0 if abs(float(numerator)) < 1e-6 else None
         quotient = float(numerator) / denominator
         if unit is not None and binding.unit and compatible(unit, binding.unit):
             return self.converter.convert(quotient, unit, binding.unit)

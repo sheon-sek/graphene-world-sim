@@ -30,6 +30,7 @@ __all__ = ["Env", "SiteServices"]
 
 UNITS: dict[str, str] = {
     "level": "1",
+    "basinLevel": "1",
     "m_flow": "kg/s",
     "speed": "1",
     "f_out": "Hz",
