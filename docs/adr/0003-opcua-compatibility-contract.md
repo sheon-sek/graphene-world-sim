@@ -42,3 +42,38 @@ server (#45).
 - Points added through the World Model follow the same rules, so generated Ignition tags can
   address them.
 - Changing any rule above breaks the gateway and needs a new record.
+
+## Amendment 1: The server (2026-09-30)
+
+Building the server (Phase 4, #5) fixed the parts of the contract the first version left open.
+`tests/contract/test_opcua_contract.py` now serves the whole Graphene World Model and checks
+that a client browses exactly the Asset Model: all 8,811 points, at their paths, with their
+data types.
+
+- **Endpoint.** `opc.tcp://<host>:4840/graphene/twin`, server name `Graphene Demo Twin`,
+  security policy None with anonymous access, as the gateway's existing connection expects.
+  The namespace is registered first, so its index is 2 (`ns=2;s=point:…`).
+- **Status codes.** The quality selects Good, Uncertain or Bad, and the reason selects the
+  specific code where there is one: `comm_lost` → BadCommunicationError, `sensor_failed` →
+  BadSensorFailure, `out_of_range` → UncertainEngineeringUnitsExceeded, `unbound` and
+  `not_simulated` → BadConfigurationError. A point with no value yet reads
+  BadWaitingForInitialData.
+- **Scope.** The address space always holds every point binding of the World Model. A point
+  outside the served session's scope reads BadOutOfService.
+- **Time.** The served session's simulation time at the moment it is attached maps to the wall
+  clock; SourceTimestamps then advance with simulation time, so they run faster or slower than
+  the wall clock with the session's speed.
+- **Writes.** A command point has CurrentRead and CurrentWrite access. A write is converted to
+  the point's data type (BadTypeMismatch otherwise) and applied to the served session as a
+  runtime command; a command the runtime rejects answers BadOutOfRange. Every other point
+  answers BadNotWritable, whoever the client is.
+- **Model change.** When the served World Model changes (a reinit to another revision, or
+  another session), nodes are added and removed in place and a GeneralModelChangeEvent is
+  fired from the Server object, listing each change (or, above 1,000 changes, one change on
+  the Objects folder).
+- **Generated tags.** Ignition tags generated from point bindings (`gws_api.ignition`) address
+  points as `nsu=urn:eetarp:graphene:demo:twin;s=point:<encodedExportPath>`, so they do not
+  depend on the namespace index.
+
+The serving process (`python -m gws_api.serve`) runs the API and the OPC UA server together;
+`PUT /api/opcua/session` chooses which runtime session is served.

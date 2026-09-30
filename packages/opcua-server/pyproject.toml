@@ -3,7 +3,7 @@ name = "gws-opcua"
 version = "0.0.0"
 description = "OPC UA exposure of simulated points, driven only by point bindings."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["asyncua>=1.1.5"]
 
 [build-system]
 requires = ["hatchling>=1.25"]
