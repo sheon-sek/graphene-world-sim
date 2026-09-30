@@ -4,22 +4,43 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 
-from gws_api import runtime, world_model
+from gws_api import ignition, opcua, runtime, world_model
+from gws_opcua.server import PointServer
 from gws_world_model.store import SqliteStore
 
 TITLE = "Graphene World Sim API"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 
-def create_app(store: SqliteStore | None = None) -> FastAPI:
-    app = FastAPI(title=TITLE, version=VERSION)
+def create_app(store: SqliteStore | None = None, opcua_endpoint: str | None = None) -> FastAPI:
+    """The API application. With `opcua_endpoint`, it also serves OPC UA there while it runs."""
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if opcua_endpoint is None:
+            yield
+            return
+        bridge = opcua.Bridge(PointServer(opcua_endpoint), app.state.store)
+        await bridge.start()
+        app.state.opcua = bridge
+        try:
+            yield
+        finally:
+            del app.state.opcua
+            await bridge.stop()
+
+    app = FastAPI(title=TITLE, version=VERSION, lifespan=lifespan)
     app.state.store = store if store is not None else SqliteStore()
     app.include_router(world_model.router, prefix="/api")
     app.include_router(runtime.router, prefix="/api")
+    app.include_router(opcua.router, prefix="/api")
+    app.include_router(ignition.router, prefix="/api")
     return app
 
 

@@ -12,6 +12,16 @@ One macro step from t to t + dt:
 4. the true state is assembled, the control network settles and instrumentation measures it;
 5. controllers read the measurements and write commands, which act from the next step.
 
+Operator commands (points the World Model marks as commands, ADR-0003) act on the asset's
+operator station, not on physics:
+
+- `Auto_Manual` (1 or "Auto", 0 or "Manual"): in manual, controllers no longer write the
+  asset's model inputs, so the operator's own commands hold. The point reads 1 or 0.
+- `enabled` (Boolean): a permissive. While false, the asset's run input is held off.
+- `start` / `stop` (momentary, act on true): switch the asset to manual and set its run input
+  (`enable`, `speed`, `fanSpeed` or `position`) on or off.
+- `reset` (momentary): a protection reset, as `reset(asset)`.
+
 Everything iterates in sorted order and noise is seeded, so the same World Model, scope,
 seed and event sequence always give the same trajectory.
 
@@ -50,6 +60,10 @@ from gws_world_model.model import (
 del gws_runtime.controllers.electrical  # imported to register its blocks
 
 ON_THRESHOLD = 1e-3
+MODE, ENABLED = "Auto_Manual", "enabled"
+OPERATOR_SIGNALS = frozenset({MODE, ENABLED, "start", "stop", "reset"})
+RUN_INPUTS = ("enable", "speed", "fanSpeed", "position")
+"""The model input that runs or stops an asset, by preference."""
 """An output above this counts as running for an `on:<output>` status."""
 IT_LOAD_TYPE = "IT Load"
 ELECTRICAL_UNITS = {
@@ -123,6 +137,8 @@ class _View:
         values = self.sim.state.get(asset)
         if values is None:
             return None
+        if signal in (MODE, ENABLED) and self.sim.operable(asset):
+            return self.sim.operator_value(asset, signal)
         if signal in values:
             v = values[signal]
             return v if isinstance(v, float | bool | int) else None
@@ -182,6 +198,8 @@ class Simulation:
         self.unrouted: set[str] = set()
         """Writes by blocks to targets outside the scope (reported, not applied)."""
         self.run_hours: dict[str, float] = {}
+        self.operator: dict[str, dict[str, Scalar]] = {}
+        """Asset -> `Auto_Manual` (1 auto, 0 manual) and `enabled`, where set by an operator."""
         self._frozen: dict[tuple[str, str], Scalar] = {}
         self._applied_sensor: dict[str, dict[str, float]] = {}
         self._applied_electrical: dict[str, dict[str, float]] = {}
@@ -250,6 +268,9 @@ class Simulation:
             if mapped is None:
                 raise RuntimeProblem(f"{target!r} is not a writable command point")
             target, signal = mapped
+        if signal in OPERATOR_SIGNALS:
+            self._operate(target, signal, value)
+            return
         if not self._write(target, signal, value):
             raise RuntimeProblem(f"{target}:{signal} is not a command this scope accepts")
 
@@ -269,6 +290,52 @@ class Simulation:
                 return False
             return True
         return False
+
+    # --- operator station ------------------------------------------------------------------
+
+    def operable(self, asset: str) -> bool:
+        return asset in self.behaviour or asset in self.electrical.assets
+
+    def operator_value(self, asset: str, signal: str) -> Scalar:
+        default: Scalar = 1 if signal == MODE else True
+        return self.operator.get(asset, {}).get(signal, default)
+
+    def manual(self, asset: str) -> bool:
+        return self.operator_value(asset, MODE) == 0
+
+    def run_input(self, asset: str) -> str | None:
+        inputs = self.inputs.get(asset, {})
+        return next((s for s in RUN_INPUTS if s in inputs), None)
+
+    def _operate(self, asset: str, signal: str, value: Value) -> None:
+        if not self.operable(asset):
+            raise RuntimeProblem(f"{asset} is not simulated in this scope")
+        if signal == MODE:
+            text = str(value).strip().lower() if isinstance(value, str) else None
+            if text in ("auto", "manual"):
+                mode = 1 if text == "auto" else 0
+            elif isinstance(value, int | float) and not isinstance(value, bool) and value in (0, 1):
+                mode = int(value)
+            else:
+                raise RuntimeProblem(f"{asset}:{MODE} takes 1/Auto or 0/Manual, not {value!r}")
+            self.operator.setdefault(asset, {})[MODE] = mode
+            return
+        if not isinstance(value, bool | int | float) or isinstance(value, str):
+            raise RuntimeProblem(f"{asset}:{signal} takes a Boolean, not {value!r}")
+        on = bool(value)
+        if signal == ENABLED:
+            self.operator.setdefault(asset, {})[ENABLED] = on
+            return
+        if not on:
+            return  # momentary commands act on true
+        if signal == "reset":
+            self.reset(asset)
+            return
+        run = self.run_input(asset)
+        if run is None:
+            raise RuntimeProblem(f"{asset} has no run command in this scope")
+        self.operator.setdefault(asset, {})[MODE] = 0
+        self._write(asset, run, signal == "start")
 
     def reset(self, target: str) -> list[str]:
         """Reset an asset's latched trips (a protection reset). Returns the faults removed."""
@@ -442,6 +509,8 @@ class Simulation:
                 )
                 continue
             value = self.commands.get(v.asset, {}).get(v.signal, spec.default)
+            if v.signal in RUN_INPUTS and not self.operator_value(v.asset, ENABLED):
+                value = False if v.kind == "bool" else 0.0
             for f in faults:
                 if f.target != v.asset:
                     continue
@@ -636,6 +705,7 @@ class Simulation:
             "commands": {a: dict(c) for a, c in self.commands.items()},
             "register": dict(self.register),
             "run_hours": dict(self.run_hours),
+            "operator": {a: dict(o) for a, o in self.operator.items()},
             "frozen": [[k[0], k[1], v] for k, v in self._frozen.items()],
             "conditions": self.conditions.snapshot(),
             "faults": self.faults.snapshot(),
@@ -653,6 +723,7 @@ class Simulation:
         self.commands = {a: dict(c) for a, c in snap["commands"].items() if a in self.inputs}
         self.register = dict(snap["register"])
         self.run_hours = {a: float(h) for a, h in snap["run_hours"].items()}
+        self.operator = {a: dict(o) for a, o in snap.get("operator", {}).items()}
         self._frozen = {(k[0], k[1]): k[2] for k in snap["frozen"]}
         self.conditions = Conditions.from_snapshot(snap["conditions"])
         self.faults.restore(snap["faults"])
@@ -706,6 +777,8 @@ class _Bus:
     def write(self, reference: str, value: Value) -> None:
         asset, signal = split_ref(reference)
         simulated = asset in self.sim.scope or asset in self.sim.electrical.assets
+        if simulated and self.sim.manual(asset) and signal in self.sim.inputs.get(asset, {}):
+            return  # in manual, the operator's command holds
         if simulated and self.sim._write(asset, signal, value):
             return
         doc = self.sim.doc

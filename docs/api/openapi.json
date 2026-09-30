@@ -157,6 +157,27 @@
         "title": "AssetSignal",
         "type": "object"
       },
+      "AttachIn": {
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "title": "AttachIn",
+        "type": "object"
+      },
       "ChangeClass": {
         "description": "How an edit reaches a running simulation, from cheapest to most disruptive.",
         "enum": [
@@ -961,6 +982,53 @@
           }
         },
         "title": "NewDraft",
+        "type": "object"
+      },
+      "OpcUaOut": {
+        "properties": {
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "points": {
+            "title": "Points",
+            "type": "integer"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session"
+          },
+          "writable": {
+            "title": "Writable",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "endpoint",
+          "session",
+          "revision",
+          "points",
+          "writable"
+        ],
+        "title": "OpcUaOut",
         "type": "object"
       },
       "Operation-Input": {
@@ -2178,10 +2246,149 @@
   },
   "info": {
     "title": "Graphene World Sim API",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/ignition/tags": {
+      "get": {
+        "description": "The tag import document for a tag provider bound to the simulator.",
+        "operationId": "tags_api_ignition_tags_get",
+        "parameters": [
+          {
+            "description": "Default: the head.",
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default: the head.",
+              "title": "Revision"
+            }
+          },
+          {
+            "in": "query",
+            "name": "connection",
+            "required": false,
+            "schema": {
+              "default": "Graphene Demo Twin",
+              "minLength": 1,
+              "title": "Connection",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "alarms",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Alarms",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Tags Api Ignition Tags Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tags",
+        "tags": [
+          "ignition"
+        ]
+      }
+    },
+    "/api/opcua": {
+      "get": {
+        "operationId": "status_api_opcua_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpcUaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "opcua"
+        ]
+      }
+    },
+    "/api/opcua/session": {
+      "put": {
+        "description": "Serve this runtime session's points over OPC UA.",
+        "operationId": "attach_api_opcua_session_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpcUaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attach",
+        "tags": [
+          "opcua"
+        ]
+      }
+    },
     "/api/runtime/sessions": {
       "get": {
         "operationId": "list_sessions_api_runtime_sessions_get",

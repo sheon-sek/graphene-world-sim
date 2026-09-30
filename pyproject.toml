@@ -31,6 +31,8 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Jython 2.7 scripts that run inside the Ignition gateway.
+extend-exclude = ["tests/ignition/project"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
@@ -44,6 +46,7 @@ mypy_path = [
     "packages/api/src",
 ]
 packages = ["gws_world_model", "gws_runtime", "gws_opcua", "gws_api"]
+exclude = ["tests/ignition/project/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "packages"]
@@ -54,4 +57,12 @@ known-first-party = ["gws_world_model", "gws_runtime", "gws_opcua", "gws_api"]
 
 [[tool.mypy.overrides]]
 module = ["fmpy", "fmpy.*", "pandapower", "pandapower.*", "networkx", "networkx.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# asyncua's annotations wrap every built-in in NewTypes (UInt32, Int32, DateTime) and export
+# nothing explicitly, so strict checking of calls into it is noise; it is treated as untyped.
+module = ["asyncua", "asyncua.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
 ignore_missing_imports = true

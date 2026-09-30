@@ -233,8 +233,11 @@ def get_session(sid: str, runtime: Runtime) -> SessionOut:
 
 
 @router.delete("/sessions/{sid}", status_code=204)
-async def delete_session(sid: str, runtime: Runtime) -> None:
+async def delete_session(sid: str, runtime: Runtime, request: Request) -> None:
     live = _live(runtime, sid)
+    bridge = getattr(request.app.state, "opcua", None)
+    if bridge is not None and bridge.live is live:
+        await bridge.attach(None)
     live.session.running = False
     if live.task is not None:
         await live.task
@@ -315,6 +318,7 @@ async def restore(sid: str, snap_id: str, runtime: Runtime) -> dict[str, Any]:
     if live.session.running:
         raise HTTPException(409, "the session is running; pause it to restore")
     result: dict[str, Any] = (await _do(live, live.session.restore, snap_id)).to_json()
+    live.publish(result)
     return result
 
 
@@ -327,6 +331,7 @@ async def reinit(sid: str, body: ReinitIn, runtime: Runtime, store: Store) -> di
     if revision is None:
         raise HTTPException(409, "the World Model has no revision yet")
     result: dict[str, Any] = (await _do(live, live.session.reinit, revision, body.scope)).to_json()
+    live.publish(result)
     return result
 
 

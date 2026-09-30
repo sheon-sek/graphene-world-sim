@@ -138,3 +138,23 @@ Phase 1 slice is in [`docs/reports/phase3-gate.md`](../reports/phase3-gate.md).
 5. **Replay is exact; restore is to solver tolerance.** The event log reproduces a trajectory
    bit for bit. A snapshot restore re-initialises the FMUs from their state parameters, which
    carry every thermal state but not air humidity, and restarts the solver.
+
+## Amendment 3: Operator commands (2026-09-30)
+
+ADR-0003 makes command points writable, and a write is a runtime command. None of the World
+Model's command points is a model input, though: they are the operator station of a PLC-
+controlled asset (hand/auto, start, stop, enable, reset). So the master gives each simulated
+asset an operator station, and a command point's signal acts on it:
+
+1. **`Auto_Manual`** (1 or `Auto`, 0 or `Manual`). In manual, controller blocks no longer write
+   the asset's model inputs, so an operator's own commands hold. The point reads the mode.
+2. **`enabled`** (Boolean) is a permissive. While it is false the asset's run input is held off,
+   whatever the controller or operator asks.
+3. **`start` and `stop`** act on true. They switch the asset to manual and set its run input
+   (`enable`, `speed`, `fanSpeed` or `position`, in that order of preference) on or off.
+4. **`reset`** acts on true and is the protection reset the runtime already has.
+
+The operator station is part of the runtime state: it is in snapshots, and the commands that
+set it are in the event log, so replay stays exact. Command points whose signal is none of
+these and not a model input (valve open and close commands on the buffer tanks, for example)
+are rejected until their equipment is modelled.

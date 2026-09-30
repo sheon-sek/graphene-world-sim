@@ -123,3 +123,21 @@ def test_fault_severity_ramp_and_auto_clear() -> None:
     assert f.values(500.0)["capacity_fraction"] == pytest.approx(0.8)
     assert book.expire(299.0) == []
     assert book.expire(300.0) == [f] and book.active() == []
+
+
+def test_operator_station_modes_hold_in_the_point_and_the_snapshot(doc: WorldModel) -> None:
+    scope = [*SCOPE, "Genset/Genset 1"]
+    sim = Simulation(doc, scope)
+    mode = "Genset/Genset 1/Auto_Manual"
+    assert sim.run(1).points[mode].value == 1
+    sim.command(mode, None, "Manual")
+    assert sim.step().points[mode].value == 0
+    with pytest.raises(RuntimeProblem, match="1/Auto or 0/Manual"):
+        sim.command(mode, None, 5)
+    with pytest.raises(RuntimeProblem, match="no run command"):
+        sim.command("Genset/Genset 1", "start", True)
+    with pytest.raises(RuntimeProblem, match="not simulated"):
+        sim.command("Chiller/R_C1/Auto_Manual", None, 0)
+    other = Simulation(doc, scope)
+    other.restore(sim.snapshot())
+    assert other.frame().points[mode].value == 0

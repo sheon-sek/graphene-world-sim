@@ -27,3 +27,9 @@ pnpm web:check
 Issues live in GitHub Issues for `sheon-sek/graphene-world-sim`. Each phase is an epic issue
 labelled `epic` and `phase:N`; each task is a sub-issue with `phase:N` and an `area:*` label.
 Reference the task issue in the pull request that completes it.
+
+<!-- igdev:start -->
+<!-- managed by igdev; edit outside these markers only -->
+## igdev
+`igdev.toml` declares this repository's Ignition toolchain; run `igdev status` first.
+<!-- igdev:end -->

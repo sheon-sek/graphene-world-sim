@@ -1,0 +1,26 @@
+# igdev Project Contract (schema 1).
+#
+# Written by `igdev init`; every igdev write prints a unified diff, so tracked
+# changes stay reviewable. Hand-editing this file makes the Checkout Setup stale:
+# run `igdev setup` afterwards.
+
+schema = 1
+
+[project]
+name = "graphene-world-sim"
+
+[ignition]
+version = "8.3.8"
+jython_version = "2.7.4"
+edition = "standard"
+
+[modules]
+enabled = ["com.inductiveautomation.opcua", "com.inductiveautomation.webdev"]
+
+[scan]
+jython = []
+capabilities = []
+
+[gateway]
+memory_mb = 2048
+timezone = "UTC"
