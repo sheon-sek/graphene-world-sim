@@ -56,6 +56,18 @@ def test_boolean_fault_points_raise_an_alarm(doc: WorldModel) -> None:
     assert "alarms" not in str(quiet)
 
 
+def test_tags_record_history_to_a_named_provider(doc: WorldModel) -> None:
+    document = generate(doc, history="Sim History")
+    udt = next(t for t in document["tags"] if t["name"] == TYPES_FOLDER)
+    power = next(
+        t
+        for t in next(t for t in udt["tags"] if t["name"] == "Chiller")["tags"]
+        if t["name"] == "Input Power"
+    )
+    assert power["historyEnabled"] is True and power["historyProvider"] == "Sim History"
+    assert "history" not in str(generate(doc))
+
+
 def test_tags_endpoint_serves_the_head_revision(doc: WorldModel) -> None:
     store = SqliteStore()
     with TestClient(create_app(store)) as client:

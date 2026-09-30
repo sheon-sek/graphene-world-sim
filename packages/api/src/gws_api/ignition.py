@@ -13,6 +13,8 @@ server through an OPC connection:
 - Item paths name the namespace by URI, so they hold whatever index the server gives it.
 - DataSet and Document points travel as JSON text, so their tags are Strings.
 - A Boolean fault or alarm point gets an alarm that is active while the point is true.
+- With a history provider, every tag records its history there, on change, sampled at most
+  once a second.
 
     uv run python -m gws_api.ignition --db world.sqlite --connection "Graphene Demo Twin" \\
         > demotwin-tags.json
@@ -132,7 +134,9 @@ class _Tree:
         return render(self.root)
 
 
-def _atomic(b: PointBinding, server: Any, path: Any, alarms: bool) -> Tag:
+def _atomic(
+    b: PointBinding, server: Any, path: Any, alarms: bool, history: str | None = None
+) -> Tag:
     tag: Tag = {
         "tagType": "AtomicTag",
         "dataType": TAG_TYPES.get(b.data_type, b.data_type),
@@ -144,11 +148,26 @@ def _atomic(b: PointBinding, server: Any, path: Any, alarms: bool) -> Tag:
         tag["engUnit"] = b.unit
     if alarms and b.point_class is PointClass.FAULT_ALARM and b.data_type == "Boolean":
         tag["alarms"] = [dict(FAULT_ALARM)]
+    if history:
+        tag |= {
+            "historyEnabled": True,
+            "historyProvider": history,
+            "historySampleRate": 1000,
+            "historySampleRateUnits": "MS",
+            "historyMode": "OnChange",
+        }
     return tag
 
 
-def generate(doc: WorldModel, connection: str = CONNECTION, *, alarms: bool = True) -> Tag:
-    """The tag import document for a provider root."""
+def generate(
+    doc: WorldModel,
+    connection: str = CONNECTION,
+    *,
+    alarms: bool = True,
+    history: str | None = None,
+) -> Tag:
+    """The tag import document for a provider root. `history` names a historian provider for
+    the tags to record their history to."""
     instances, loose = _instances(doc)
     types = _Tree()
     defined: set[str] = set()
@@ -163,7 +182,7 @@ def generate(doc: WorldModel, connection: str = CONNECTION, *, alarms: bool = Tr
                     + encode_point_path(member),
                 }
                 server = {"bindType": "parameter", "binding": f"{{{SERVER_PARAMETER}}}"}
-                members.put(member, _atomic(b, server, binding, alarms))
+                members.put(member, _atomic(b, server, binding, alarms, history))
             types.put(
                 inst.type_id,
                 {
@@ -188,7 +207,7 @@ def generate(doc: WorldModel, connection: str = CONNECTION, *, alarms: bool = Tr
             },
         )
     for b in sorted(loose, key=lambda b: b.path):
-        tree.put(b.path, _atomic(b, connection, item_path(b.path), alarms))
+        tree.put(b.path, _atomic(b, connection, item_path(b.path), alarms, history))
     tags = tree.tags()
     if defined:
         tags.insert(0, {"name": TYPES_FOLDER, "tagType": "Folder", "tags": types.tags()})
@@ -252,6 +271,7 @@ def tags(
     revision: Annotated[int | None, Query(ge=1, description="Default: the head.")] = None,
     connection: Annotated[str, Query(min_length=1)] = CONNECTION,
     alarms: bool = True,
+    history: Annotated[str | None, Query(description="Historian provider to record to")] = None,
 ) -> dict[str, Any]:
     """The tag import document for a tag provider bound to the simulator."""
     from gws_world_model.store import NotFound, SqliteStore
@@ -264,7 +284,7 @@ def tags(
         doc = store.get(number)
     except NotFound as e:
         raise HTTPException(404, str(e)) from e
-    return generate(doc, connection, alarms=alarms)
+    return generate(doc, connection, alarms=alarms, history=history)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -278,6 +298,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--revision", type=int, help="revision of --db (default: the head)")
     parser.add_argument("--connection", default=CONNECTION, help="OPC connection name")
     parser.add_argument("--no-alarms", action="store_true", help="omit fault alarms")
+    parser.add_argument("--history", metavar="PROVIDER", help="record history to this provider")
     args = parser.parse_args(argv)
     if args.graphene is not None:
         doc = build(Sources.read(args.graphene))
@@ -287,7 +308,11 @@ def main(argv: list[str] | None = None) -> None:
         if revision is None:
             parser.error(f"{args.db} has no revision")
         doc = store.get(revision)
-    json.dump(generate(doc, args.connection, alarms=not args.no_alarms), sys.stdout, indent=1)
+    json.dump(
+        generate(doc, args.connection, alarms=not args.no_alarms, history=args.history),
+        sys.stdout,
+        indent=1,
+    )
     sys.stdout.write("\n")
 
 

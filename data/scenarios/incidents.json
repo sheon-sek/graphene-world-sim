@@ -1,0 +1,359 @@
+{
+  "note": "Incident scenarios for the Phase 8 agent evaluation (#22). Each runs on the Phase 1 slice (gws_runtime.gate.SLICE, which brings its supply path and controllers) with DH01 at the gate's IT load, settles for `warmup_s`, then applies its events at `at_s` seconds after the warm-up and runs for `observe_s`. `truth` is what an analyst should conclude from Ignition data alone: the root cause (asset, and fault mode or condition), the impact, and points that show it.",
+  "dt": 5.0,
+  "warmup_s": 3600,
+  "scenarios": [
+    {
+      "id": "chiller-trip",
+      "title": "Chiller trips",
+      "domains": [
+        "cooling"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "trip"
+          }
+        }
+      ],
+      "observe_s": 900,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "trip"
+          }
+        ],
+        "impact": "The only running chiller stops: chilled-water supply temperature climbs, the buffer tanks discharge and DH01 air warms.",
+        "evidence": [
+          "Chiller/R_C1/System Failure_Trip",
+          "Chiller/R_C1/Input Power",
+          "Chiller/R_C1/Discharge - Low Temperature"
+        ]
+      }
+    },
+    {
+      "id": "secondary-pump-trip",
+      "title": "Secondary chilled-water pump trips",
+      "domains": [
+        "cooling"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_CP9",
+            "mode": "trip"
+          }
+        }
+      ],
+      "observe_s": 900,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_CP9",
+            "cause": "trip"
+          }
+        ],
+        "impact": "Chilled-water flow to the data hall collapses, so the hall's cooling coil loses capacity and DH01 air warms while the chiller side stays healthy.",
+        "evidence": [
+          "Chiller/R_CP9"
+        ]
+      }
+    },
+    {
+      "id": "condenser-fouling",
+      "title": "Chiller condenser fouls",
+      "domains": [
+        "cooling"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "condenser_fouling",
+            "parameters": {
+              "cop_fraction": 0.6
+            },
+            "ramp_s": 600
+          }
+        }
+      ],
+      "observe_s": 1200,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "condenser_fouling"
+          }
+        ],
+        "impact": "The chiller draws more power for the same cooling (COP falls to about 60 %), with condenser pressure rising; supply temperature holds.",
+        "evidence": [
+          "Chiller/R_C1/Input Power",
+          "Chiller/R_C1/Condenser Pressure"
+        ]
+      }
+    },
+    {
+      "id": "header-sensor-bias",
+      "title": "Chilled-water header sensor reads high",
+      "domains": [
+        "cooling",
+        "instrumentation"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "HDR/TS-02",
+            "mode": "bias",
+            "parameters": {
+              "bias": 1.5
+            }
+          }
+        }
+      ],
+      "observe_s": 1800,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "HDR/TS-02",
+            "cause": "sensor bias"
+          }
+        ],
+        "impact": "The biased header reading reaches the plant controls, which act on it: the reported cooling demand falls to zero, secondary flow drops from about 73 to 53 m3/h and the chiller over-cools (supply about 1.5 K colder, more input power). The plant itself is healthy; the fault is in the instrument.",
+        "evidence": [
+          "Chiller System Control/Controls/Demo Cooling Demand",
+          "Chiller_System/Main Headers/FM-01/Flow Rate",
+          "Chiller/R_C1/Input Power"
+        ]
+      }
+    },
+    {
+      "id": "ups-rectifier-failure",
+      "title": "UPS rectifier fails",
+      "domains": [
+        "power"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "UPS/UPS 1",
+            "mode": "rectifier_failure"
+          }
+        }
+      ],
+      "observe_s": 900,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "UPS/UPS 1",
+            "cause": "rectifier_failure"
+          }
+        ],
+        "impact": "UPS 1 stops drawing from its input and carries its load from the battery, which discharges; the IT load stays up while the battery lasts.",
+        "evidence": [
+          "UPS/UPS 1/Rectifier Failure"
+        ]
+      }
+    },
+    {
+      "id": "utility-loss",
+      "title": "Utility supply lost",
+      "domains": [
+        "power"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "conditions",
+          "payload": {
+            "changes": {
+              "utility_available": false
+            }
+          }
+        }
+      ],
+      "observe_s": 900,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "~TX-1",
+            "cause": "loss of utility supply"
+          }
+        ],
+        "impact": "The incomers go dead, the gensets start and the ATS transfers the MSB to them; UPS-backed IT load rides through, while the chiller drops out and restarts on genset power.",
+        "evidence": [
+          "Meter/SPPA Incomer 1",
+          "Genset/Genset 1"
+        ]
+      }
+    },
+    {
+      "id": "utility-loss-genset-fail",
+      "title": "Utility lost and a genset fails to start",
+      "domains": [
+        "power"
+      ],
+      "compound": true,
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Genset/Genset 1",
+            "mode": "fail_to_start"
+          }
+        },
+        {
+          "at_s": 0,
+          "kind": "conditions",
+          "payload": {
+            "changes": {
+              "utility_available": false
+            }
+          }
+        }
+      ],
+      "observe_s": 900,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "~TX-1",
+            "cause": "loss of utility supply"
+          },
+          {
+            "asset": "Genset/Genset 1",
+            "cause": "fail_to_start"
+          }
+        ],
+        "impact": "On utility loss the remaining gensets carry the MSB; Genset 1 stays stopped with a start failure, reducing standby capacity.",
+        "evidence": [
+          "Genset/Genset 1",
+          "Genset/Genset 2"
+        ]
+      }
+    },
+    {
+      "id": "gateway-failure",
+      "title": "Network gateway fails",
+      "domains": [
+        "network",
+        "instrumentation"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Network Topology/GATEWAY A",
+            "mode": "failure"
+          }
+        }
+      ],
+      "observe_s": 600,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Network Topology/GATEWAY A",
+            "cause": "failure"
+          }
+        ],
+        "impact": "Every point reporting through GATEWAY A goes Bad with a communication error while the equipment keeps running: a data-path fault, not a plant fault.",
+        "evidence": []
+      }
+    },
+    {
+      "id": "fouling-and-tower-fan",
+      "title": "Condenser fouling with a cooling tower fan trip",
+      "domains": [
+        "cooling"
+      ],
+      "compound": true,
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "Cooling Towers Plant/R_P1_CT1",
+            "mode": "fan_trip"
+          }
+        },
+        {
+          "at_s": 300,
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "condenser_fouling",
+            "parameters": {
+              "cop_fraction": 0.7
+            },
+            "ramp_s": 300
+          }
+        }
+      ],
+      "observe_s": 1200,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Cooling Towers Plant/R_P1_CT1",
+            "cause": "fan_trip"
+          },
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "condenser_fouling"
+          }
+        ],
+        "impact": "Heat rejection falls on two counts: condenser water returns warmer with one tower fan down, and the fouled condenser raises the chiller's power further.",
+        "evidence": [
+          "Cooling Towers Plant/R_P1_CT1",
+          "Chiller/R_C1/Input Power"
+        ]
+      }
+    },
+    {
+      "id": "fcu-filter-choke",
+      "title": "Fan-coil filter chokes",
+      "domains": [
+        "cooling",
+        "airside"
+      ],
+      "events": [
+        {
+          "at_s": 0,
+          "kind": "fault",
+          "payload": {
+            "target": "FCU/L1_FCU1",
+            "mode": "filter_choke",
+            "parameters": {
+              "airflow_fraction": 0.4
+            },
+            "ramp_s": 300
+          }
+        }
+      ],
+      "observe_s": 1200,
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "FCU/L1_FCU1",
+            "cause": "filter_choke"
+          }
+        ],
+        "impact": "The fan-coil moves less air, so the room it serves warms although chilled water is available.",
+        "evidence": [
+          "FCU/L1_FCU1"
+        ]
+      }
+    }
+  ]
+}
