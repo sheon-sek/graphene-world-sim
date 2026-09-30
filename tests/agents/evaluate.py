@@ -231,7 +231,21 @@ def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
     sim.call("POST", f"/api/runtime/sessions/{sid}/pause")
     record |= {"events": events, "end": _wall()}
     (AGENTS / "run.json").write_text(json.dumps(record, indent=2))
+    (AGENTS / "brief.md").write_text(brief(record) + "\n")
     return record
+
+
+def brief(record: dict[str, Any]) -> str:
+    """The analyst's task for this run: `analyst.md` below its rule, filled in."""
+    text = (Path(__file__).with_name("analyst.md")).read_text().split("\n---\n", 1)[1]
+    start, end = (datetime.fromisoformat(record[k]) for k in ("baseline_start", "end"))
+    return (
+        text.replace("{IGNITION_MCP}", str(IGNITION_MCP))
+        .replace("{ROOT}", str(ROOT))
+        .replace("{WINDOW_START}", f"{start:%H:%M} on {start:%Y-%m-%d}")
+        .replace("{WINDOW_END}", f"{end:%H:%M}")
+        .strip()
+    )
 
 
 def main() -> None:

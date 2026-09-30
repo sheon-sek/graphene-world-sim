@@ -1,7 +1,8 @@
 # Analyst brief (Phase 8 evaluation, #70)
 
-This is the task each evaluated agent gets. `{IGNITION_MCP}` is the ignition-mcp checkout and
-`{ROOT}` this repository. The agent's persona and method are ignition-mcp's BMS/EMS analyst
+This is the task each evaluated agent gets. `{IGNITION_MCP}` is the ignition-mcp checkout,
+`{ROOT}` this repository, and the window runs from the start of the baseline to the end of the
+run (`.agents/run.json`). The agent's persona and method are ignition-mcp's BMS/EMS analyst
 assistant; this brief adds only the incident and the rules of the evaluation.
 
 ---
@@ -12,7 +13,7 @@ Read it first, and load its skills from `{IGNITION_MCP}/assistants/bms-ems-analy
 
 The operator writes:
 
-> Something is wrong in the data hall's plant. Over roughly the last {WINDOW_MIN} minutes
+> Something is wrong in the data hall's plant. Since about {WINDOW_START} UTC
 > things have not looked normal. Please find out what happened, what caused it and what it
 > affects.
 
@@ -23,9 +24,10 @@ Rules of the evaluation:
   (`python3 tests/agents/mcp.py tools` lists the tools). The REST server is not connected, and
   no Tool lists active alarms; alarm points are Boolean tags you can read and trend.
 - Do not read any other file in `{ROOT}` or elsewhere except the assistant's prompt and
-  skills, and do not use the network any other way. The operator is not available for
+  skills, run no other command, and do not use the network any other way. The operator is not available for
   questions or field checks; say which field checks you would ask for.
-- The gateway's clock is UTC. The incident happened within the last {WINDOW_MIN} minutes.
+- The gateway's clock is UTC. Everything of interest happened between {WINDOW_START} and
+  {WINDOW_END} UTC; the plant has been held at its {WINDOW_END} state since.
 
 Finish with your incident answer, then a final fenced `json` block, exactly this shape:
 
@@ -38,4 +40,5 @@ Finish with your incident answer, then a final fenced `json` block, exactly this
 }
 ```
 
-List more than one root cause only if you find independent failures.
+List more than one root cause only if you find independent failures. After the block, say
+how many MCP tool calls you made.
