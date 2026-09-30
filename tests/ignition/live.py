@@ -186,6 +186,11 @@ class Probe:
         result: dict[str, Any] = self._get(op="read", path=f"[{PROVIDER}]{path}")
         return result
 
+    def survey(self) -> dict[str, Any]:
+        """Every atomic tag the provider holds (not the UDT definitions) and their qualities."""
+        result: dict[str, Any] = self._get(op="survey", provider=PROVIDER)
+        return result
+
     def alarms(self, source: str) -> list[dict[str, Any]]:
         result: list[dict[str, Any]] = self._get(op="alarms", source=source)
         return result
@@ -388,12 +393,95 @@ def run(evidence: Path | None) -> Report:
     return report
 
 
+SITE_RUN_S = 600.0
+"""How long the site gate watches the whole site run at real time."""
+
+
+def run_site(evidence: Path | None) -> Report:
+    """The Phase 6 gate: the whole site at 1x real time, every [DemoTwin] tag Good."""
+    report = Report()
+    work = Path(tempfile.mkdtemp(prefix="gws-ignition-site-"))
+    restage = stage_builtin_modules()
+    gateway = Gateway.up()
+    if restage:
+        igdev("gateway", "restart")
+        gateway.wait_running()
+    gateway.bootstrap_token()
+    sim = Simulator.start(work)
+    try:
+        doc = build(Sources.read(ROOT / "data" / "graphene"))
+        document = generate(doc, CONNECTION)
+        report.facts["generated"] = {"points": len(doc.point_bindings)}
+        session = sim.call(
+            "POST", "/api/runtime/sessions", {"scope": sorted(doc.assets), "dt": 1.0}
+        )
+        sid = session["id"]
+        sim.call("POST", f"/api/runtime/sessions/{sid}/step", {"steps": 60})
+        sim.call("PUT", "/api/opcua/session", {"session": sid})
+        sim.call("POST", f"/api/runtime/sessions/{sid}/run", {"speed": 1.0})
+        configure(gateway, sim.opc)
+        _wait("OPC UA connection", 180, lambda: connection_healthy(gateway), 3)
+        gateway.import_tags(PROVIDER, document)
+        probe = Probe(gateway)
+
+        def all_good() -> dict[str, Any] | None:
+            s = probe.survey()
+            return s if s["tags"] and s["qualities"].get("Good") == s["tags"] else None
+
+        t0, wall0 = sim.call("GET", f"/api/runtime/sessions/{sid}")["t"], time.monotonic()
+        try:
+            survey = _wait("every DemoTwin tag Good", 600, all_good, 15)
+        except GatewayError:
+            survey = probe.survey()
+        report.check(
+            "every [DemoTwin] tag reads Good in Ignition",
+            survey["qualities"].get("Good") == survey["tags"] == len(doc.point_bindings),
+            {"tags": survey["tags"], "qualities": survey["qualities"], "bad": survey["bad"][:10]},
+        )
+        remaining = SITE_RUN_S - (time.monotonic() - wall0)
+        if remaining > 0:
+            time.sleep(remaining)  # the site keeps running at real time meanwhile
+        t1, wall1 = sim.call("GET", f"/api/runtime/sessions/{sid}")["t"], time.monotonic()
+        rtf = (t1 - t0) / (wall1 - wall0)
+        report.check(
+            "the whole site keeps real time (1 s step)",
+            rtf >= 0.98,
+            {"simulated_s": round(t1 - t0, 1), "wall_s": round(wall1 - wall0, 1), "rtf": rtf},
+        )
+        final = probe.survey()
+        report.check(
+            "every tag is still Good after the run",
+            final["qualities"].get("Good") == final["tags"],
+            {"qualities": final["qualities"], "bad": final["bad"][:10]},
+        )
+        sim.call("POST", f"/api/runtime/sessions/{sid}/pause")
+    except (GatewayError, OSError, KeyError) as e:
+        report.check("the run completed", False, f"{type(e).__name__}: {e}")
+    finally:
+        sim.stop()
+        if not report.passed:
+            print(sim.log.read_text(errors="replace")[-2000:])
+    if evidence is not None:
+        evidence.write_text(
+            json.dumps(
+                {"passed": report.passed, "facts": report.facts, "checks": report.checks},
+                indent=2,
+                default=str,
+            )
+            + "\n"
+        )
+    return report
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--evidence", type=Path, help="write the results as JSON here")
+    parser.add_argument(
+        "--site", action="store_true", help="the Phase 6 gate: the whole site at real time"
+    )
     args = parser.parse_args()
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
-    report = run(args.evidence)
+    report = run_site(args.evidence) if args.site else run(args.evidence)
     sys.exit(0 if report.passed else 1)
 
 
