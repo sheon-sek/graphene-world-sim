@@ -124,3 +124,10 @@ def test_hmi_settings_start_at_the_configured_values_and_an_operator_write_takes
     assert status["dp_pid_output"] == pytest.approx(40.0)
     assert status["system_status"] == "NORMAL"
     assert status["latest_alarm_message"] == "No active alarms"
+
+
+def test_hmi_registers_read_in_the_units_the_hmi_shows() -> None:
+    from gws_runtime.controllers.hmi import CONFIGURATION, SETTINGS, UNITS
+
+    assert set(UNITS) <= set(SETTINGS) | set(CONFIGURATION) | {"dp_pid_output", "bypass_pid_output"}
+    assert UNITS["chw_supply_temp_set"] == "degC" and UNITS["tower_approach_set"] == "dK"

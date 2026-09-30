@@ -62,6 +62,12 @@ def test_a_difference_ignores_the_offset() -> None:
     assert convert(0.1, "1", "%", delta=True) == pytest.approx(10.0)
 
 
+def test_a_temperature_difference_value_converts_without_the_offset() -> None:
+    assert convert(4.0, "dK", "°C") == pytest.approx(4.0)
+    assert convert(4.0, "dK", "degF") == pytest.approx(7.2)
+    assert convert(287.15, "K", "°C") == pytest.approx(14.0)
+
+
 def test_a_missing_source_unit_is_the_si_base_and_a_missing_target_keeps_the_value() -> None:
     assert convert(280.15, None, "°C") == pytest.approx(7.0)
     assert convert(5.0, "kW", None) == 5.0

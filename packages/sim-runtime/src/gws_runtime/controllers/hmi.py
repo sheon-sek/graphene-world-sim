@@ -77,6 +77,28 @@ CONFIGURATION: dict[str, Value] = {
 """Registers the PLC holds that no block acts on, at their commissioned values."""
 
 
+UNITS: dict[str, str] = {
+    "chw_dp_set": "kPa",
+    "bypass_dp_set": "kPa",
+    "min_dp_set": "kPa",
+    "block_chw_dp_set": "bar",
+    "pump_min_speed": "%",
+    "dp_pid_manual_output": "%",
+    "bypass_pid_manual_output": "%",
+    "chiller_load_limit": "%",
+    "chw_supply_temp_set": "degC",
+    "cw_supply_temp_set": "degC",
+    "tower_approach_set": "dK",
+    "min_flow_set": "L/s",
+    "stage_up_delay": "s",
+    "stage_down_delay": "s",
+    "stage_up_inhibit_delay": "s",
+    "dp_pid_output": "%",
+    "bypass_pid_output": "%",
+}
+"""The unit each numeric register and status value holds, which is the unit its HMI shows."""
+
+
 def _name(doc: WorldModel, asset: str) -> str:
     return doc.assets[asset].name if asset in doc.assets else asset
 

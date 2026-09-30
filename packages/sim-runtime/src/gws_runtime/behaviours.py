@@ -394,7 +394,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
         derived={
             # Motor current follows the compressor's load, as a share of full-load amps.
             "motor_current": ("1", lambda s: _f(s, "PLR")),
-            "evap_approach": ("K", _evap_approach),
+            "evap_approach": ("dK", _evap_approach),
             "p_evap": ("Pa", lambda s: _psat_pa(_f(s, "TChwLvg") - _evap_approach(s))),
             "p_cond": ("Pa", lambda s: _psat_pa(_cond_k(s))),
             # Hot gas leaves the compressor superheated, more so at high lift and load; the
