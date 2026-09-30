@@ -877,14 +877,22 @@ export interface components {
              * Function
              * @enum {string}
              */
-            function: "sum" | "mean" | "max" | "min" | "ratio" | "count_true" | "first";
-            /** Inputs */
-            inputs: string[];
+            function: "sum" | "mean" | "max" | "min" | "ratio" | "count_true" | "first" | "product" | "elapsed" | "health";
+            /**
+             * Inputs
+             * @default []
+             */
+            inputs?: string[];
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
              */
             kind: "aggregate";
+            /**
+             * Scale
+             * @default 1
+             */
+            scale?: number;
         };
         /** ApplyDraft */
         ApplyDraft: {
