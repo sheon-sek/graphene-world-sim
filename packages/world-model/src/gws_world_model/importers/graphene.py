@@ -57,6 +57,7 @@ from gws_world_model.model import (
     Scalar,
     Shaft,
     Site,
+    StaticValue,
     Unbound,
     WorldModel,
 )
@@ -302,6 +303,17 @@ def _connections(
     return connections
 
 
+SUPPORT_DEFAULTS: dict[str, Scalar] = {
+    "Boolean": False,
+    "Float4": 0.0,
+    "Float8": 0.0,
+    "String": "",
+    "DataSet": "{}",
+    "Document": "{}",
+}
+"""The constant a support point reads, by data type (0 for integers and DateTimes)."""
+
+
 def _point_bindings(
     export: IgnitionExport,
     assets: dict[str, Asset],
@@ -327,12 +339,14 @@ def _point_bindings(
             support=support,
         )
         source: PointSource | None
-        if p.asset is not None and p.member is not None:
+        if point_class is PointClass.SUPPORT:
+            # An Ignition-side artefact with no physical counterpart: served as a constant,
+            # outside the simulation and its physics coverage.
+            source = StaticValue(value=SUPPORT_DEFAULTS.get(p.data_type, 0))
+        elif p.asset is not None and p.member is not None:
             source = AssetSignal(asset=p.asset, signal=p.member)
-        elif not support and (source := binder.source(p.path)) is not None:
+        elif (source := binder.source(p.path)) is not None:
             pass
-        elif support:
-            source = Unbound(reason="Ignition-side artefact with no physical counterpart")
         else:
             source = Unbound(reason="point outside any UDT; not bound yet")
         bindings[p.path] = PointBinding(

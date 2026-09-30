@@ -133,6 +133,7 @@ class DemoRack:
                     f"{c}_S": s,
                     f"{c}_PF": bank.power_factor if p > 0 else 0.0,
                     f"{c}_Current": s / v if v > 0 else 0.0,
+                    f"{c}_RackID": c.split("_", 1)[0],
                 }
             out.setdefault(bank.meter, {}).update(circuits)
         return out
