@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Asset, Connection, Edit } from "../api/client";
 import { shortName } from "../app/format";
 import { useSim } from "../live/store";
@@ -29,8 +29,7 @@ export function PropertyEditor(props: {
   const selected = useSim((s) => s.selected);
   const asset = selected ? props.edited.assets.get(selected) : undefined;
   if (!asset) return <aside className="panel properties empty">Select an asset on the schematic to edit it.</aside>;
-  // A new form for each asset, and after each staged edit of it.
-  return <Editor key={`${asset.id}:${JSON.stringify(asset)}`} asset={asset} {...props} />;
+  return <Editor key={asset.id} asset={asset} {...props} />;
 }
 
 function Editor({
@@ -49,6 +48,9 @@ function Editor({
   stage: (edits: Edit[]) => Promise<boolean>;
 }) {
   const [form, setForm] = useState<Form>(() => formOf(asset));
+  // A staged edit (here or on the schematic) becomes the form's new starting point.
+  const staged = JSON.stringify(asset);
+  useEffect(() => setForm(formOf(JSON.parse(staged) as Asset)), [staged]);
   const simulate = useDraft((s) => s.simulate);
   const setSimulate = useDraft((s) => s.setSimulate);
   const type = world.types.get(asset.type);

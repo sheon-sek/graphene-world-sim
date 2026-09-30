@@ -129,7 +129,7 @@ export function HallView({ world, options }: { world: HallWorld; options: ViewOp
   return (
     <Canvas
       className="hall-canvas"
-      camera={{ fov: 40, near: 0.1, far: 300, position: [0, 20, 40] }}
+      camera={{ fov: 40, near: 0.25, far: 300, position: [0, 20, 40] }}
       dpr={[1, 2]}
       gl={async ({ canvas }) => createRenderer(canvas)}
       onPointerMissed={() => select(null)}

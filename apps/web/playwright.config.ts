@@ -18,6 +18,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: external ?? `http://127.0.0.1:${port}`,
+    actionTimeout: 30_000,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     viewport: { width: 1600, height: 1000 },

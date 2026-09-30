@@ -22,7 +22,9 @@ export function Shell({ layout }: { layout: HallLayout }) {
       <mesh rotation-x={-Math.PI / 2} position={[W / 2, 0, D / 2]} material={floor} receiveShadow>
         <planeGeometry args={[W, D]} />
       </mesh>
-      <mesh position={[W / 2, -0.3, D / 2]} material={m.wallDark}>
+      {/* The raised floor's edge. Its top stops just under the floor: at the floor's height
+          the two surfaces z-fight and the floor breaks up as the camera moves. */}
+      <mesh position={[W / 2, -0.31, D / 2]} material={m.wallDark}>
         <boxGeometry args={[W + 0.02, 0.6, D + 0.02]} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[W / 2, -0.61, D / 2]} material={m.wallDark}>

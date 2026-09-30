@@ -53,7 +53,7 @@ test("add, configure, connect, run, fault, observe and recover", async ({ page }
   // Configure: 120 kW instead of the type's 150 kW.
   await page.getByTestId("param-q_flow_nominal").fill("120");
   await page.getByTestId("stage-asset").click();
-  await expect(page.getByTestId("diff")).toContainText("L1_FCU9");
+  await expect(page.getByTestId("draft-panel")).toContainText("2 operations");
 
   // Connect: chilled water from cooling block 1, supply air into the hall, power from FCU1's meter.
   const connect = async (port: string, option: string) => {

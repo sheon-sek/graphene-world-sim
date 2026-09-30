@@ -9,7 +9,8 @@ const HeroPage = lazy(() => import("./hero/HeroPage").then((m) => ({ default: m.
 
 export function App() {
   const route = useRoute();
-  if (route.name === "hero")
+  // A build with VITE_ENTRY=hero (the review artifact) opens on the hero hall.
+  if (route.name === "hero" || (route.name === "sessions" && import.meta.env.VITE_ENTRY === "hero"))
     return (
       <Suspense fallback={<div className="hero-loading">Loading the hall…</div>}>
         <HeroPage />
