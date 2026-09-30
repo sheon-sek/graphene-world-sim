@@ -205,9 +205,12 @@ class Instrumentation:
         self._instrument_ids = sorted(
             i for i, inst in doc.instruments.items() if wanted is None or inst.asset in wanted
         )
-        self._paths = sorted(p for p in doc.point_bindings if self._covers(wanted, p, set()))
+        covered: dict[str, bool] = {}
+        self._paths = sorted(p for p in doc.point_bindings if self._covers(wanted, p, covered))
 
-    def _covers(self, wanted: frozenset[str] | None, reference: str, seen: set[str]) -> bool:
+    def _covers(
+        self, wanted: frozenset[str] | None, reference: str, covered: dict[str, bool]
+    ) -> bool:
         """Whether a point (or an aggregate's input) can be computed from the scope: its asset
         is in it, or it is a constant, or every input of its aggregate is."""
         if wanted is None:
@@ -223,10 +226,10 @@ class Instrumentation:
         if isinstance(src, InstrumentSource):
             return self.doc.instruments[src.instrument].asset in wanted
         if isinstance(src, Aggregate):
-            if reference in seen:
-                return False
-            seen.add(reference)
-            return all(self._covers(wanted, ref, seen) for ref in src.inputs)
+            if reference not in covered:
+                covered[reference] = False  # a cycle through it is not computable
+                covered[reference] = all(self._covers(wanted, r, covered) for r in src.inputs)
+            return covered[reference]
         return isinstance(src, StaticValue)
 
     @property

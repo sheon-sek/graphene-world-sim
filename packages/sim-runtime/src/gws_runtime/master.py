@@ -46,6 +46,7 @@ from gws_runtime.behaviours import BEHAVIOURS, Behaviour, FaultAction
 from gws_runtime.compiler import CACHE, Partition, Plan, compile_partition, ident, plan
 from gws_runtime.conditions import Conditions
 from gws_runtime.controllers import Block, build
+from gws_runtime.controllers.hmi import PlantHmi
 from gws_runtime.electrical import ElectricalNetwork
 from gws_runtime.faults import Fault, FaultBook
 from gws_runtime.fmu import FmuUnit, Scalar
@@ -349,7 +350,15 @@ class Simulation:
         self.commands: dict[str, dict[str, Scalar]] = {}
         """Asset -> model input -> the command in force (operator or controller)."""
         self.register: dict[str, Value] = {}
-        """Controller registers written by blocks (`~PLC-01:lead_chiller`)."""
+        """Controller registers written by blocks (`~PLC-01:lead_chiller`) or an operator."""
+        self.hmis = {
+            c: PlantHmi.build(c, doc, self.blocks)
+            for c in sorted({b.binding.controller for b in self.blocks})
+            if c in doc.assets and doc.assets[c].type in _CONTROLLERS
+        }
+        """Controller -> its register table (settings, configuration, status)."""
+        for hmi in self.hmis.values():
+            self.register |= hmi.defaults()
         self.unrouted: set[str] = set()
         """Writes by blocks to targets outside the scope (reported, not applied)."""
         self.run_hours: dict[str, float] = {}
@@ -460,6 +469,10 @@ class Simulation:
             raise RuntimeProblem(f"{target}:{signal} is not a command this scope accepts")
 
     def _write(self, asset: str, signal: str, value: Value) -> bool:
+        if asset in self.hmis and self.hmis[asset].writable(signal):
+            self.register[f"{asset}:{signal}"] = value
+            self.register[f"{asset}:last_command"] = f"{signal} = {value}"
+            return True
         if signal in self.inputs.get(asset, {}):
             if not isinstance(value, bool | int | float):
                 raise RuntimeProblem(f"{asset}:{signal} takes a number, not {value!r}")
@@ -852,6 +865,8 @@ class Simulation:
         clock.lap("instrumentation")
         # 5. Controllers.
         bus = _Bus(self)
+        for hmi in self.hmis.values():
+            hmi.apply(self.register)
         for blk in self.blocks:
             blk.step(self.t, dt, bus)
         clock.lap("controllers")
@@ -916,9 +931,12 @@ class Simulation:
         for blk in self.blocks:
             for k, x in blk.signals().items():
                 state.setdefault(blk.binding.controller, {})[f"{blk.function}.{k}"] = x
+        for controller, hmi in self.hmis.items():
+            lead = self.register.get(f"{controller}:lead_chiller")
+            state.setdefault(controller, {}).update(hmi.signals(self.t, state, lead))
         for reference, value in self.register.items():
             asset, signal = split_ref(reference)
-            if isinstance(value, float | bool | str):
+            if isinstance(value, int | float | bool | str):
                 state.setdefault(asset, {})[signal] = value
         self.state = state
         view = _View(self)
@@ -983,6 +1001,7 @@ class Simulation:
             "telemetry": self.telemetry.snapshot(),
             "instrumentation": self.instrumentation.snapshot(),
             "blocks": {b.binding.id: b.snapshot() for b in self.blocks},
+            "hmi": {c: h.snapshot() for c, h in self.hmis.items()},
         }
 
     def restore(self, snap: Mapping[str, Any]) -> None:
@@ -991,7 +1010,10 @@ class Simulation:
         self.t = float(snap["t"])
         self.step_count = int(snap["step"])
         self.commands = {a: dict(c) for a, c in snap["commands"].items() if a in self.inputs}
-        self.register = dict(snap["register"])
+        self.register = {k: v for h in self.hmis.values() for k, v in h.defaults().items()}
+        self.register |= snap["register"]
+        for controller, hmi in self.hmis.items():
+            hmi.restore(snap.get("hmi", {}).get(controller, {}))
         self.run_hours = {a: float(h) for a, h in snap["run_hours"].items()}
         for asset, signals in snap.get("integrals", {}).items():
             for signal, value in signals.items():

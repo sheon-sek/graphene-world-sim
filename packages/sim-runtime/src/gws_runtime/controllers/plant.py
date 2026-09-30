@@ -83,11 +83,18 @@ class _Loop(Block):
 
     def step(self, t: float, dt: float, bus: SignalBus) -> None:
         self.measured = self.measure(bus)
-        setpoint = float(self.param(self.setpoint_param, 0.0))
-        error = None
-        if self.measured is not None:
-            error = self.measured - setpoint if self.direct else setpoint - self.measured
-        out = self.pi.step(error, dt)
+        self.pi.lo = self._lo()
+        if str(self.param("mode", "AUTO")).upper() == "MANUAL":
+            # The operator's output holds, and the integrator tracks it for a bumpless return.
+            manual = float(self.param("manual_output_pct", 100 * self.pi.output)) / 100
+            self.pi.integral = self.pi.output = min(max(manual, self.pi.lo), self.pi.hi)
+            out = self.pi.output
+        else:
+            setpoint = float(self.param(self.setpoint_param, 0.0))
+            error = None
+            if self.measured is not None:
+                error = self.measured - setpoint if self.direct else setpoint - self.measured
+            out = self.pi.step(error, dt)
         if self.written is None or abs(out - self.written) > 1e-6:
             for reference in self.binding.drives:
                 bus.write(reference, out)

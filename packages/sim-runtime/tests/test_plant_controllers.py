@@ -92,3 +92,35 @@ def test_supply_temperature_trim_follows_the_header_reading(blocks: dict[str, Bl
         chw.step(0.0, 60.0, bus)
     setpoint = bus.writes["Chiller/R_C1:TChwSet"]
     assert isinstance(setpoint, float) and setpoint < 14.0 + 273.15
+
+
+def test_hmi_settings_start_at_the_configured_values_and_an_operator_write_takes_over(
+    doc: WorldModel, blocks: dict[str, Block]
+) -> None:
+    from gws_runtime.controllers.hmi import PlantHmi
+
+    hmi = PlantHmi.build("~PLC-01", doc, blocks.values())
+    register = hmi.defaults()
+    configured = blocks["dp_pid"].binding.parameters["setpoint_kPa"]
+    assert register["~PLC-01:chw_dp_set"] == configured
+    assert hmi.writable("chw_dp_set") and not hmi.writable("plant_load")
+
+    dp = blocks["dp_pid"]
+    bus = Bus({"HDR/DPS-01": float(configured)})
+    register["~PLC-01:chw_dp_set"] = float(configured) * 2
+    hmi.apply(register)
+    for _ in range(20):
+        dp.step(0.0, 5.0, bus)
+    raised = bus.writes["Chiller/R_CP9:speed"]
+    assert isinstance(raised, float) and raised > 0.5  # pressure now far under the new set point
+
+    register["~PLC-01:dp_pid_mode"] = "MANUAL"
+    register["~PLC-01:dp_pid_manual_output"] = 40.0
+    hmi.apply(register)
+    dp.step(0.0, 5.0, bus)
+    assert bus.writes["Chiller/R_CP9:speed"] == pytest.approx(0.4)
+
+    status = hmi.signals(0.0, {}, None)
+    assert status["dp_pid_output"] == pytest.approx(40.0)
+    assert status["system_status"] == "NORMAL"
+    assert status["latest_alarm_message"] == "No active alarms"
