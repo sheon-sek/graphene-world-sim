@@ -1,0 +1,11 @@
+{
+  "note": "The FCU UDT in the Ignition export gives its four temperature members no engineering unit, so the runtime published them in kelvin (a return air of 303.15). Every other temperature point on the site is in degrees Celsius, and so are these.",
+  "member_units": {
+    "FCU": {
+      "Chilled Water Return Temperature": "°C",
+      "Chilled Water Supply Temperature": "°C",
+      "Return Air Temperature": "°C",
+      "Supply Air Temperature": "°C"
+    }
+  }
+}

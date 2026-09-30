@@ -9,6 +9,7 @@ from gws_world_model.importers.graphene import (
     Bindings,
     ImportProblem,
     Sources,
+    Supplement,
     build,
     contract_checksum,
 )
@@ -100,3 +101,20 @@ def test_every_plant_view_point_is_bound(doc: WorldModel) -> None:
         and not p.path.startswith("Dashboard/Carbon Footprint/")  # demo inputs, no values
     ]
     assert unbound == []
+
+
+def test_every_temperature_point_has_a_unit(doc: WorldModel) -> None:
+    unitless = [
+        p.path
+        for p in doc.point_bindings.values()
+        if p.path.endswith("Temperature") and isinstance(p.source, AssetSignal) and p.unit is None
+    ]
+    assert unitless == []
+    assert doc.point_bindings["FCU/L1_FCU1/Return Air Temperature"].unit == "°C"
+    assert doc.component_types["FCU"].point_template["Supply Air Temperature"].unit == "°C"
+
+
+def test_a_supplement_never_overrides_a_unit_the_export_gives(sources: Sources) -> None:
+    override = Supplement(note="test", member_units={"CRAC": {"Return Air Temperature": "K"}})
+    with pytest.raises(ImportProblem, match="which has one"):
+        build(sources, supplements=[*Supplement.load_all(), override])
