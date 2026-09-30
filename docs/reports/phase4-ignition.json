@@ -1,0 +1,94 @@
+{
+  "passed": true,
+  "facts": {
+    "gateway": {
+      "ignitionVersion": "8.3.8 (b2026071409)",
+      "edition": "standard"
+    },
+    "generated": {
+      "points": 8811,
+      "udts": 37
+    },
+    "import": {
+      "seconds": 2.2,
+      "result": "{'successCount': 4273, 'failureCount': 0, 'failures': []}"
+    }
+  },
+  "checks": [
+    {
+      "name": "OPC UA connection to the simulator is healthy",
+      "passed": true,
+      "detail": "Graphene Demo Twin"
+    },
+    {
+      "name": "Ignition reads the simulator (UDT member)",
+      "passed": true,
+      "detail": {
+        "ignition": 68.90147399902344,
+        "simulator": 68.78018154650105,
+        "quality": "Good"
+      }
+    },
+    {
+      "name": "Ignition reads the simulator (plain tag)",
+      "passed": true,
+      "detail": {
+        "good": true,
+        "value": 300.0,
+        "quality": "Good"
+      }
+    },
+    {
+      "name": "a point outside the session's scope is bad",
+      "passed": true,
+      "detail": "Bad(\"Bad_OutOfService: The source of the data is not operational.\")"
+    },
+    {
+      "name": "a write to a measured point is refused",
+      "passed": true,
+      "detail": {
+        "good": false,
+        "quality": "Bad(\"Bad_NotWritable: The access level does not allow writing to the Node.\")"
+      }
+    },
+    {
+      "name": "an Ignition write is a runtime command in the event log",
+      "passed": true,
+      "detail": {
+        "write": {
+          "good": true,
+          "quality": "Good"
+        },
+        "commands": [
+          {
+            "target": "Chiller System Control/Chillers/CH-001/Commands/Stop",
+            "signal": null,
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "the chiller stops and reads manual in Ignition",
+      "passed": true,
+      "detail": {
+        "On_Off": 0.0,
+        "Auto_Manual": 0.0
+      }
+    },
+    {
+      "name": "a chiller trip raises the generated alarm in Ignition",
+      "passed": true,
+      "detail": {
+        "fault": "F1",
+        "alarms": [
+          {
+            "name": "Active",
+            "source": "prov:DemoTwin:/tag:Chiller/R_C1/System Failure_Trip:/alm:Active",
+            "state": "Active, Unacknowledged"
+          }
+        ]
+      }
+    }
+  ]
+}

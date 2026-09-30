@@ -1,0 +1,11 @@
+{
+  "resource-type": "python-resource",
+  "require-https": false,
+  "require-auth": false,
+  "doGet": {
+    "enabled": true
+  },
+  "doPost": {
+    "enabled": true
+  }
+}

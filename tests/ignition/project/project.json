@@ -1,0 +1,7 @@
+{
+  "title": "gws_probe",
+  "description": "Reads, writes and alarm queries for the simulator integration test.",
+  "parent": "",
+  "enabled": true,
+  "inheritable": false
+}
