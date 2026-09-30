@@ -205,16 +205,34 @@ class Instrumentation:
         self._instrument_ids = sorted(
             i for i, inst in doc.instruments.items() if wanted is None or inst.asset in wanted
         )
-        self._paths = sorted(
-            path
-            for path, b in doc.point_bindings.items()
-            if wanted is None
-            or (isinstance(b.source, AssetSignal) and b.source.asset in wanted)
-            or (
-                isinstance(b.source, InstrumentSource)
-                and doc.instruments[b.source.instrument].asset in wanted
-            )
-        )
+        self._paths = sorted(p for p in doc.point_bindings if self._covers(wanted, p, set()))
+
+    def _covers(self, wanted: frozenset[str] | None, reference: str, seen: set[str]) -> bool:
+        """Whether a point (or an aggregate's input) can be computed from the scope: its asset
+        is in it, or it is a constant, or every input of its aggregate is."""
+        if wanted is None:
+            return True
+        binding = self.doc.point_bindings.get(reference)
+        if binding is None:
+            if reference in self.doc.instruments:
+                return self.doc.instruments[reference].asset in wanted
+            return split_ref(reference)[0] in wanted
+        src = binding.source
+        if isinstance(src, AssetSignal):
+            return src.asset in wanted
+        if isinstance(src, InstrumentSource):
+            return self.doc.instruments[src.instrument].asset in wanted
+        if isinstance(src, Aggregate):
+            if reference in seen:
+                return False
+            seen.add(reference)
+            return all(self._covers(wanted, ref, seen) for ref in src.inputs)
+        return isinstance(src, StaticValue)
+
+    @property
+    def paths(self) -> list[str]:
+        """The points this instrumentation serves."""
+        return list(self._paths)
 
     def _model_signal(self, asset: str, member: str) -> str:
         a = self.doc.assets.get(asset)
@@ -451,6 +469,8 @@ class Instrumentation:
         return self.converter.convert(value, unit, target)
 
     def _aggregate(self, t: float, binding: PointBinding, agg: Aggregate) -> Sample:
+        if agg.function == "elapsed":
+            return Sample(self.converter.convert(t, "s", binding.unit), Quality.GOOD, t)
         inputs = [self._input(t, ref) for ref in agg.inputs]
         if not inputs:
             return Sample(None, Quality.BAD, t, UNBOUND)
@@ -465,6 +485,15 @@ class Instrumentation:
             result = self._ratio(binding, inputs)
             if result is None:
                 return Sample(None, Quality.BAD, t, "undefined")
+        elif agg.function == "product":
+            (factor, _, _), rest = inputs[0], inputs[1:]
+            unit = rest[0][1] if rest else None
+            terms = [self._to(s.value, u, si, unit) for s, u, si in rest]
+            if not _numeric(factor.value) or not all(_numeric(v) for v in terms):
+                return Sample(None, Quality.BAD, t, "not_numeric")
+            assert isinstance(factor.value, int | float)
+            result = float(factor.value) * sum(float(v) for v in terms if v is not None)
+            result *= agg.scale
         else:
             target = binding.unit or inputs[0][1]
             values = [self._to(s.value, u, si, target) for s, u, si in inputs]

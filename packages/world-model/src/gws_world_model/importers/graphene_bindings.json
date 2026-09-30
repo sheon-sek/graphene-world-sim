@@ -651,6 +651,151 @@
   ],
   "rules": [
     {
+      "pattern": "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+      "source": {
+        "kind": "static",
+        "value": 0.412
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: grid emission factor of a Singapore-class grid (the site basis climate), kgCO2e/kWh"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Diesel Emission Factor",
+      "source": {
+        "kind": "static",
+        "value": 2.68
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: combustion factor of diesel, kgCO2e/L"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Refrigerant Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 0.31
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: 2 %/yr leakage of 4 x 1,000 kg R-134a (GWP 1,430), tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Capital Goods Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 4.6
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: 50,000 tCO2e embodied carbon over 30 years, tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Fuel and Energy Related Emission Rate",
+      "source": {
+        "kind": "static",
+        "value": 2.0
+      },
+      "note": "assumed demo carbon-accounting input (the export has no value); an operator setting: upstream and transmission losses of the purchased energy, tCO2e/day"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Year Start",
+      "source": {
+        "kind": "static",
+        "value": 0.0
+      },
+      "note": "the start of the run: the YTD totals count from it (the totalisers are not reset at a calendar year start)"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Demo Inputs/Elapsed (?:Days|Hours) YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "elapsed"
+      },
+      "note": "time since the run began, the period the YTD totals cover"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Diesel Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 1/Diesel Emission Factor",
+          "Dashboard/Carbon Footprint/Scope 1/Diesel Used YTD"
+        ],
+        "scale": 0.001
+      },
+      "note": "kgCO2e/L x L, in t"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 1/Refrigerant Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Refrigerant Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 2/Total Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Dashboard/Carbon Footprint/Scope 2/Grid Energy YTD"
+        ]
+      },
+      "note": "kgCO2e/kWh x MWh, in t"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 3/Capital Goods Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Capital Goods Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Scope 3/Fuel and Energy Related Emissions YTD",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Demo Inputs/Fuel and Energy Related Emission Rate",
+          "Dashboard/Carbon Footprint/Demo Inputs/Elapsed Days YTD"
+        ]
+      },
+      "note": "t/day x days"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Realtime/Scope 2 Emission Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Meter/SPPA Incomer 1/Ptot",
+          "Meter/SPPA Incomer 2/Ptot",
+          "Meter/SPPA Incomer 3/Ptot",
+          "Meter/SPPA Incomer 4/Ptot"
+        ],
+        "scale": 0.001
+      },
+      "note": "kgCO2e/kWh x utility import kW, in t/h"
+    },
+    {
+      "pattern": "Dashboard/Carbon Footprint/Realtime/Carbon Emission Rate",
+      "source": {
+        "kind": "aggregate",
+        "function": "product",
+        "inputs": [
+          "Dashboard/Carbon Footprint/Scope 2/Grid Emission Factor",
+          "Dashboard/Facility Load"
+        ]
+      },
+      "note": "the facility's power at grid intensity (kgCO2e/kWh x MW, in t/h), whether the grid or the gensets supply it"
+    },
+    {
       "pattern": "IPS/Load Status",
       "source": {
         "kind": "asset_signal",
@@ -4227,22 +4372,6 @@
       "note": "total emissions / GFA (t shown as kg)"
     },
     {
-      "pattern": "Dashboard/Carbon\\ Footprint/(?:Demo Inputs/(?:Capital Goods|Fuel and Energy Related|Refrigerant) Emission Rate|Demo Inputs/Elapsed (?:Days|Hours) YTD|Demo Inputs/Year Start|Scope 1/Diesel Emission Factor|Scope 2/Grid Emission Factor)",
-      "source": {
-        "kind": "unbound",
-        "reason": "demo carbon-accounting input with no value in the export; bind a StaticValue when the owner supplies it"
-      },
-      "note": "demo artefact"
-    },
-    {
-      "pattern": "Dashboard/Carbon\\ Footprint/(?:Scope 1/(?:Diesel|Refrigerant) Emissions YTD|Scope 2/Total Emissions YTD|Scope 3/(?:Capital Goods|Fuel and Energy Related) Emissions YTD|Realtime/(?:Carbon|Scope 2) Emission Rate)",
-      "source": {
-        "kind": "unbound",
-        "reason": "emission = factor × activity; no aggregate function multiplies, and the factors have no value"
-      },
-      "note": "demo artefact"
-    },
-    {
       "pattern": "Other/IT\\ Load",
       "source": {
         "kind": "aggregate",
@@ -4347,7 +4476,7 @@
       "pattern": "Other/Maintenance\\ Schedule",
       "source": {
         "kind": "static",
-        "value": 1812384000000
+        "value": "2027-06-07T00:00:00+00:00"
       },
       "note": "next maintenance date (2027-06-07), operator setting"
     },

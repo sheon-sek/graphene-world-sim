@@ -58,7 +58,6 @@ from gws_world_model.model import (
     ROOM_PREFIX,
     AssetSignal,
     FaultKind,
-    InstrumentSource,
     WorldModel,
 )
 
@@ -935,19 +934,7 @@ class Simulation:
     # --- output --------------------------------------------------------------------------
 
     def _scoped_points(self) -> list[str]:
-        if not hasattr(self, "_points"):
-            keep = []
-            for path, b in self.doc.point_bindings.items():
-                src = b.source
-                if isinstance(src, AssetSignal) and src.asset in self.scope:
-                    keep.append(path)
-                elif (
-                    isinstance(src, InstrumentSource)
-                    and self.doc.instruments[src.instrument].asset in self.scope
-                ):
-                    keep.append(path)
-            self._points = sorted(keep)
-        return self._points
+        return self.instrumentation.paths
 
     def frame(self) -> Frame:
         points = self.instrumentation.points()
