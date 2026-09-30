@@ -651,6 +651,105 @@
   ],
   "rules": [
     {
+      "pattern": "IPS/Load Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "load_ok"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Device Status",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "device_ok"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Transformer Temp",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "over_temperature"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Insulation Value",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "insulation_kohm"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/PE Connection",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "pe_connected"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Load Percentage",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "load_pct"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/No CT",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "ct_open"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "IPS/Short CT",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~IPS-PANEL",
+        "signal": "ct_short"
+      },
+      "note": "the IPS panel's own reading (graphene supplement control-room.json)"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/I_(?:AC|RMS)_CH1",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "I_residual"
+      },
+      "note": "residual current on the GEM630 feed"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/I_DC_CH1",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "I_residual_dc"
+      },
+      "note": "smooth DC share of the residual current"
+    },
+    {
+      "pattern": "DemoRack/RCMS425/TestStatus",
+      "source": {
+        "kind": "asset_signal",
+        "asset": "~DEMO-RCMS425",
+        "signal": "alarm"
+      },
+      "note": "0 passed, 1 tripped"
+    },
+    {
       "pattern": "Dashboard/([1-6])A/(IT Load|Facility Load|PUE)",
       "source": {
         "kind": "aggregate",
@@ -4926,22 +5025,6 @@
         "signal": "movingUntil"
       },
       "note": "lift state (A18)"
-    },
-    {
-      "pattern": "IPS/(?:Device Status|Insulation Value|Load Percentage|Load Status|No CT|PE Connection|Short CT|Transformer Temp)",
-      "source": {
-        "kind": "unbound",
-        "reason": "IPS panel measurement (isolation transformer, CT and PE monitor); the panel is not an asset, only its circuits are"
-      },
-      "note": "no honest source"
-    },
-    {
-      "pattern": "DemoRack/RCMS425/.+",
-      "source": {
-        "kind": "unbound",
-        "reason": "demo-rack RCMS425 residual-current monitor has no asset"
-      },
-      "note": "no honest source"
     }
   ]
 }

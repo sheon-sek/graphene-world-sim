@@ -1,0 +1,58 @@
+{
+  "behaviour": null,
+  "category": "equipment",
+  "description": "Small power on a final circuit: the control room's workstations, displays and network gear behind an isolated or residual-current monitored circuit. It draws a steady base load with a slow, seeded swing (people at their desks, screens waking and sleeping).",
+  "fault_modes": {
+    "trip": {
+      "description": "The equipment's own protection trips it off until reset.",
+      "kind": "trip"
+    }
+  },
+  "id": "Small Power",
+  "ignition_type_id": null,
+  "name": "Small power load",
+  "parameters": {
+    "design_power": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1.0,
+      "description": "Full power of the equipment on the circuit.",
+      "min": 0,
+      "unit": "kW"
+    },
+    "power_factor": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.95,
+      "description": "Power factor of the equipment's power supplies.",
+      "max": 1,
+      "min": 0.5,
+      "unit": "1"
+    },
+    "cycle": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 1800.0,
+      "description": "Spacing of the load's seeded swing.",
+      "min": 1,
+      "unit": "s"
+    },
+    "min_fraction": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.6,
+      "description": "Lowest share of full power the swing reaches.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Final circuit feeding it.",
+      "direction": "in",
+      "domain": "power"
+    }
+  }
+}

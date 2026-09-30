@@ -36,6 +36,15 @@
       "description": "Spacing of the steps of the demonstration duty cycle.",
       "min": 1,
       "unit": "s"
+    },
+    "min_fraction": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 0.3333333333333333,
+      "description": "Lowest share of full power the duty cycle reaches.",
+      "max": 1,
+      "min": 0,
+      "unit": "1"
     }
   },
   "parent": null,

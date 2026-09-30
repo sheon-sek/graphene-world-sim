@@ -1,0 +1,68 @@
+{
+  "behaviour": "GwsLib.Electrical.Feeder",
+  "category": "device",
+  "description": "Isolated power panel of the control room: an isolation transformer feeding the IT-earthed circuits, with an insulation monitor and CT and PE supervision. The asset source has its circuits and its readings but not the panel; the graphene supplement adds it between the L1 DB way and the circuits.",
+  "fault_modes": {
+    "pe_disconnected": {
+      "description": "The panel's protective earth connection is lost.",
+      "kind": "degrade"
+    },
+    "ct_open": {
+      "description": "The load-current CT is disconnected (open circuit).",
+      "kind": "sensor"
+    },
+    "ct_short": {
+      "description": "The load-current CT is short-circuited.",
+      "kind": "sensor"
+    },
+    "cooling_loss": {
+      "description": "The transformer's ventilation fails: it runs hotter at the same load.",
+      "kind": "degrade",
+      "parameters": {
+        "rise_factor": {
+          "assumed": true,
+          "change_class": "live",
+          "default": 2.0,
+          "description": "Multiplier on the transformer's temperature rise.",
+          "max": 5,
+          "min": 1,
+          "unit": "1"
+        }
+      }
+    }
+  },
+  "id": "IPS Panel",
+  "ignition_type_id": null,
+  "name": "Isolated power panel",
+  "parameters": {
+    "s_rated": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 10.0,
+      "description": "Isolation transformer rating.",
+      "min": 0,
+      "unit": "kVA"
+    },
+    "insulation_healthy": {
+      "assumed": true,
+      "change_class": "warm",
+      "default": 800.0,
+      "description": "Insulation resistance of the healthy isolated system in dry air.",
+      "min": 0,
+      "unit": "kΩ"
+    }
+  },
+  "parent": null,
+  "ports": {
+    "power_in": {
+      "description": "Feed from the L1 DB way.",
+      "direction": "in",
+      "domain": "power"
+    },
+    "power_out": {
+      "description": "Isolated circuits.",
+      "direction": "out",
+      "domain": "power"
+    }
+  }
+}

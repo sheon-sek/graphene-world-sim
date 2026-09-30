@@ -104,6 +104,7 @@ ELECTRICAL_UNITS = {
     "THDA": "1",
     "I_n": "A",
     "I_residual": "A",
+    "I_residual_dc": "A",
     "T_coolant": "K",
     "p_oil": "Pa",
     "V_battery": "V",

@@ -1,0 +1,485 @@
+{
+  "note": "The control room's monitored circuits (issue #7). The asset source has six IPS circuits and six RCMS circuits on L1 DB ways 20 and 21, with nothing on them, and the IPS panel's own readings (load, transformer temperature, insulation, CT and PE supervision) with no asset. This adds the IPS panel (~IPS-PANEL) between DB way 20 and its circuits, and the control room equipment each circuit feeds (~IPS-LOAD-n, ~RCMS-LOAD-n, assumed ratings, 18 kW in all), so the monitors measure real current.",
+  "assets": [
+    {
+      "id": "~IPS-PANEL",
+      "type": "IPS Panel",
+      "name": "IPS panel",
+      "location": {
+        "room": "L1-SUP",
+        "x": 22.0,
+        "y": 53.0
+      },
+      "system": "Electrical",
+      "role": "Control room isolated power panel (isolation transformer and insulation monitor) behind L1 DB way 20",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-1",
+      "type": "Small Power",
+      "name": "IPS circuit 1 load",
+      "parameters": {
+        "design_power": 1.2
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 21.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 1",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-2",
+      "type": "Small Power",
+      "name": "IPS circuit 2 load",
+      "parameters": {
+        "design_power": 0.8
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 22.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 2",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-3",
+      "type": "Small Power",
+      "name": "IPS circuit 3 load",
+      "parameters": {
+        "design_power": 1.5
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 23.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 3",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-4",
+      "type": "Small Power",
+      "name": "IPS circuit 4 load",
+      "parameters": {
+        "design_power": 1.0
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 24.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 4",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-5",
+      "type": "Small Power",
+      "name": "IPS circuit 5 load",
+      "parameters": {
+        "design_power": 0.6
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 25.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 5",
+      "exported": false
+    },
+    {
+      "id": "~IPS-LOAD-6",
+      "type": "Small Power",
+      "name": "IPS circuit 6 load",
+      "parameters": {
+        "design_power": 0.9
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 26.0,
+        "y": 56.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on IPS/Circuit 6",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-1",
+      "type": "Small Power",
+      "name": "RCMS circuit 1 load",
+      "parameters": {
+        "design_power": 2.5
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 21.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 1",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-2",
+      "type": "Small Power",
+      "name": "RCMS circuit 2 load",
+      "parameters": {
+        "design_power": 1.8
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 22.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 2",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-3",
+      "type": "Small Power",
+      "name": "RCMS circuit 3 load",
+      "parameters": {
+        "design_power": 3.0
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 23.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 3",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-4",
+      "type": "Small Power",
+      "name": "RCMS circuit 4 load",
+      "parameters": {
+        "design_power": 1.2
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 24.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 4",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-5",
+      "type": "Small Power",
+      "name": "RCMS circuit 5 load",
+      "parameters": {
+        "design_power": 2.2
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 25.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 5",
+      "exported": false
+    },
+    {
+      "id": "~RCMS-LOAD-6",
+      "type": "Small Power",
+      "name": "RCMS circuit 6 load",
+      "parameters": {
+        "design_power": 0.9
+      },
+      "location": {
+        "room": "L1-SUP",
+        "x": 26.0,
+        "y": 59.0
+      },
+      "system": "Electrical",
+      "role": "Control room equipment on RCMS/Circuit 6",
+      "exported": false
+    }
+  ],
+  "remove_connections": [
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 1",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    },
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 2",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    },
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 3",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    },
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 4",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    },
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 5",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    },
+    {
+      "id": "power:Meter/Level 1_DB_20->IPS/Circuit 6",
+      "reason": "the circuits are fed through the IPS panel's isolation transformer, which this file adds"
+    }
+  ],
+  "connections": [
+    {
+      "id": "power:Meter/Level 1_DB_20->~IPS-PANEL",
+      "domain": "power",
+      "source": {
+        "node": "Meter/Level 1_DB_20",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-PANEL",
+        "port": "power_in"
+      },
+      "label": "IPS panel incomer"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 1",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 1",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 1->~IPS-LOAD-1",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-1",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 2",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 2",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 2->~IPS-LOAD-2",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 2",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-2",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 3",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 3",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 3->~IPS-LOAD-3",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 3",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-3",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 4",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 4",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 4->~IPS-LOAD-4",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 4",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-4",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 5",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 5",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 5->~IPS-LOAD-5",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 5",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-5",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:~IPS-PANEL->IPS/Circuit 6",
+      "domain": "power",
+      "source": {
+        "node": "~IPS-PANEL",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "IPS/Circuit 6",
+        "port": "power_in"
+      },
+      "label": "isolated circuit"
+    },
+    {
+      "id": "power:IPS/Circuit 6->~IPS-LOAD-6",
+      "domain": "power",
+      "source": {
+        "node": "IPS/Circuit 6",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~IPS-LOAD-6",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 1->~RCMS-LOAD-1",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 1",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-1",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 2->~RCMS-LOAD-2",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 2",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-2",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 3->~RCMS-LOAD-3",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 3",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-3",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 4->~RCMS-LOAD-4",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 4",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-4",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 5->~RCMS-LOAD-5",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 5",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-5",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    },
+    {
+      "id": "power:RCMS/Circuit 6->~RCMS-LOAD-6",
+      "domain": "power",
+      "source": {
+        "node": "RCMS/Circuit 6",
+        "port": "power_out"
+      },
+      "target": {
+        "node": "~RCMS-LOAD-6",
+        "port": "power_in"
+      },
+      "label": "final circuit"
+    }
+  ]
+}

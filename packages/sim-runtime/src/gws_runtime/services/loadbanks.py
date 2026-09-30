@@ -1,7 +1,9 @@
-"""The standalone demo rack's load banks and the branch circuits of its E820.
+"""Loads with no model of their own: the demo rack's load banks and the control room's small
+power, and the branch circuits of the E820 in front of a load bank.
 
-Each load bank steps through a demonstration duty cycle: its demand wanders smoothly between
-a third of and its full power, seeded by the asset so the same run always draws the same.
+Each load wanders smoothly between a share of its full power (`min_fraction`) and full power
+over its `cycle`, seeded by the asset so the same run always draws the same: a demo rack load
+bank steps through a quick demonstration cycle, small power swings slowly.
 The electrical network carries the demand to the meters in front of it, which measure it like
 any other feeder. A tripped load bank draws nothing until reset.
 
@@ -22,8 +24,7 @@ from typing import Any
 from gws_runtime.services.common import Env, Signals, number, param, smooth, unit_fraction
 from gws_world_model.model import Domain, WorldModel
 
-DEMO_LOAD = "Demo Load"
-MIN_FRACTION = 1 / 3
+LOAD_TYPES = frozenset({"Demo Load", "Small Power"})
 V_TRIP = 0.85
 CIRCUIT = re.compile(r".+_I\d+_(P|Q|S|PF|Current)")
 CIRCUIT_UNITS = {"P": "W", "Q": "var", "S": "VA", "PF": "1", "Current": "A"}
@@ -34,6 +35,7 @@ class _Bank:
     rating_w: float
     power_factor: float
     cycle_s: float
+    min_fraction: float
     meter: str | None
     circuits: dict[str, float]
     """Circuit -> its share of the rating (empty: the bank is one load)."""
@@ -45,21 +47,21 @@ def _circuits(doc: WorldModel, meter: str) -> list[str]:
 
 
 @dataclass
-class DemoRack:
+class LoadBanks:
     banks: dict[str, _Bank]
     faults: dict[str, set[str]] = field(default_factory=dict)
     demand: dict[str, float] = field(default_factory=dict)
     """Load bank -> the demand it drew at the last step, W."""
 
     @classmethod
-    def from_world(cls, doc: WorldModel, scope: Collection[str]) -> DemoRack:
+    def from_world(cls, doc: WorldModel, scope: Collection[str]) -> LoadBanks:
         feeder: dict[str, str] = {}
         for c in doc.connections.values():
             if c.domain is Domain.POWER and c.source.node in doc.assets:
                 feeder[c.target.node] = c.source.node
         banks: dict[str, _Bank] = {}
         for a in sorted(scope):
-            if doc.assets[a].type != DEMO_LOAD:
+            if doc.assets[a].type not in LOAD_TYPES:
                 continue
             meter = feeder.get(a)
             names = _circuits(doc, meter) if meter is not None else []
@@ -69,6 +71,7 @@ class DemoRack:
                 rating_w=param(doc, a, "design_power", 5.0) * 1e3,
                 power_factor=param(doc, a, "power_factor", 0.9),
                 cycle_s=param(doc, a, "cycle", 120.0),
+                min_fraction=param(doc, a, "min_fraction", 0.5),
                 meter=meter if names else None,
                 circuits={n: w / total for n, w in weights.items()},
             )
@@ -92,14 +95,16 @@ class DemoRack:
             return True
         return False
 
-    def _level(self, key: str, t: float, cycle: float) -> float:
-        return MIN_FRACTION + (1 - MIN_FRACTION) * smooth(f"{key}:duty", t, cycle)
+    @staticmethod
+    def _level(bank: _Bank, key: str, t: float) -> float:
+        low = bank.min_fraction
+        return low + (1 - low) * smooth(f"{key}:duty", t, bank.cycle_s)
 
     def _circuit_w(self, bank: _Bank, name: str, t: float) -> dict[str, float]:
         if not bank.circuits:
-            return {"": bank.rating_w * self._level(name, t, bank.cycle_s)}
+            return {"": bank.rating_w * self._level(bank, name, t)}
         return {
-            c: bank.rating_w * share * self._level(f"{bank.meter}/{c}", t, bank.cycle_s)
+            c: bank.rating_w * share * self._level(bank, f"{bank.meter}/{c}", t)
             for c, share in bank.circuits.items()
         }
 

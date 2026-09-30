@@ -88,6 +88,9 @@ DEFAULT_POWER_FACTOR = 0.95
 LEAKAGE_A_PER_A = 5e-4
 """Standing earth leakage of a healthy circuit (filter capacitors, cable capacitance): 0.5 mA per
 amp of load current."""
+LEAKAGE_DC_SHARE = 0.1
+"""Share of the leakage that is smooth DC (from rectifier front ends), which a type B residual
+current monitor reads separately."""
 MAX_PASSES = 6
 SQRT3 = math.sqrt(3.0)
 
@@ -797,6 +800,7 @@ class ElectricalNetwork:
                     "insulation_fault": "insulation_fault" in faults,
                     "I_residual": LEAKAGE_A_PER_A * float(s["I"]) + residual if vm > 1e-3 else 0.0,
                 }
+                s["I_residual_dc"] = LEAKAGE_DC_SHARE * LEAKAGE_A_PER_A * float(s["I"])
             s.setdefault("alarm", bool(s.get("tripped", False)))
             result[node] = s
         return result

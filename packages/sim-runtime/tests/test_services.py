@@ -188,3 +188,18 @@ def test_demo_rack_meters_measure_the_load_banks_behind_them(site: WorldModel) -
     assert s.services.demand_w("~DEMO-LOAD-GEM130") > 0.0
     later = s.step(300)
     assert later["DemoRack/E820"]["Ba1_I01_P"] != p  # the duty cycle moves on
+
+
+def test_the_ips_panel_reports_its_load_heat_and_insulation(site: WorldModel) -> None:
+    s = Site(site)
+    s.state["~IPS-PANEL"] = {"S": 9e3}
+    s.state["room:L1-SUP"] = {"TAir": 295.15, "phi": 0.5}
+    out = s.step()["~IPS-PANEL"]
+    assert out["load_pct"] == 90 and out["load_ok"] and out["device_ok"]
+    assert out["insulation_kohm"] == 800 and out["pe_connected"]
+    s.services.fault("~IPS-PANEL", "cooling_loss", {"rise_factor": 2.0})
+    out = s.step(40, dt=300.0)["~IPS-PANEL"]
+    assert out["over_temperature"] and not out["device_ok"]
+    s.state["IPS/Circuit 3"] = {"insulation_fault": True}
+    assert s.step()["~IPS-PANEL"]["insulation_kohm"] < 800 * 6 * 0.05 + 1
+    assert s.services.demand_w("~IPS-LOAD-1") > 0.6 * 1.2e3 - 1

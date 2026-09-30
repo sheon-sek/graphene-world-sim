@@ -1,6 +1,7 @@
 """Site services: the building systems outside the thermofluid and electrical models (ADR-0002
 Amendment 4). Cold water, leak detection, fire detection and protection, lifts, diesel fuel,
-the sensors that read rooms and the weather, and the demo rack's load banks.
+the sensors that read rooms and the weather, the control room's isolated power panel, and the
+loads with no model of their own (the demo rack's load banks, the control room's small power).
 
 Each is a small Python model stepped once per macro step after the thermofluid models, reading
 the state they published and the operating conditions. Their pumps, lifts and fire pumps are
@@ -16,10 +17,11 @@ from typing import Any
 
 from gws_runtime.conditions import Conditions
 from gws_runtime.services.common import Env, Signals
-from gws_runtime.services.demorack import DemoRack
 from gws_runtime.services.fire import FIRE_PUMP, FireSystem, RoomFire
 from gws_runtime.services.fuel import FuelSystem
+from gws_runtime.services.ips import IpsPanels
 from gws_runtime.services.lifts import Lifts
+from gws_runtime.services.loadbanks import LoadBanks
 from gws_runtime.services.sensors import WEATHER, Leak, LeakDetection, RoomSensors, weather
 from gws_runtime.services.water import WaterSystem
 from gws_world_model.model import WorldModel
@@ -52,6 +54,7 @@ UNITS: dict[str, str] = {
     "fuel_flow": "kg/s",
     "fuel_total": "m3",
     "day_tank": "1",
+    "T_winding": "K",
 }
 """SI units of the services' signals."""
 
@@ -110,7 +113,8 @@ class SiteServices:
     leaks: LeakDetection
     rooms: RoomSensors
     weather_stations: list[str]
-    demo: DemoRack
+    load_banks: LoadBanks
+    ips: IpsPanels
 
     @classmethod
     def from_world(cls, doc: WorldModel, scope: Collection[str]) -> SiteServices:
@@ -124,7 +128,8 @@ class SiteServices:
             leaks=LeakDetection.from_world(doc, scope),
             rooms=RoomSensors.from_world(doc, scope),
             weather_stations=[a for a in scope if doc.assets[a].type == WEATHER],
-            demo=DemoRack.from_world(doc, scope),
+            load_banks=LoadBanks.from_world(doc, scope),
+            ips=IpsPanels.from_world(doc, scope),
         )
 
     @property
@@ -137,7 +142,8 @@ class SiteServices:
             | self.leaks.assets
             | set(self.rooms.room)
             | set(self.weather_stations)
-            | self.demo.assets
+            | self.load_banks.assets
+            | self.ips.assets
         )
 
     @property
@@ -148,7 +154,7 @@ class SiteServices:
             | self.fire.loads
             | self.lifts.assets
             | self.fuel.assets
-            | self.demo.assets
+            | self.load_banks.assets
         )
 
     def handles(self, asset: str, mode: str) -> bool:
@@ -162,12 +168,12 @@ class SiteServices:
             return True
         if asset in self.fuel.assets:
             return mode != "flowmeter"
-        return asset in self.leaks.assets or asset in self.demo.assets
+        return asset in self.leaks.assets | self.load_banks.assets | self.ips.assets
 
     # --- faults and commands -----------------------------------------------------------------
 
     def _owner(self, asset: str) -> Any:
-        for system in (self.water, self.fire, self.lifts, self.fuel, self.demo):
+        for system in (self.water, self.fire, self.lifts, self.fuel, self.load_banks, self.ips):
             if asset in system.assets:
                 return system
         return None
@@ -215,7 +221,8 @@ class SiteServices:
                 flow = leak.get("leak_flow", 0.0) * tank.level
                 sources.setdefault(loc.room, {})[tank.asset] = Leak(flow, loc.x, loc.y)
         self.leaks.step(env, sources)
-        self.demo.step(env)
+        self.load_banks.step(env)
+        self.ips.step(env)
 
     def demand_w(self, asset: str) -> float:
         if asset in self.water.pumps:
@@ -230,8 +237,8 @@ class SiteServices:
             return self.lifts.demand_w(asset)
         if asset in self.fuel.assets:
             return self.fuel.demand_w(asset)
-        if asset in self.demo.assets:
-            return self.demo.demand_w(asset)
+        if asset in self.load_banks.assets:
+            return self.load_banks.demand_w(asset)
         return 0.0
 
     def fire_shutdown(self, asset: str) -> bool:
@@ -249,7 +256,8 @@ class SiteServices:
             self.fuel.signals(env),
             self.leaks.signals(env),
             self.rooms.signals(env),
-            self.demo.signals(env),
+            self.load_banks.signals(env),
+            self.ips.signals(env),
         ):
             for asset, s in part.items():
                 out.setdefault(asset, {}).update(s)
@@ -259,7 +267,7 @@ class SiteServices:
 
     def unit(self, signal: str) -> str | None:
         """SI unit of a signal the services publish."""
-        return UNITS.get(signal) or self.demo.unit(signal)
+        return UNITS.get(signal) or self.load_banks.unit(signal)
 
     def points(self, asset: str) -> dict[str, str]:
         """Point member -> signal, for an asset the services own."""
@@ -284,7 +292,8 @@ class SiteServices:
             "lifts": self.lifts.snapshot(),
             "fuel": self.fuel.snapshot(),
             "leaks": self.leaks.snapshot(),
-            "demo": self.demo.snapshot(),
+            "load_banks": self.load_banks.snapshot(),
+            "ips": self.ips.snapshot(),
         }
 
     def restore(self, s: Mapping[str, Any]) -> None:
@@ -293,4 +302,5 @@ class SiteServices:
         self.lifts.restore(s["lifts"])
         self.fuel.restore(s["fuel"])
         self.leaks.restore(s["leaks"])
-        self.demo.restore(s.get("demo", {}))
+        self.load_banks.restore(s.get("load_banks", {}))
+        self.ips.restore(s.get("ips", {}))
