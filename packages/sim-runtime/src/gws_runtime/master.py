@@ -46,6 +46,7 @@ from gws_runtime.behaviours import BEHAVIOURS, Behaviour, FaultAction, si
 from gws_runtime.compiler import CACHE, Partition, Plan, compile_partition, ident, plan
 from gws_runtime.conditions import Conditions
 from gws_runtime.controllers import Block, build
+from gws_runtime.controllers.hmi import UNITS as HMI_UNITS
 from gws_runtime.controllers.hmi import PlantHmi
 from gws_runtime.electrical import ElectricalNetwork
 from gws_runtime.faults import Fault, FaultBook
@@ -374,6 +375,7 @@ class Simulation:
         """Controller -> its register table (settings, configuration, status)."""
         for hmi in self.hmis.values():
             self.register |= hmi.defaults()
+        hmi_units = {(c, signal): unit for c in self.hmis for signal, unit in HMI_UNITS.items()}
         self.unrouted: set[str] = set()
         """Writes by blocks to targets outside the scope (reported, not applied)."""
         self.run_hours: dict[str, float] = {}
@@ -394,7 +396,7 @@ class Simulation:
         self.behaviour: dict[str, Behaviour] = {}
         self.inputs: dict[str, dict[str, _Input]] = {}
         self.outputs: dict[str, dict[str, tuple[str, str]]] = {}
-        self.units: dict[tuple[str, str], str] = {}
+        self.units: dict[tuple[str, str], str] = dict(hmi_units)
         self.aliases: dict[str, dict[str, str]] = {}
         for part in self.plan.partitions:
             for v in part.inputs:
@@ -1033,6 +1035,7 @@ class Simulation:
                 self._was_running[asset] = running
                 self.starts[asset] = starts
                 state[asset]["starts_day"] = len(starts)
+                self.units[(asset, "starts_day")] = "times/day"  # a count over the last day
                 recent = sum(t > self.t - CYCLING_WINDOW_S for t in starts)
                 state[asset]["short_cycling"] = recent > CYCLING_STARTS
         self.network.step(self.t)

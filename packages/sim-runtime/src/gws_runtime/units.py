@@ -2,7 +2,8 @@
 
 A unit is a dimension, a scale and an offset: `value_in_base = value * scale + offset`. Only
 temperatures have an offset; a *delta* conversion (a bias, a drift rate, a noise amplitude)
-ignores it, so a 2 K bias is 2 degC and 3.6 degF.
+ignores it, so a 2 K bias is 2 degC and 3.6 degF. A value that is itself a temperature
+difference (an approach) is in `dK`, which always converts as a delta.
 
 Choices worth knowing:
 
@@ -38,6 +39,8 @@ class Unit:
     """Name of the SI base unit of the dimension (`K`, `W`, `kg/s`, `1`)."""
     scale: float
     offset: float = 0.0
+    delta: bool = False
+    """A difference of this unit (`dK`): it converts without the offset."""
 
 
 def _table() -> dict[str, Unit]:
@@ -48,6 +51,7 @@ def _table() -> dict[str, Unit]:
             units[name] = Unit(dimension, scale)
 
     units["K"] = Unit("K", 1.0)
+    units["dK"] = Unit("K", 1.0, delta=True)
     units["degC"] = Unit("K", 1.0, 273.15)
     units["degF"] = Unit("K", 5 / 9, 459.67 * 5 / 9)
     add("1", ("1", 1.0), ("pu", 1.0), ("fraction", 1.0), ("count", 1.0), ("times", 1.0))
@@ -185,7 +189,7 @@ def convert(value: float, source: str | None, target: str | None, *, delta: bool
         frm = found
     if frm.dimension != to.dimension:
         raise UnitError(f"cannot convert {source!r} to {target!r}")
-    if delta:
+    if delta or frm.delta or to.delta:
         return value * frm.scale / to.scale
     return (value * frm.scale + frm.offset - to.offset) / to.scale
 

@@ -1,35 +1,42 @@
 """Phase 8 agent evaluation (#70): play an incident scenario into a real Ignition gateway, so an
 analyst agent can investigate it through ignition-mcp alone.
 
-    uv run python tests/agents/evaluate.py <scenario-id> [--baseline-s 300]
+    uv run python tests/agents/evaluate.py <scenario-id> [--baseline-s 300] [--speed 10]
 
 For one scenario of `data/scenarios/incidents.json` it:
 
-1. rebuilds the igdev gateway (`igdev gateway reset`, so every run starts on a fresh trial
-   licence) with the OPC UA, WebDev, Historian and MCP modules, and a disposable API token;
-2. creates a Core Historian provider, starts the simulator, creates a session over the
-   scenario scope, applies the scenario's setup and runs the warm-up as fast as it can;
+1. rebuilds the igdev gateway (`igdev gateway reset`, a fresh trial licence) with the OPC UA,
+   WebDev, Historian and MCP modules and a disposable API token, unless the gateway an earlier
+   run left still has trial time for this run and its analyst: then it reuses it, with that
+   run's tags and history provider deleted;
+2. creates a Core Historian provider named for the run, starts the simulator, creates a session
+   over the scenario scope, applies the scenario's setup and runs the warm-up as fast as it can;
 3. serves the session over OPC UA at real time, connects the gateway to it and imports the
    tags of the points the session publishes, each recording its history;
 4. installs ignition-mcp's Runtime MCP server on the gateway with its setup CLI (the
    `analysis` role) and writes `.agents/mcp.json` for `tests/agents/mcp.py`;
 5. runs `--baseline-s` of normal operation, then the scenario's events at their offsets, then
-   its observation window, all at real time, and pauses the session.
+   its observation window, all `--speed` times faster than real time, and pauses the session.
+
+The owner chose (2026-10-01) to reuse a gateway across runs inside its two-hour trial and to
+play the incidents at ten times real time, so a run takes minutes instead of half an hour.
 
 The gateway and simulator stay up afterwards so the agents can investigate; the next run
-stops the simulator and rebuilds the gateway. `.agents/run.json` records the scenario and its
-wall-clock window for the grader; the agents never read it.
+stops the simulator and rebuilds or reuses the gateway. `.agents/run.json` records the
+scenario and its wall-clock window for the grader; the agents never read it.
 
 It needs what `tests/ignition/live.py` needs, plus an ignition-mcp checkout (`IGNITION_MCP`,
 default `../ignition-mcp`) whose setup CLI is installed (`uv sync`). ignition-mcp's setup
 refuses a setup key whose security level is not ticked under every permission in
-Security > General Settings, Designer included; granting that is the operator's decision.
+Security > General Settings, Designer included, so the harness ticks it on this disposable
+gateway (the owner's decision, 2026-09-30).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import shutil
 import signal
@@ -56,6 +63,9 @@ ROLE = "analysis"
 IGNITION_MCP = Path(os.environ.get("IGNITION_MCP", ROOT.parent / "ignition-mcp"))
 AGENTS = ROOT / ".agents"
 MCP_MODULE = "com.inductiveautomation.mcp"
+TRIAL_S = 2 * 3600
+REUSE_S = TRIAL_S - 50 * 60
+"""Reuse a gateway only this young: the run and its analyst must finish inside the trial."""
 live.BUILTIN_MODULES["com.inductiveautomation.historian"] = "Historian-module.modl"
 
 
@@ -68,14 +78,33 @@ def stage_mcp_module() -> bool:
     return True
 
 
-def create_historian(gateway: Gateway) -> None:
-    kind = "com.inductiveautomation.historian/historian-provider"
-    if gateway.find(kind, HISTORIAN)[0] == 200:
+def grant_designer(gateway: Gateway) -> None:
+    """Tick the disposable token's security level under Designer in Security > General
+    Settings, which ignition-mcp's setup requires of its setup key. The owner approved this for
+    the local igdev test gateway only (2026-09-30); `bootstrap_token` already grants access,
+    read and write."""
+    path = "/data/api/v1/resources/singleton/ignition/security-properties"
+    status, props = gateway.request("GET", path)
+    if status != 200:
+        raise GatewayError(f"read security properties: {status}")
+    config = props["config"]
+    config["designerPermissions"] = config["writePermissions"]
+    gateway.update(
+        "ignition/security-properties",
+        {"collection": props["collection"], "signature": props["signature"], "config": config},
+    )
+
+
+HISTORIAN_KIND = "com.inductiveautomation.historian/historian-provider"
+
+
+def create_historian(gateway: Gateway, name: str) -> None:
+    if gateway.find(HISTORIAN_KIND, name)[0] == 200:
         return
     gateway.create(
-        kind,
+        HISTORIAN_KIND,
         {
-            "name": HISTORIAN,
+            "name": name,
             "description": "History of the simulator's tags",
             "enabled": True,
             "config": {"profile": {"type": "CoreHistorian"}, "settings": {}},
@@ -137,27 +166,60 @@ def stop_previous() -> None:
         pass
 
 
+def gateway_for_run(restage: bool) -> tuple[Gateway, dict[str, Any]]:
+    """The gateway for the next run and its state (`.agents/gateway.json`): the one an earlier
+    run left, if it is young enough and answers its token, else a rebuilt one, with its
+    disposable token, Designer granted and ignition-mcp installed."""
+    state_file = AGENTS / "gateway.json"  # the disposable token, also for inspecting by hand
+    try:
+        state = json.loads(state_file.read_text())
+        age = time.time() - float(state["started"])
+    except (OSError, ValueError, KeyError, TypeError):
+        state, age = {}, math.inf
+    if age < REUSE_S and not restage:
+        try:
+            gateway = Gateway.attach(state["url"], state["token"])
+            probe = "/data/api/v1/resources/list/ignition/opc-connection"
+            if gateway.request("GET", probe)[0] == 200:
+                # Nothing of the earlier run may be visible to the next analyst.
+                gateway.delete("ignition/tag-provider", live.PROVIDER)
+                gateway.delete(HISTORIAN_KIND, state["historian"])
+                state["runs"] += 1
+                state["historian"] = f"{HISTORIAN}{state['runs']}"
+                return gateway, state
+        except (GatewayError, IndexError, KeyError):
+            pass  # gone with a reclaimed container, or never ours: rebuild it
+    gateway = Gateway.up()
+    if restage:
+        igdev("gateway", "restart")
+        gateway.wait_running()
+    gateway.bootstrap_token()
+    state = {"url": gateway.url, "token": gateway.token, "started": time.time(), "runs": 1}
+    state["historian"] = f"{HISTORIAN}1"
+    AGENTS.mkdir(exist_ok=True)
+    state_file.write_text(json.dumps(state))
+    state_file.chmod(0o600)
+    grant_designer(gateway)
+    state["install_mcp"] = True
+    return gateway, state
+
+
 def _wall() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
 
-def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
+def run(scenario_id: str, baseline_s: float, speed: float = 10.0) -> dict[str, Any]:
     scenarios = ScenarioSet.read(ROOT / "data" / "scenarios" / "incidents.json")
     scenario = scenarios.get(scenario_id)
     doc = build(Sources.read(ROOT / "data" / "graphene"))
     work = Path(tempfile.mkdtemp(prefix="gws-agents-"))
     stop_previous()
     restage = live.stage_builtin_modules() | stage_mcp_module()
-    gateway = Gateway.up()
-    if restage:
-        igdev("gateway", "restart")
-        gateway.wait_running()
-    gateway.bootstrap_token()
-    AGENTS.mkdir(exist_ok=True)
-    admin = AGENTS / "gateway.json"  # the disposable token, for inspecting this run by hand
-    admin.write_text(json.dumps({"url": gateway.url, "token": gateway.token}))
-    admin.chmod(0o600)
-    create_historian(gateway)
+    gateway, state = gateway_for_run(restage)
+    install = state.pop("install_mcp", False)
+    (AGENTS / "gateway.json").write_text(json.dumps(state))
+    historian = state["historian"]
+    create_historian(gateway, historian)
     sim = live.Simulator.start(work)
     session = sim.call(
         "POST",
@@ -171,17 +233,25 @@ def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
     sim.call(
         "POST", f"/api/runtime/sessions/{sid}/step", {"steps": scenarios.steps(scenarios.warmup_s)}
     )
-    frame = sim.call("GET", f"/api/runtime/sessions/{sid}/frame")["points"]
+    frame = sim.call("GET", f"/api/runtime/sessions/{sid}/frame")
     # Points the scope does not simulate read not_simulated; Ignition gets only the live ones.
-    points = {p for p, v in frame.items() if v["quality"] == "good"}
+    points = {p for p, v in frame["points"].items() if v["quality"] == "good"}
     published = doc.model_copy(
         update={"point_bindings": {p: b for p, b in doc.point_bindings.items() if p in points}}
     )
     sim.call("PUT", "/api/opcua/session", {"session": sid})
-    sim.call("POST", f"/api/runtime/sessions/{sid}/run", {"speed": 1.0})
+    # SourceTimestamps are simulation time from here on (ADR-0003 Amendment 2), so faster than
+    # real time they run ahead of the gateway's clock; the brief gives the window in them.
+    epoch = time.time() - float(frame["t"])
+
+    def plant_now() -> str:
+        t = float(sim.call("GET", f"/api/runtime/sessions/{sid}/frame")["t"])
+        return datetime.fromtimestamp(epoch + t, UTC).isoformat(timespec="seconds")
+
+    sim.call("POST", f"/api/runtime/sessions/{sid}/run", {"speed": speed})
     live.configure(gateway, sim.opc)
     _wait("OPC UA connection", 180, lambda: live.connection_healthy(gateway), 3)
-    gateway.import_tags(live.PROVIDER, generate(published, live.CONNECTION, history=HISTORIAN))
+    gateway.import_tags(live.PROVIDER, generate(published, live.CONNECTION, history=historian))
     probe = live.Probe(gateway)
 
     def all_good() -> dict[str, Any] | None:
@@ -189,18 +259,22 @@ def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
         return s if s["tags"] and s["qualities"].get("Good") == s["tags"] else None
 
     survey = _wait("every tag Good", 600, all_good, 10)
-    (AGENTS / "mcp.json").write_text(json.dumps(install_mcp(gateway, work)))
+    if install:  # a reused gateway keeps the Runtime MCP server and token it already has
+        (AGENTS / "mcp.json").write_text(json.dumps(install_mcp(gateway, work)))
     record: dict[str, Any] = {
         "scenario": scenario.id,
         "tags": survey["tags"],
         "session": sid,
+        "speed": speed,
+        "gateway": {"started": state["started"], "run": state["runs"], "historian": historian},
         "simulator": {"url": f"http://127.0.0.1:{sim.http}", "pid": sim.process.pid},
         "baseline_start": _wall(),
+        "plant_start": plant_now(),
     }
-    t0 = time.monotonic() + baseline_s
+    t0 = time.monotonic() + baseline_s / speed
     events = []
     for e in sorted(scenario.events, key=lambda e: e.at_s):
-        time.sleep(max(0.0, t0 + e.at_s - time.monotonic()))
+        time.sleep(max(0.0, t0 + e.at_s / speed - time.monotonic()))
         if e.kind == "fault":
             sim.call("POST", f"/api/runtime/sessions/{sid}/faults", e.payload)
         elif e.kind == "conditions":
@@ -208,19 +282,47 @@ def run(scenario_id: str, baseline_s: float) -> dict[str, Any]:
         else:
             sim.call("POST", f"/api/runtime/sessions/{sid}/commands", e.payload)
         events.append({"at": _wall(), "kind": e.kind, "payload": e.payload})
-    time.sleep(max(0.0, t0 + scenario.observe_s - time.monotonic()))
+    time.sleep(max(0.0, t0 + scenario.observe_s / speed - time.monotonic()))
     sim.call("POST", f"/api/runtime/sessions/{sid}/pause")
-    record |= {"events": events, "end": _wall()}
+    record |= {"events": events, "end": _wall(), "plant_end": plant_now()}
     (AGENTS / "run.json").write_text(json.dumps(record, indent=2))
+    (AGENTS / "brief.md").write_text(brief(record) + "\n")
     return record
+
+
+def brief(record: dict[str, Any]) -> str:
+    """The analyst's task for this run: `analyst.md` below its rule, filled in."""
+    text = (Path(__file__).with_name("analyst.md")).read_text().split("\n---\n", 1)[1]
+    start, end = (
+        datetime.fromisoformat(record.get(p, record[w]))
+        for p, w in (("plant_start", "baseline_start"), ("plant_end", "end"))
+    )
+    speed = float(record.get("speed", 1.0))
+    playback = (
+        f"- The plant is played {speed:g} times faster than real time. The times above are the "
+        "plant's, as the tags' values and history are stamped; the gateway's own clock runs "
+        f"{speed:g} times slower, so a time it stamps itself (a quality change, an audit entry) "
+        "lags the plant's.\n"
+        if speed != 1.0
+        else ""
+    )
+    return (
+        text.replace("{IGNITION_MCP}", str(IGNITION_MCP))
+        .replace("{ROOT}", str(ROOT))
+        .replace("{WINDOW_START}", f"{start:%H:%M:%S} on {start:%Y-%m-%d}")
+        .replace("{WINDOW_END}", f"{end:%H:%M:%S} on {end:%Y-%m-%d}")
+        .replace("{PLAYBACK}\n", playback)
+        .strip()
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("scenario")
-    parser.add_argument("--baseline-s", type=float, default=300.0)
+    parser.add_argument("--baseline-s", type=float, default=300.0, help="plant seconds")
+    parser.add_argument("--speed", type=float, default=10.0)
     args = parser.parse_args()
-    print(json.dumps(run(args.scenario, args.baseline_s), indent=2))
+    print(json.dumps(run(args.scenario, args.baseline_s, args.speed), indent=2))
 
 
 if __name__ == "__main__":

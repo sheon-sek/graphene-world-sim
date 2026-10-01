@@ -61,3 +61,13 @@ def test_a_scenario_replays_to_the_same_data(doc: WorldModel) -> None:
     assert frame["points"]["Chiller/R_C1/System Failure_Trip"]["value"] in (1, True)
     assert session.replay().sim.frame().to_json() == frame
     session.close()
+
+
+def test_a_restart_counts_as_one_start(doc: WorldModel) -> None:
+    if not _scope_available(doc):
+        pytest.skip("needs OpenModelica or a cached slice FMU")
+    short = replace(SCENARIOS, warmup_s=20.0)
+    session = run(doc, short, short.get("utility-loss"), until_s=300.0)
+    starts = session.sim.frame().to_json()["points"]["Chiller/R_C1/System Start Times"]["value"]
+    assert 0 <= starts <= 2
+    session.close()

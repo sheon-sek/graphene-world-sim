@@ -1,0 +1,649 @@
+{
+  "scenarios": [
+    {
+      "scenario": "chiller-trip",
+      "baseline_start": "2026-09-30T23:13:10+00:00",
+      "end": "2026-09-30T23:33:14+00:00",
+      "events": [
+        {
+          "at": "2026-09-30T23:18:10+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "trip"
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "Unit safety fault trip and lockout of the only running chiller"
+          }
+        ],
+        "impact": "Loss of all mechanical cooling at 23:18:19 UTC because the standby chiller did not start: plant load and towers went to zero, CHWS rose 14.0\u219215.7 \u00b0C, DH1 cold aisle 25.4\u219226.2 \u00b0C while buffer tanks discharged (100\u219283 %).",
+        "confidence": "High"
+      },
+      "tool_calls": 157,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Found the trip at the exact scan, ruled out supply, flow, head pressure and load. Flagged that the staging controller asked for R_C2, which the scope does not simulate, and a Kelvin offset on some temperature tags."
+      },
+      "findings": [
+        "R_C2 staging request goes nowhere: standby chillers are outside the scenario scope",
+        "Evaporator Small Temperature Difference reads -272.4 \u00b0C; CB-001 setpoints read -259/-244/-269 \u00b0C (Kelvin offset)",
+        "Historian returns quality 192 as good:false (ignition-mcp, reference only)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "trip"
+          }
+        ],
+        "impact": "The only running chiller stops: chilled-water supply temperature climbs, the buffer tanks discharge and DH01 air warms.",
+        "evidence": [
+          "Chiller/R_C1/System Failure_Trip",
+          "Chiller/R_C1/Input Power",
+          "Chiller/R_C1/Discharge - Low Temperature"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "secondary-pump-trip",
+      "baseline_start": "2026-09-30T23:42:07+00:00",
+      "end": "2026-10-01T00:02:11+00:00",
+      "events": [
+        {
+          "at": "2026-09-30T23:47:07+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_CP9",
+            "mode": "trip"
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_CP9",
+            "cause": "Chilled-water pump tripped/stopped uncommanded with supply voltage present; no standby pump took over"
+          }
+        ],
+        "impact": "Secondary CHW flow fell 73.3 to 19.9 and header DP 85 to 0; CB-001 in alarm, chiller unloaded; Datahall 1 rose 25.4 to 28.8 \u00b0C.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 168,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Separated a pump-side stop from supply loss with Meter7 voltage; could not tell a VFD trip from a lost run command because the pump publishes no trip or fault point."
+      },
+      "findings": [
+        "A pump trip sets no trip or fault point on the pump; only On_Off and power drop",
+        "historian_browse upstream_error; tag_query continuation returns 0 items after the first page (ignition-mcp, reference only)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_CP9",
+            "cause": "trip"
+          }
+        ],
+        "impact": "Chilled-water flow to the data hall collapses, so the hall's cooling coil loses capacity and DH01 air warms while the chiller side stays healthy.",
+        "evidence": [
+          "Chiller/R_CP9"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "condenser-fouling",
+      "speed": 10.0,
+      "baseline_start": "2026-10-01T04:08:41+00:00",
+      "end": "2026-10-01T04:11:13+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T04:09:13+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "condenser_fouling",
+            "parameters": {
+              "cop_fraction": 0.6
+            },
+            "ramp_s": 600
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "Condenser heat-transfer degradation (likely fouling or non-condensables), raising head pressure and power"
+          }
+        ],
+        "impact": "R_C1 condenser pressure rose from 774 to 978 kPa and discharge temperature from 40 to 48.5 \u00b0C, approaching a high-pressure trip. Chiller power rose from 66 to 111 kW with cooling load unchanged (COP 5.6 to 3.4). It is the only chiller running, so a trip would cut cooling to the data hall. Data hall temperature is still about 25.5 \u00b0C.",
+        "confidence": "High"
+      },
+      "tool_calls": 190,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "After the model fix (0829524) the analyst named condenser fouling from the rising head pressure (774 to 978 kPa), discharge temperature and motor current with flat load, a healthy evaporator and towers at set point; COP 5.6 to 3.4. The earlier run had ruled fouling out because the model did not raise head pressure."
+      },
+      "findings": [
+        "Condenser Pressure and 'Condenser - High Pressure' are the same signal on two tags (Graphene source)",
+        "No high-pressure cut-out set point is exposed, so the analyst could not give a time to trip",
+        "Tool-call count is the agent's own (about 190)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "condenser_fouling"
+          }
+        ],
+        "impact": "The chiller draws more power for the same cooling (COP falls to about 60 %), with condenser pressure rising; supply temperature holds.",
+        "evidence": [
+          "Chiller/R_C1/Input Power",
+          "Chiller/R_C1/Condenser Pressure"
+        ]
+      },
+      "earlier": [
+        {
+          "label": "before-fix",
+          "scenario": "condenser-fouling",
+          "baseline_start": "2026-10-01T00:11:28+00:00",
+          "end": "2026-10-01T00:36:33+00:00",
+          "events": [
+            {
+              "at": "2026-10-01T00:16:28+00:00",
+              "kind": "fault",
+              "payload": {
+                "target": "Chiller/R_C1",
+                "mode": "condenser_fouling",
+                "parameters": {
+                  "cop_fraction": 0.6
+                },
+                "ramp_s": 600
+              }
+            }
+          ],
+          "answer": {
+            "root_cause": [
+              {
+                "asset": "Chiller/R_C1",
+                "cause": "Compressor/motor efficiency loss: input power up ~68% at unchanged cooling load"
+              }
+            ],
+            "impact": "R_C1 input power 66\u2192112 kW, COP 5.6\u21923.4 at unchanged cooling; extra heat to towers, cooling-plant power 198\u2192244 kW.",
+            "confidence": "Medium"
+          },
+          "tool_calls": 113,
+          "grade": {
+            "root_cause": "partial",
+            "impact": "correct",
+            "notes": "Right asset and right symptom (COP loss), but it ruled out condenser fouling because condenser pressure and discharge temperature stayed flat. That reasoning is physically sound: the model's fouling fault cuts COP without raising head pressure, so the model, not the agent, is wrong here."
+          },
+          "findings": [
+            "condenser_fouling lowers COP but leaves condenser pressure, discharge temperature and compressor motor current flat",
+            "Compressor Motor Current stays at ~10.7 % while input power rises 68 %"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "header-sensor-bias",
+      "baseline_start": "2026-10-01T00:45:24+00:00",
+      "end": "2026-10-01T01:20:26+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T00:50:24+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "HDR/TS-02",
+            "mode": "bias",
+            "parameters": {
+              "bias": 1.5
+            }
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Chiller_System/Main Headers/TS-02",
+            "cause": "Header CHW supply sensor reads ~1.5 \u00b0C high; controls overcool"
+          }
+        ],
+        "impact": "CH-001 load and power rose (66\u219294 kW), buffer tanks recharged, real supply ~1.6 \u00b0C below set point; hall unaffected.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 135,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Named the biased instrument (HDR/TS-02 is published at Chiller_System/Main Headers/TS-02) by cross-checking four other supply readings, and saw that the controls acted on it."
+      },
+      "findings": [
+        "Plant Load and Cooling Demand drop to 0 when the header supply reads above return (see #83)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "HDR/TS-02",
+            "cause": "sensor bias"
+          }
+        ],
+        "impact": "The biased header reading reaches the plant controls, which act on it: the reported cooling demand falls to zero, secondary flow drops from about 73 to 53 m3/h and the chiller over-cools (supply about 1.5 K colder, more input power). The plant itself is healthy; the fault is in the instrument.",
+        "evidence": [
+          "Chiller System Control/Controls/Demo Cooling Demand",
+          "Chiller_System/Main Headers/FM-01/Flow Rate",
+          "Chiller/R_C1/Input Power"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "ups-rectifier-failure",
+      "baseline_start": "2026-10-01T02:21:55+00:00",
+      "end": "2026-10-01T02:41:59+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T02:26:55+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "UPS/UPS 1",
+            "mode": "rectifier_failure"
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "UPS/UPS 1",
+            "cause": "Rectifier / internal power supply failure at 02:27:04 UTC (Rectifier Failure and Power Supply Failure alarms)"
+          }
+        ],
+        "impact": "UPS 1 lost redundancy and probably shifted load: MSB A_2 feeder power fell by about 104 kW (830 to 726 kW), power losses and PUE stepped down, and no IT load, data hall temperature or cooling effect is visible. UPS 1's battery and mode are unverified.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 22,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "partial",
+        "notes": "Found Rectifier Failure on UPS 1 at the exact scan and the 104 kW step on its upstream MSB A_2 meter (the input draw dropping). Could not confirm the UPS was on battery: the Graphene source has no battery, mode or bypass points for the UPS, so it asked for the right field check instead."
+      },
+      "findings": [
+        "UPS has no battery state of charge, mode or bypass point in the Graphene source data, so battery operation is invisible",
+        "UPS 'Input Power L1..L3' points carry unit V and read ~228 (a phase voltage) in the Graphene source; the input draw is only visible on the MSB meter",
+        "Tool-call count is the agent's own estimate (about 22)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "UPS/UPS 1",
+            "cause": "rectifier_failure"
+          }
+        ],
+        "impact": "UPS 1 stops drawing from its input and carries its load from the battery, which discharges; the IT load stays up while the battery lasts.",
+        "evidence": [
+          "UPS/UPS 1/Rectifier Failure"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "utility-loss",
+      "baseline_start": "2026-10-01T02:47:55+00:00",
+      "end": "2026-10-01T03:07:57+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T02:52:55+00:00",
+          "kind": "conditions",
+          "payload": {
+            "changes": {
+              "utility_available": false
+            }
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Meter/SPPA Incomer 1-4 (utility incomers)",
+            "cause": "Total loss of utility supply to all four incomers at 02:53:02 UTC, not restored; the fault is upstream of the incomer metering"
+          }
+        ],
+        "impact": "Utility power has been absent since 02:53:02, so the site runs on the six gensets that started and took load at about 02:53:17. All 25 UPS saw a 15 s input loss but held their output. The chiller, pumps, towers and FCU stopped for 15 s and then restarted. Data hall temperature rose about 1 \u00b0C and recovered.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 177,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Placed the cause upstream of all four incomers (the utility side; Graphene has no tag for ~TX-1 itself), and traced the genset start, the UPS ride-through and the 15 s cooling drop-out and restart."
+      },
+      "findings": [
+        "Incomer meters keep HasAlarm false when their voltage goes to 0 (no loss-of-voltage alarm in the Graphene source)",
+        "UPS exposes no battery tags, so the ride-through on battery is inferred from output voltage",
+        "Tool-call count is the agent's own estimate (about 177, mostly batched from scripts)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "~TX-1",
+            "cause": "loss of utility supply"
+          }
+        ],
+        "impact": "The incomers go dead, the gensets start and the ATS transfers the MSB to them; UPS-backed IT load rides through, while the chiller drops out and restarts on genset power.",
+        "evidence": [
+          "Meter/SPPA Incomer 1",
+          "Genset/Genset 1"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "utility-loss-genset-fail",
+      "speed": 10.0,
+      "baseline_start": "2026-10-01T03:20:32+00:00",
+      "end": "2026-10-01T03:22:32+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T03:21:02+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Genset/Genset 1",
+            "mode": "fail_to_start"
+          }
+        },
+        {
+          "at": "2026-10-01T03:21:02+00:00",
+          "kind": "conditions",
+          "payload": {
+            "changes": {
+              "utility_available": false
+            }
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Meter/SPPA Incomer 1-4",
+            "cause": "Utility supply lost (all four incomers dead, cause upstream of them)"
+          },
+          {
+            "asset": "Genset/Genset 1",
+            "cause": "Failed to start, over-crank shutdown"
+          }
+        ],
+        "impact": "Site is running on generators 2 to 6 with no utility, and the generator margin is lost. IT, UPS and cooling are currently unaffected.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 135,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Found both independent causes: the utility loss upstream of all four incomers and Genset 1's over-crank shutdown, independent of the grid loss because Gensets 2-6 started on the same command. Impact (five gensets, margin lost, IT and cooling unaffected) right. First run at 10x."
+      },
+      "findings": [
+        "At 10x playback the OPC UA source timestamps run on plant time and move ahead of the gateway clock; the analyst noticed and converted them",
+        "Tool-call count is the agent's own estimate (about 135)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "~TX-1",
+            "cause": "loss of utility supply"
+          },
+          {
+            "asset": "Genset/Genset 1",
+            "cause": "fail_to_start"
+          }
+        ],
+        "impact": "On utility loss the remaining gensets carry the MSB; Genset 1 stays stopped with a start failure, reducing standby capacity.",
+        "evidence": [
+          "Genset/Genset 1",
+          "Genset/Genset 2"
+        ]
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "gateway-failure",
+      "speed": 10.0,
+      "baseline_start": "2026-10-01T03:38:49+00:00",
+      "end": "2026-10-01T03:40:20+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T03:39:20+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Network Topology/GATEWAY A",
+            "mode": "failure"
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Network Topology/GATEWAY A",
+            "cause": "Communications gateway lost (fault) at 03:39:20; the cooling plant and FCU data chain behind it went Bad quality"
+          }
+        ],
+        "impact": "Chillers, pumps, towers, buffer tanks, the L1 FCU and all 66 leak-detection points lost live data and frozen at their last values; the FCU raised communication-loss alarms. Power and data-hall temperatures stayed normal at about 25.5 \u00b0C, so no confirmed physical cooling failure, but cooling and leak monitoring are blind.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 108,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Called it a data-path fault, not a plant fault: 393 tags went Bad together behind GATEWAY A while power and hall temperatures stayed Good and physical values had not moved; named the blind spots (cooling, leak detection) and the field checks."
+      },
+      "findings": [
+        "Tag timestamps at 10x run ahead of the gateway clock (plant time), so the FCU comm alarms looked 7 minutes later than the quality loss",
+        "Tool-call count is the agent's own (about 108)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Network Topology/GATEWAY A",
+            "cause": "failure"
+          }
+        ],
+        "impact": "Every point reporting through GATEWAY A goes Bad with a communication error while the equipment keeps running: a data-path fault, not a plant fault.",
+        "evidence": []
+      },
+      "earlier": []
+    },
+    {
+      "scenario": "fouling-and-tower-fan",
+      "speed": 10.0,
+      "baseline_start": "2026-10-01T04:16:35+00:00",
+      "end": "2026-10-01T04:19:08+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T04:17:07+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Cooling Towers Plant/R_P1_CT1",
+            "mode": "fan_trip"
+          }
+        },
+        {
+          "at": "2026-10-01T04:17:37+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "Chiller/R_C1",
+            "mode": "condenser_fouling",
+            "parameters": {
+              "cop_fraction": 0.7
+            },
+            "ramp_s": 300
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "Cooling Towers Plant/R_P1_CT1",
+            "cause": "Cooling tower CT1 fan/drive tripped (System Failure_Trip) at 04:23:31, cause unknown"
+          },
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "Condenser-side degradation (fouling or low condenser flow), condenser pressure and power rising from 04:27"
+          }
+        ],
+        "impact": "Heat-rejection redundancy is lost (the plant has one fewer tower), and the chiller's COP fell from 5.6 to 3.9 with power up 44% (66\u219296 kW) at constant cooling load. Data hall cold-aisle temperature is only slightly up (25.4\u219225.5 \u00b0C), so there is no load impact yet, but margin is shrinking.",
+        "confidence": "Medium"
+      },
+      "tool_calls": 400,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "With the window in plant time, found both independent causes: the CT1 fan trip and a separate condenser-side degradation on R_C1, reasoning that the tower water temperatures never moved so the chiller's rising head pressure was not the lost tower. The run before the window fix tied them together."
+      },
+      "findings": [
+        "The remaining towers hold condenser water at set point after a fan trip, so the trip alone leaves no thermal trace",
+        "Tool-call count is the agent's own (roughly 400, mostly scripted sweeps)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "Cooling Towers Plant/R_P1_CT1",
+            "cause": "fan_trip"
+          },
+          {
+            "asset": "Chiller/R_C1",
+            "cause": "condenser_fouling"
+          }
+        ],
+        "impact": "Heat rejection falls on two counts: condenser water returns warmer with one tower fan down, and the fouled condenser raises the chiller's power further.",
+        "evidence": [
+          "Cooling Towers Plant/R_P1_CT1",
+          "Chiller/R_C1/Input Power"
+        ]
+      },
+      "earlier": [
+        {
+          "label": "window-mismatch",
+          "scenario": "fouling-and-tower-fan",
+          "speed": 10.0,
+          "baseline_start": "2026-10-01T03:52:41+00:00",
+          "end": "2026-10-01T03:55:11+00:00",
+          "events": [
+            {
+              "at": "2026-10-01T03:53:12+00:00",
+              "kind": "fault",
+              "payload": {
+                "target": "Cooling Towers Plant/R_P1_CT1",
+                "mode": "fan_trip"
+              }
+            },
+            {
+              "at": "2026-10-01T03:53:41+00:00",
+              "kind": "fault",
+              "payload": {
+                "target": "Chiller/R_C1",
+                "mode": "condenser_fouling",
+                "parameters": {
+                  "cop_fraction": 0.7
+                },
+                "ramp_s": 300
+              }
+            }
+          ],
+          "answer": {
+            "root_cause": [
+              {
+                "asset": "Cooling Towers Plant/R_P1_CT1",
+                "cause": "Cooling tower tripped offline (System Failure_Trip), cause of trip unknown"
+              }
+            ],
+            "impact": "Heat-rejection capacity fell from 5 towers to 4. Chiller R_C1 condenser pressure rose about 14% (774 to 884), its input power about 45% and its discharge temperature about 5 \u00b0C, with no chiller trip yet. The data hall is still about 25.5 \u00b0C.",
+            "confidence": "High"
+          },
+          "tool_calls": 57,
+          "grade": {
+            "root_cause": "partial",
+            "impact": "partial",
+            "notes": "Found the CT1 fan trip and the chiller's rising head pressure, power and discharge temperature, but read the chiller's change as a consequence of the lost tower instead of an independent condenser fouling. The brief's window was in gateway time while the tags were stamped in plant time (10x), so the trip and the fouling five plant minutes later looked unrelated to the window."
+          },
+          "findings": [
+            "Brief window was in gateway time; history in plant time. Fixed in dca0253 and the scenario rerun",
+            "Tool-call count is the agent's own (about 57)"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "fcu-filter-choke",
+      "speed": 10.0,
+      "baseline_start": "2026-10-01T04:00:59+00:00",
+      "end": "2026-10-01T04:03:31+00:00",
+      "events": [
+        {
+          "at": "2026-10-01T04:01:31+00:00",
+          "kind": "fault",
+          "payload": {
+            "target": "FCU/L1_FCU1",
+            "mode": "filter_choke",
+            "parameters": {
+              "airflow_fraction": 0.4
+            },
+            "ramp_s": 300
+          }
+        }
+      ],
+      "answer": {
+        "root_cause": [
+          {
+            "asset": "FCU/L1_FCU1",
+            "cause": "Clogged air filter (filter choke) cutting FCU airflow"
+          }
+        ],
+        "impact": "Data Hall 1 cold aisle rose from about 25.5 to 26.9 \u00b0C from about 04:08 and was still near that value when held; FCU chilled-water flow, plant load and chiller power fell with it. No power or chiller fault is involved.",
+        "confidence": "High"
+      },
+      "tool_calls": 239,
+      "grade": {
+        "root_cause": "correct",
+        "impact": "correct",
+        "notes": "Found the filter choke from the FCU's falling static pressure and airflow before its alarm, the hall warming 25.5 to 26.9 \u00b0C, and the chilled-water side backing off with it. First run with the window in plant time; the times matched."
+      },
+      "findings": [
+        "FCU 'Flowrate' carries no unit in the Graphene source; the analyst could not tell air from water flow",
+        "Tool-call count is the agent's own (about 239, mostly bulk reads)"
+      ],
+      "truth": {
+        "root_cause": [
+          {
+            "asset": "FCU/L1_FCU1",
+            "cause": "filter_choke"
+          }
+        ],
+        "impact": "The fan-coil moves less air, so the room it serves warms although chilled water is available.",
+        "evidence": [
+          "FCU/L1_FCU1"
+        ]
+      },
+      "earlier": []
+    }
+  ],
+  "tally": {
+    "root_cause": {
+      "correct": 10
+    },
+    "impact": {
+      "correct": 9,
+      "partial": 1
+    }
+  },
+  "graded": 10,
+  "total": 10
+}
