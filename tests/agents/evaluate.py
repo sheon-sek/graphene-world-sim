@@ -233,13 +233,21 @@ def run(scenario_id: str, baseline_s: float, speed: float = 10.0) -> dict[str, A
     sim.call(
         "POST", f"/api/runtime/sessions/{sid}/step", {"steps": scenarios.steps(scenarios.warmup_s)}
     )
-    frame = sim.call("GET", f"/api/runtime/sessions/{sid}/frame")["points"]
+    frame = sim.call("GET", f"/api/runtime/sessions/{sid}/frame")
     # Points the scope does not simulate read not_simulated; Ignition gets only the live ones.
-    points = {p for p, v in frame.items() if v["quality"] == "good"}
+    points = {p for p, v in frame["points"].items() if v["quality"] == "good"}
     published = doc.model_copy(
         update={"point_bindings": {p: b for p, b in doc.point_bindings.items() if p in points}}
     )
     sim.call("PUT", "/api/opcua/session", {"session": sid})
+    # SourceTimestamps are simulation time from here on (ADR-0003 Amendment 2), so faster than
+    # real time they run ahead of the gateway's clock; the brief gives the window in them.
+    epoch = time.time() - float(frame["t"])
+
+    def plant_now() -> str:
+        t = float(sim.call("GET", f"/api/runtime/sessions/{sid}/frame")["t"])
+        return datetime.fromtimestamp(epoch + t, UTC).isoformat(timespec="seconds")
+
     sim.call("POST", f"/api/runtime/sessions/{sid}/run", {"speed": speed})
     live.configure(gateway, sim.opc)
     _wait("OPC UA connection", 180, lambda: live.connection_healthy(gateway), 3)
@@ -261,6 +269,7 @@ def run(scenario_id: str, baseline_s: float, speed: float = 10.0) -> dict[str, A
         "gateway": {"started": state["started"], "run": state["runs"], "historian": historian},
         "simulator": {"url": f"http://127.0.0.1:{sim.http}", "pid": sim.process.pid},
         "baseline_start": _wall(),
+        "plant_start": plant_now(),
     }
     t0 = time.monotonic() + baseline_s / speed
     events = []
@@ -275,7 +284,7 @@ def run(scenario_id: str, baseline_s: float, speed: float = 10.0) -> dict[str, A
         events.append({"at": _wall(), "kind": e.kind, "payload": e.payload})
     time.sleep(max(0.0, t0 + scenario.observe_s / speed - time.monotonic()))
     sim.call("POST", f"/api/runtime/sessions/{sid}/pause")
-    record |= {"events": events, "end": _wall()}
+    record |= {"events": events, "end": _wall(), "plant_end": plant_now()}
     (AGENTS / "run.json").write_text(json.dumps(record, indent=2))
     (AGENTS / "brief.md").write_text(brief(record) + "\n")
     return record
@@ -284,11 +293,16 @@ def run(scenario_id: str, baseline_s: float, speed: float = 10.0) -> dict[str, A
 def brief(record: dict[str, Any]) -> str:
     """The analyst's task for this run: `analyst.md` below its rule, filled in."""
     text = (Path(__file__).with_name("analyst.md")).read_text().split("\n---\n", 1)[1]
-    start, end = (datetime.fromisoformat(record[k]) for k in ("baseline_start", "end"))
+    start, end = (
+        datetime.fromisoformat(record.get(p, record[w]))
+        for p, w in (("plant_start", "baseline_start"), ("plant_end", "end"))
+    )
     speed = float(record.get("speed", 1.0))
     playback = (
-        f"- The plant is played {speed:g} times faster than real time: one second of gateway "
-        f"time is {speed:g} seconds of plant time. Timestamps are the gateway's.\n"
+        f"- The plant is played {speed:g} times faster than real time. The times above are the "
+        "plant's, as the tags' values and history are stamped; the gateway's own clock runs "
+        f"{speed:g} times slower, so a time it stamps itself (a quality change, an audit entry) "
+        "lags the plant's.\n"
         if speed != 1.0
         else ""
     )
