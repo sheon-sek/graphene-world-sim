@@ -109,3 +109,21 @@ A ratio aggregate whose denominator is zero, such as `Dashboard/Transformer Effi
 the site runs on gensets and every incomer reads 0 kW, has no value. It reads
 **BadNoData** (reason `undefined`), not plain Bad. An analyst then sees "no data", not a fault
 in the data chain (#81).
+
+## Amendment 5: Points the source lacks (2026-10-01)
+
+The Phase 8 analysts found the source's points too few to confirm some incidents. A UPS had no
+battery point, a chiller pump had no trip point, and the power-quality meters raised no alarm
+on loss of voltage (#85). The address space now holds the Asset Model's points **plus**
+members that a reviewed supplement adds to a type
+(`graphene_supplement/operator-points.json`):
+
+- A supplement member is added to its type's UDT and to every instance of that type, so the
+  generated UDT stays uniform and its instances keep working.
+- It follows every rule above: NodeId, folders and data type come from its path, as for any
+  other point.
+- No Asset Model point changes. Its path, data type and type id keep their contract checksum,
+  and `tests/contract/test_opcua_contract.py` checks that the address space is the Asset Model
+  plus exactly the supplement members.
+- The existing gateway configuration keeps working. Its tags simply do not use the new nodes
+  until tags for them are imported.

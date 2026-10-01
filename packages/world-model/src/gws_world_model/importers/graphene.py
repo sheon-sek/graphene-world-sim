@@ -23,14 +23,14 @@ import argparse
 import hashlib
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 
 from gws_world_model import library
-from gws_world_model.importers.ignition import IgnitionExport, read_export
+from gws_world_model.importers.ignition import ExportedPoint, IgnitionExport, read_export
 from gws_world_model.importers.point_classes import classify, in_support_folder
 from gws_world_model.model import (
     ROOM_PREFIX,
@@ -104,6 +104,14 @@ class Removal(BaseModel):
     reason: str
 
 
+class Member(BaseModel):
+    """A point every instance of a type should have and the source does not define."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    data_type: str
+    unit: str | None = None
+
+
 class Supplement(BaseModel):
     """Engineering the asset source lacks or gets wrong, added on top of the plant design.
 
@@ -125,6 +133,9 @@ class Supplement(BaseModel):
     member_units: dict[str, dict[str, str]] = {}
     """Units the Ignition export leaves off a UDT's members, by type id, then member path. A
     unit is only filled in where the export has none."""
+    members: dict[str, dict[str, Member]] = {}
+    """Points the source lacks, by type id, then member path: added to the type's UDT and to
+    every instance of it, as if the export had them (ADR-0003 Amendment 5)."""
 
     @classmethod
     def load_all(cls, directory: Path = SUPPLEMENTS) -> list[Supplement]:
@@ -213,6 +224,45 @@ def _templates(
             signal=member,
         )
     return templates
+
+
+def _add_members(
+    export: IgnitionExport,
+    assets: dict[str, Asset],
+    added: dict[str, dict[str, Member]],
+    problems: list[str],
+) -> IgnitionExport:
+    """The export with each supplement member added to its type's UDT and every instance."""
+    if not added:
+        return export
+    types = dict(export.types)
+    points = dict(export.points)
+    for path, instance in export.instances.items():
+        asset = assets.get(path)
+        if asset is None or not (members := added.get(asset.type, {})):
+            continue
+        udt = types[instance.type_id]
+        for member, spec in members.items():
+            if member in udt.members and udt.members[member].get("_supplement") is None:
+                problems.append(f"supplement adds {asset.type!r} member {member!r}, which it has")
+                continue
+            tag: dict[str, Any] = {"dataType": spec.data_type, "valueSource": "opc"}
+            if spec.unit:
+                tag["engUnit"] = spec.unit
+            udt = replace(udt, members={**udt.members, member: {**tag, "_supplement": True}})
+            points[f"{path}/{member}"] = ExportedPoint(
+                path=f"{path}/{member}",
+                name=member.rsplit("/", 1)[-1],
+                data_type=spec.data_type,
+                value_source="opc",
+                eng_unit=spec.unit,
+                value=None,
+                member=member,
+                asset=path,
+                type_id=instance.type_id,
+            )
+        types[instance.type_id] = udt
+    return replace(export, types=types, points=points)
 
 
 def _site(design: dict[str, Any]) -> Site:
@@ -430,26 +480,28 @@ def build(
     added = Supplement.load_all() if supplements is None else supplements
     problems: list[str] = []
     member_units: dict[str, dict[str, str]] = {}
+    members: dict[str, dict[str, Member]] = {}
     for sup in added:
         for type_id, units in sup.member_units.items():
             if type_id not in library_types:
                 problems.append(f"supplement sets member units of unknown type {type_id!r}")
             member_units.setdefault(type_id, {}).update(units)
+        for type_id, new in sup.members.items():
+            if type_id not in library_types:
+                problems.append(f"supplement adds members to unknown type {type_id!r}")
+            members.setdefault(type_id, {}).update(new)
+    assets = _assets(sources.design)
+    export = _add_members(sources.export, assets, members, problems)
     component_types = {
         t.id: t.model_copy(
-            update={
-                "point_template": _templates(
-                    t, sources.export, member_units.get(t.id, {}), problems
-                )
-            }
+            update={"point_template": _templates(t, export, member_units.get(t.id, {}), problems)}
         )
         for t in library_types.values()
     }
-    assets = _assets(sources.design)
     for asset in assets.values():
         if asset.type not in component_types:
             problems.append(f"no library type {asset.type!r} (for {asset.id})")
-    for path in sources.export.instances:
+    for path in export.instances:
         if path not in assets:
             problems.append(f"exported instance {path} is not in the plant design")
     if problems:
@@ -471,7 +523,7 @@ def build(
         instruments={i.id: i for i in extra.instruments} | instruments,
         control_bindings={b.id: b for b in extra.control_bindings} | control_bindings,
         point_bindings=_point_bindings(
-            sources.export, assets, component_types, _Binder(extra.rules), member_units
+            export, assets, component_types, _Binder(extra.rules), member_units
         ),
         conditions=_conditions(sources.design),
     )

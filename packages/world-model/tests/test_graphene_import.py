@@ -13,7 +13,7 @@ from gws_world_model.importers.graphene import (
     build,
     contract_checksum,
 )
-from gws_world_model.model import AssetSignal, WorldModel
+from gws_world_model.model import AssetSignal, PointClass, WorldModel
 from gws_world_model.validate import validate
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -47,8 +47,17 @@ def test_every_asset_and_connection_is_imported(doc: WorldModel) -> None:
 def test_point_paths_data_types_and_type_ids_keep_the_ignition_contract(
     doc: WorldModel, sources: Sources
 ) -> None:
-    assert len(doc.point_bindings) == 8811
-    assert contract_checksum(doc) == sources.export.contract_checksum() == CONTRACT
+    # The source's points keep their contract; supplements only add members (ADR-0003
+    # Amendment 5).
+    source = doc.model_copy(
+        update={
+            "point_bindings": {
+                p: b for p, b in doc.point_bindings.items() if p in sources.export.points
+            }
+        }
+    )
+    assert len(source.point_bindings) == 8811 and len(doc.point_bindings) == 8905
+    assert contract_checksum(source) == sources.export.contract_checksum() == CONTRACT
 
 
 def test_revision_one_validates_clean(doc: WorldModel) -> None:
@@ -118,3 +127,18 @@ def test_a_supplement_never_overrides_a_unit_the_export_gives(sources: Sources) 
     override = Supplement(note="test", member_units={"CRAC": {"Return Air Temperature": "K"}})
     with pytest.raises(ImportProblem, match="which has one"):
         build(sources, supplements=[*Supplement.load_all(), override])
+
+
+def test_a_supplement_adds_a_member_to_every_instance_of_its_type(doc: WorldModel) -> None:
+    """#85: points an operator needs that the source lacks, on every instance of the type."""
+    ups = [a for a in doc.assets.values() if a.type == "UPS"]
+    assert len(ups) == 25
+    for asset in ups:
+        charge = doc.point_bindings[f"{asset.id}/Battery Charge"]
+        assert charge.unit == "%" and charge.ignition_type_id == "UPS"
+        assert charge.source == AssetSignal(asset=asset.id, signal="Battery Charge")
+    trip = doc.point_bindings["Chiller/R_CP9/Trip"]
+    assert trip.point_class is PointClass.FAULT_ALARM and trip.data_type == "Boolean"
+    lost = doc.point_bindings["Meter/SPPA Incomer 1/Loss of Voltage Alarm"]
+    assert lost.point_class is PointClass.FAULT_ALARM
+    assert doc.point_bindings["FCU/L1_FCU1/Flowrate"].unit == "m³/h"

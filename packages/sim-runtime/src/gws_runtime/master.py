@@ -157,6 +157,11 @@ _ELECTRICAL_POINTS = {
     "Bypass Undervoltage Warning": "input_low",
     "System Input Power Problem": "input_low",
     "Power Supply Failure": "on_battery",
+    # Points the Graphene source lacks, added by the `operator-points` supplement (#85).
+    "Battery Charge": "soc",
+    "On Battery": "on_battery",
+    "Input Active Power": "P_in",
+    "Loss of Voltage Alarm": "deenergised",
     "Rectifier Failure": "rectifier_failed",
     "System Output Fault": "output_fault",
     # Genset.

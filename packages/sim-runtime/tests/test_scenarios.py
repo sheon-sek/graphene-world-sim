@@ -56,9 +56,10 @@ def test_a_scenario_replays_to_the_same_data(doc: WorldModel) -> None:
     if not _scope_available(doc):
         pytest.skip("needs OpenModelica or a cached slice FMU")
     short = replace(SCENARIOS, warmup_s=20.0)
-    session = run(doc, short, short.get("chiller-trip"), seed=3, until_s=30.0)
+    session = run(doc, short, short.get("chiller-trip"), seed=3, until_s=60.0)
     frame = session.sim.frame().to_json()
     assert frame["points"]["Chiller/R_C1/System Failure_Trip"]["value"] in (1, True)
+    assert frame["points"]["Chiller/R_C2/On_Off"]["value"] in (1, True)  # the standby (#84)
     assert session.replay().sim.frame().to_json() == frame
     session.close()
 

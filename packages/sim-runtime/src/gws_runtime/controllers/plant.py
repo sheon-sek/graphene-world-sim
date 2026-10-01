@@ -246,11 +246,14 @@ def _leg(doc: WorldModel, chiller: str, candidates: Sequence[str]) -> list[str]:
 class Staging(Block):
     """Chiller staging: how many chillers run, and which, with their pumps and valves.
 
-    reads: (header return °C, header supply °C, header flow m³/h, then each chiller's run
-    status). drives: chiller `enable`s, pump `speed`s and valve `position`s; each pump and
-    valve follows the chiller whose leg it is on.
+    reads: (for each chiller its chilled-water entering °C, leaving °C and flow m³/h, then
+    each chiller's run status). drives: chiller `enable`s, pump `speed`s and valve `position`s;
+    each pump and valve follows the chiller whose leg it is on.
 
-    Load = flow × cp × (return − supply). Stage up when the load exceeds `stage_up_load`
+    Load = Σ flow × cp × (entering − leaving) over the chillers whose three readings are
+    known: the heat the chillers take out of the water. Not the header's: its return mixes the
+    hall's return with the water the primary pumps push past the load, which no secondary flow
+    meter sees (#83). Stage up when the load exceeds `stage_up_load`
     (0.9) of the running capacity, or when a commanded chiller does not run (tripped or
     lost), for `stage_up_delay_s`; stage down when the load fits in `stage_down_load` (0.6) of
     one chiller fewer for `stage_down_delay_s`. After a change, `stage_up_inhibit_s` must pass.
@@ -272,7 +275,10 @@ class Staging(Block):
             ]
             for ch in self.chillers
         }
-        self.status_refs = list(binding.reads[3:])
+        n = len(self.chillers)
+        duty = list(binding.reads[: 3 * n])
+        self.duty_refs = [tuple(duty[i : i + 3]) for i in range(0, len(duty), 3)]
+        self.status_refs = list(binding.reads[3 * n :])
         self.capacity = {ch: self._capacity(ch) for ch in self.chillers}
         self.on: list[str] = []
         self.up_timer = 0.0
@@ -297,12 +303,12 @@ class Staging(Block):
         return order
 
     def step(self, t: float, dt: float, bus: SignalBus) -> None:
-        t_ret = _number(bus.read(self.binding.reads[0]))
-        t_sup = _number(bus.read(self.binding.reads[1]))
-        flow = _number(bus.read(self.binding.reads[2]))
         self.load_kw = None
-        if t_ret is not None and t_sup is not None and flow is not None:
-            self.load_kw = max(flow * CP_WATER * (t_ret - t_sup) / 3.6, 0.0)
+        for refs in self.duty_refs:
+            t_ent, t_lvg, flow = (_number(bus.read(r)) for r in refs)
+            if t_ent is not None and t_lvg is not None and flow is not None:
+                duty = max(flow * CP_WATER * (t_ent - t_lvg) / 3.6, 0.0)
+                self.load_kw = (self.load_kw or 0.0) + duty
         status: dict[str, bool | None] = {}
         for ch, reference in zip(self.chillers, self.status_refs, strict=False):
             value = bus.read(reference)

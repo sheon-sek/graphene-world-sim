@@ -21,7 +21,7 @@ from gws_opcua.nodeid import (
     point_node_id,
 )
 from gws_opcua.server import VARIANT_TYPES, PointServer
-from gws_world_model.importers.graphene import Sources, build
+from gws_world_model.importers.graphene import Sources, Supplement, build
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -81,22 +81,34 @@ async def _browse(client: Client) -> dict[str, tuple[str, ua.VariantType]]:
 
 
 def test_address_space_is_the_asset_model() -> None:
+    """Every Asset Model point, plus the members supplements add to a type for every instance
+    of it (ADR-0003 Amendment 5), and nothing else."""
     sources = Sources.read(ROOT / "data" / "graphene")
-    expected = {
+    asset_model = {
         point_node_id(p.path): (p.path, VARIANT_TYPES[p.data_type])
         for p in sources.export.points.values()
     }
+    doc = build(sources)
+    added = {
+        point_node_id(f"{asset}/{member}"): (f"{asset}/{member}", VARIANT_TYPES[spec.data_type])
+        for sup in Supplement.load_all()
+        for type_id, members in sup.members.items()
+        for member, spec in members.items()
+        for asset in sources.export.instances
+        if doc.assets[asset].type == type_id
+    }
+    expected = asset_model | added
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         endpoint = f"opc.tcp://127.0.0.1:{s.getsockname()[1]}/graphene/twin"
 
     async def main() -> dict[str, tuple[str, ua.VariantType]]:
         server = PointServer(endpoint)
-        await server.set_points(point_specs(build(sources)))
+        await server.set_points(point_specs(doc))
         async with server, Client(endpoint, timeout=30) as client:
             assert await client.get_namespace_index(NAMESPACE_URI) == 2
             return await _browse(client)
 
     browsed = asyncio.run(main())
-    assert len(expected) == 8811
+    assert len(asset_model) == 8811 and len(added) == 94
     assert browsed == expected

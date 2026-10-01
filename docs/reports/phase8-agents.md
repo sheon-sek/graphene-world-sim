@@ -90,10 +90,10 @@ scripts, which swept the tag tree and the historian in batches.
 | Condenser fouling cut the COP without raising head pressure | the model | fixed, 0829524 (the chiller lifts further) |
 | Chiller starts counted per second | the model | fixed, f582735 (#80) |
 | Transformer Efficiency read Bad with nothing to divide | the OPC UA server | fixed, 5312d9f: reads BadNoData, ADR-0003 Amendment 4 (#81) |
-| Plant load and cooling demand fall to 0 when the header reads above return | the model | open, #83 |
-| No standby chiller in the scenario scope; staging asks for R_C2 in vain | the scenario scope | open, #84 |
-| Modelica parameter warnings at compile time | the model | open, #82 |
-| No pump trip point, no UPS battery, mode or bypass points, no loss-of-voltage alarm on incomers, no chiller high-pressure cut-out set point, FCU flow without a unit, UPS "Input Power" carrying volts | the Graphene source data | open, #85 |
+| Plant load and cooling demand fall to 0 when the header reads above return | the model | fixed after this report (#83): load is the heat the chillers take out of the water |
+| No standby chiller in the scenario scope; staging asks for R_C2 in vain | the scenario scope | fixed after this report (#84): R_C2, its pumps, valves and towers are in scope |
+| Modelica parameter warnings at compile time | the model | fixed after this report (#82), ADR-0002 Amendment 6 |
+| No pump trip point, no UPS battery, mode or bypass points, no loss-of-voltage alarm on incomers, no chiller high-pressure cut-out set point, FCU flow without a unit, UPS "Input Power" carrying volts | the Graphene source data | pump trip, UPS battery charge, on-battery and input active power in kW, incomer loss of voltage and the FCU flow unit added after this report (#85), ADR-0003 Amendment 5; the UPS mode, bypass and the cut-out set point remain |
 | Historian quality 192 reads `good: false`; `historian_browse` fails; `tag_query` continuation stops after the first page | ignition-mcp | noted only; ignition-mcp is reference only here |
 
 ## Limitations
