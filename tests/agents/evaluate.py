@@ -178,7 +178,7 @@ def gateway_for_run(restage: bool) -> tuple[Gateway, dict[str, Any]]:
         state, age = {}, math.inf
     if age < REUSE_S and not restage:
         try:
-            gateway = Gateway.attach(state["token"])
+            gateway = Gateway.attach(state["url"], state["token"])
             probe = "/data/api/v1/resources/list/ignition/opc-connection"
             if gateway.request("GET", probe)[0] == 200:
                 # Nothing of the earlier run may be visible to the next analyst.

@@ -96,17 +96,25 @@ class Gateway:
         return cls._find(setup["namespace"])
 
     @classmethod
-    def attach(cls, token: str) -> Gateway:
-        """The gateway igdev already runs, kept as an earlier run left it, with that run's API
-        token. Not `igdev setup`: it finds the running gateway's ports taken and moves them."""
-        gateway = cls._find(igdev("gateway", "status")["namespace"])
+    def attach(cls, url: str, token: str) -> Gateway:
+        """The gateway igdev already runs at `url`, kept as an earlier run left it, with that
+        run's API token. Neither `igdev setup` nor `gateway wait`: setup finds the running
+        gateway's ports taken and records new ones, which `wait` would then poll."""
+        try:
+            urllib.request.urlopen(url + "/StatusPing", timeout=5).close()
+        except OSError as e:
+            raise GatewayError(f"no gateway at {url}: {e}") from e
+        gateway = cls._at(url, igdev("gateway", "status")["namespace"])
         gateway.token = token
         return gateway
 
     @classmethod
     def _find(cls, namespace: str) -> Gateway:
         igdev("gateway", "wait", "--timeout", "10m")
-        url = igdev("gateway", "url")["url"]
+        return cls._at(igdev("gateway", "url")["url"], namespace)
+
+    @classmethod
+    def _at(cls, url: str, namespace: str) -> Gateway:
         container = _sh(
             "docker", "ps", "-q", "--filter", f"label=com.docker.compose.project={namespace}"
         ).split()[0]
