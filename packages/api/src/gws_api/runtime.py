@@ -25,11 +25,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.websockets import WebSocketDisconnect
 
 from gws_api.history import History
-from gws_runtime import gate
+from gws_runtime import gate, scenarios
 from gws_runtime.compiler import CompileError
 from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session, Swap
 from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
-from gws_world_model.model import AssetSignal, InstrumentSource, PointClass
+from gws_world_model.model import AssetSignal, InstrumentSource, PointClass, WorldModel
 from gws_world_model.store import NotFound, SqliteStore
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
@@ -282,27 +282,72 @@ SWAP_POLL_S = 0.2
 MAX_LAG_STEPS = 10
 """A run further behind its schedule than this many steps stops trying to catch up."""
 
-PRESETS = [
-    Preset(
-        id="dh01-slice",
-        name="DH01 cooling slice",
-        description=(
-            "Chiller 1 with its legs, the buffer tanks, the secondary pump, cooling block 1, "
-            "FCU1 and CCU-001, five towers and DH01's IT load at "
-            f"{gate.IT_FRACTION:.0%} of design."
+SITE_DT = 1.0
+"""The step the whole site was validated at in real time (the Phase 6 site gate)."""
+
+
+def _presets(doc: WorldModel) -> list[Preset]:
+    return [
+        Preset(
+            id="site",
+            name="Whole site",
+            description=(
+                f"Every asset of the World Model ({len(doc.assets)}), so all "
+                f"{len(doc.point_bindings):,} points are served over OPC UA: both plants, all "
+                "eight halls, the electrical network, the network devices and the building "
+                "services. "
+                "The first start compiles the whole-site model, which takes about 15 minutes and "
+                "about 8 GB of memory; later starts use the FMU cache."
+            ),
+            scope=sorted(doc.assets),
+            dt=SITE_DT,
+            room="DH01",
+            conditions={},
         ),
-        scope=list(gate.SLICE),
-        dt=gate.DT,
-        room="DH01",
-        conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
-    )
-]
+        Preset(
+            id="incidents",
+            name="Incident scope",
+            description=(
+                "What the Phase 8 incident scenarios run on: the whole site's electrical network, "
+                "network devices, building services and controllers, with the thermofluid plant "
+                "of chiller 1 and its standby chiller 2. It compiles in about a minute, so it "
+                f"starts fast. DH01's IT load at {gate.IT_FRACTION:.0%} of design."
+            ),
+            scope=sorted(scenarios.scope(doc)),
+            dt=gate.DT,
+            room="DH01",
+            conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+        ),
+        Preset(
+            id="dh01-slice",
+            name="DH01 cooling slice",
+            description=(
+                "A small part of the site for a quick look: chiller 1 with its legs, the buffer "
+                "tanks, the secondary pump, cooling block 1, FCU1 and CCU-001, five towers and "
+                f"DH01's IT load at {gate.IT_FRACTION:.0%} of design. Only the points of these "
+                "assets are live."
+            ),
+            scope=list(gate.SLICE),
+            dt=gate.DT,
+            room="DH01",
+            conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+        ),
+    ]
 
 
 @router.get("/presets", response_model=list[Preset])
-def presets() -> list[Preset]:
-    """Scopes worth simulating, with the step and conditions they were validated at."""
-    return PRESETS
+def presets(request: Request, store: Store) -> list[Preset]:
+    """Scopes worth simulating, from the whole site down to a slice, with the step and
+    conditions they were validated at. The scopes are those of the head revision."""
+    head = store.head()
+    if head is None:
+        return []
+    if not hasattr(request.app.state, "presets"):
+        request.app.state.presets = {}
+    cache: dict[int, list[Preset]] = request.app.state.presets
+    if head not in cache:
+        cache[head] = _presets(store.get(head))
+    return cache[head]
 
 
 # --- sessions ----------------------------------------------------------------------------------
@@ -330,8 +375,8 @@ async def create_session(body: SessionIn, runtime: Runtime, store: Store) -> Ses
             revision=revision,
             resolve=store.get,
         )
-    except CompileError as e:
-        raise HTTPException(422, str(e)) from e
+    except (CompileError, ValueError) as e:
+        raise HTTPException(422, str(e).strip("'\"")) from e
     live = _Live(runtime.new_id(), session)
     runtime.sessions[live.id] = live
     return _out(live)

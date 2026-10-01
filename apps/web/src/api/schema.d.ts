@@ -70,7 +70,8 @@ export interface paths {
         };
         /**
          * Presets
-         * @description Scopes worth simulating, with the step and conditions they were validated at.
+         * @description Scopes worth simulating, from the whole site down to a slice, with the step and
+         *     conditions they were validated at. The scopes are those of the head revision.
          */
         get: operations["presets_api_runtime_presets_get"];
         put?: never;

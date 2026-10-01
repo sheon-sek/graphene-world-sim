@@ -108,7 +108,11 @@ def test_history_propagation_and_diagnostics(client: TestClient) -> None:
     assert "UPS/UPS 1" in diagnostics["not_modelled"] and diagnostics["last_error"] is None
 
 
-def test_presets_name_the_slice(client: TestClient) -> None:
-    [preset] = client.get(f"{API}/presets").json()
+def test_presets_go_from_the_whole_site_down_to_the_slice(client: TestClient) -> None:
+    site, incidents, preset = client.get(f"{API}/presets").json()
+    assets = {a["id"] for a in client.get("/api/world-model/assets").json()}
+    assert site["id"] == "site" and set(site["scope"]) == assets and site["dt"] == 1.0
+    assert incidents["id"] == "incidents" and "UPS/UPS 1" in incidents["scope"]
+    assert "Chiller/R_C2" in incidents["scope"] and len(incidents["scope"]) < len(assets)
     assert preset["id"] == "dh01-slice" and "FCU/L1_FCU1" in preset["scope"]
     assert preset["conditions"] == {"it_fraction": {"DH01": 0.3}}
