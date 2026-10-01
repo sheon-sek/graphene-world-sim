@@ -57,9 +57,36 @@ def _evap_approach(s: Mapping[str, float | bool | str]) -> float:
     return 0.5 + 2.0 * _f(s, "PLR")
 
 
+CARNOT_EFFICIENCY = 0.30
+"""Share of the Carnot COP a healthy chiller reaches, a floor under the lift its COP implies."""
+
+
+def _lift(s: Mapping[str, float | bool | str]) -> tuple[float, float]:
+    """(lift, healthy lift) in K, condensing minus evaporating temperature.
+
+    Healthy, the condensing approach over the leaving condenser water grows with load. A chiller
+    that needs more power for the same cooling (condenser fouling) must be lifting further:
+    with a fixed share of the Carnot COP, the lift is that share of the evaporating temperature
+    over the COP. The larger of the two holds, so a healthy chiller keeps its approach."""
+    t_evap = _f(s, "TChwLvg") - _evap_approach(s)
+    healthy = _f(s, "TCwLvg") + 0.5 + 2.5 * _f(s, "PLR") - t_evap
+    q, p = s.get("QEva"), s.get("P")  # P is the electrical model's, absent out of its scope
+    if not s.get("running") or not isinstance(q, float | int) or not isinstance(p, float | int):
+        return healthy, healthy
+    if q <= 0 or p <= 0:
+        return healthy, healthy
+    return max(healthy, CARNOT_EFFICIENCY * t_evap * p / q), healthy
+
+
 def _cond_k(s: Mapping[str, float | bool | str]) -> float:
-    """Condensing temperature: the approach over the leaving condenser water grows with load."""
-    return _f(s, "TCwLvg") + 0.5 + 2.5 * _f(s, "PLR")
+    """Condensing temperature: the evaporating temperature plus the lift."""
+    return _f(s, "TChwLvg") - _evap_approach(s) + _lift(s)[0]
+
+
+def _motor_current(s: Mapping[str, float | bool | str]) -> float:
+    """Share of full-load amps: the compressor's load, and more where it lifts further."""
+    lift, healthy = _lift(s)
+    return _f(s, "PLR") * (lift / healthy if healthy > 0 else 1.0)
 
 
 def _chiller_state(s: Mapping[str, float | bool | str]) -> str:
@@ -393,7 +420,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
         },
         derived={
             # Motor current follows the compressor's load, as a share of full-load amps.
-            "motor_current": ("1", lambda s: _f(s, "PLR")),
+            "motor_current": ("1", _motor_current),
             "evap_approach": ("dK", _evap_approach),
             "p_evap": ("Pa", lambda s: _psat_pa(_f(s, "TChwLvg") - _evap_approach(s))),
             "p_cond": ("Pa", lambda s: _psat_pa(_cond_k(s))),
