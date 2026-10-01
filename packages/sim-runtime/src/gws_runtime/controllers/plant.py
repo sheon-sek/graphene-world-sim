@@ -276,6 +276,14 @@ class Staging(Block):
             for ch in self.chillers
         }
         n = len(self.chillers)
+        if len(binding.reads) != 4 * n:
+            # A World Model imported before #83 reads three header signals and the statuses.
+            raise ValueError(
+                f"control binding {binding.id} ({self.function}) reads {len(binding.reads)} "
+                f"signals; it needs 4 per chiller for its {n} chillers (entering and leaving "
+                "temperature and flow of each, then each one's status). The World Model was "
+                "probably imported by an older version: import it again."
+            )
         duty = list(binding.reads[: 3 * n])
         self.duty_refs = [tuple(duty[i : i + 3]) for i in range(0, len(duty), 3)]
         self.status_refs = list(binding.reads[3 * n :])

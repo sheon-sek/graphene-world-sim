@@ -8,12 +8,15 @@ export { fallBackToWebGL, rendererInfo, type RendererInfo } from "./backend";
  * where the browser has no WebGPU. Everything drawn uses node materials and TSL, so the same
  * scene and post-processing run on both backends.
  */
-export async function createRenderer(canvas: unknown): Promise<THREE.WebGPURenderer> {
+export async function createRenderer(
+  canvas: unknown,
+  { antialias = true }: { antialias?: boolean } = {},
+): Promise<THREE.WebGPURenderer> {
   const forceWebGL = new URLSearchParams(globalThis.location?.search ?? "").has("webgl");
   const make = (webgl: boolean) =>
     new THREE.WebGPURenderer({
       canvas: canvas as HTMLCanvasElement,
-      antialias: true,
+      antialias,
       forceWebGL: webgl,
       powerPreference: "high-performance",
     });

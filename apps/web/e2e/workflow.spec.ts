@@ -37,7 +37,7 @@ test("add, configure, connect, run, fault, observe and recover", async ({ page }
 
   // A session on the slice.
   await page.goto("./?3d=0#/");
-  await page.getByRole("button", { name: "Start session" }).click();
+  await page.getByTestId("preset-dh01-slice").getByRole("button", { name: "Start session" }).click();
   await expect(page).toHaveURL(/#\/s\/[^/]+\/operations/, { timeout: COMPILE });
   await expect(page.getByTestId("session-chip")).toContainText("18 assets");
   await expect(page.getByTestId(`asset-${FCU1}`)).toHaveAttribute("data-status", "on");

@@ -22,6 +22,10 @@ export interface SessionState {
   dismiss(): void;
 }
 
+function sameJson(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 const path = (sid: string) => ({ params: { path: { sid } } });
 
 export const useSession = create<SessionState>((set, get) => ({
@@ -41,7 +45,9 @@ export const useSession = create<SessionState>((set, get) => ({
     if (!sid) return;
     try {
       const info = await must(api.GET("/api/runtime/sessions/{sid}", path(sid)));
-      if (get().sid === sid) set({ info });
+      // Keep the same object while nothing changed, so the poll does not re-render (and the 3D
+      // view does not rebuild) every two seconds.
+      if (get().sid === sid && !sameJson(get().info, info)) set({ info });
     } catch (e) {
       set({ error: String(e instanceof ApiError ? e.message : e) });
     }

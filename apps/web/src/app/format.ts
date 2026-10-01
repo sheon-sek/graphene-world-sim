@@ -24,6 +24,7 @@ export function display(signal: string, value: Scalar, unit?: string | null): { 
 
 /** The SI unit a runtime state signal is in, from the naming convention of the models. */
 export function guessUnit(signal: string): string | null {
+  if (/^THD/.test(signal)) return null; // total harmonic distortion, not a temperature
   if (/^T[A-Z]|^T$/.test(signal)) return "K";
   if (/^m\w*_flow$|_flow$/.test(signal)) return "kg/s";
   if (/^(P|Q|PFan|QEva|P_in|P_charge|demand)$/.test(signal)) return "W";

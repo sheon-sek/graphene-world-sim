@@ -25,11 +25,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.websockets import WebSocketDisconnect
 
 from gws_api.history import History
-from gws_runtime import gate
+from gws_runtime import gate, scenarios
 from gws_runtime.compiler import CompileError
 from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session, Swap
 from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
-from gws_world_model.model import AssetSignal, InstrumentSource, PointClass
+from gws_world_model.model import AssetSignal, InstrumentSource, PointClass, WorldModel
 from gws_world_model.store import NotFound, SqliteStore
 
 router = APIRouter(prefix="/runtime", tags=["runtime"])
@@ -282,27 +282,126 @@ SWAP_POLL_S = 0.2
 MAX_LAG_STEPS = 10
 """A run further behind its schedule than this many steps stops trying to catch up."""
 
-PRESETS = [
-    Preset(
-        id="dh01-slice",
-        name="DH01 cooling slice",
-        description=(
-            "Chiller 1 with its legs, the buffer tanks, the secondary pump, cooling block 1, "
-            "FCU1 and CCU-001, five towers and DH01's IT load at "
-            f"{gate.IT_FRACTION:.0%} of design."
+SITE_DT = 1.0
+"""The step the whole site was validated at in real time (the Phase 6 site gate)."""
+
+
+def _presets(doc: WorldModel) -> list[Preset]:
+    return [
+        Preset(
+            id="site",
+            name="Whole site",
+            description=(
+                f"Every asset of the World Model ({len(doc.assets)}), so all "
+                f"{len(doc.point_bindings):,} points are served over OPC UA: both plants, all "
+                "eight halls, the electrical network, the network devices and the building "
+                "services. "
+                "The first start compiles the whole-site model, which takes about 15 minutes and "
+                "about 8 GB of memory; later starts use the FMU cache."
+            ),
+            scope=sorted(doc.assets),
+            dt=SITE_DT,
+            room="DH01",
+            conditions={},
         ),
-        scope=list(gate.SLICE),
-        dt=gate.DT,
-        room="DH01",
-        conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
-    )
-]
+        Preset(
+            id="incidents",
+            name="Incident scope",
+            description=(
+                "What the Phase 8 incident scenarios run on: the whole site's electrical network, "
+                "network devices, building services and controllers, with the thermofluid plant "
+                "of chiller 1 and its standby chiller 2. It compiles in about a minute, so it "
+                f"starts fast. DH01's IT load at {gate.IT_FRACTION:.0%} of design."
+            ),
+            scope=sorted(scenarios.scope(doc)),
+            dt=gate.DT,
+            room="DH01",
+            conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+        ),
+        Preset(
+            id="dh01-slice",
+            name="DH01 cooling slice",
+            description=(
+                "A small part of the site for a quick look: chiller 1 with its legs, the buffer "
+                "tanks, the secondary pump, cooling block 1, FCU1 and CCU-001, five towers and "
+                f"DH01's IT load at {gate.IT_FRACTION:.0%} of design. Only the points of these "
+                "assets are live."
+            ),
+            scope=list(gate.SLICE),
+            dt=gate.DT,
+            room="DH01",
+            conditions={"it_fraction": {"DH01": gate.IT_FRACTION}},
+        ),
+    ]
+
+
+def _head_presets(app: Any, store: SqliteStore) -> list[Preset]:
+    head = store.head()
+    if head is None:
+        return []
+    if not hasattr(app.state, "presets"):
+        app.state.presets = {}
+    cache: dict[int, list[Preset]] = app.state.presets
+    if head not in cache:
+        cache[head] = _presets(store.get(head))
+    return cache[head]
 
 
 @router.get("/presets", response_model=list[Preset])
-def presets() -> list[Preset]:
-    """Scopes worth simulating, with the step and conditions they were validated at."""
-    return PRESETS
+def presets(request: Request, store: Store) -> list[Preset]:
+    """Scopes worth simulating, from the whole site down to a slice, with the step and
+    conditions they were validated at. The scopes are those of the head revision."""
+    return _head_presets(request.app, store)
+
+
+class Startup(BaseModel):
+    """The session the server starts by itself (`gws_api.serve --start`)."""
+
+    preset: str | None = None
+    state: Literal["off", "starting", "running", "failed"] = "off"
+    session: str | None = None
+    error: str | None = None
+
+
+@router.get("/startup", response_model=Startup)
+def startup(request: Request) -> Startup:
+    """Whether the server is starting a session by itself, and which one once it runs."""
+    found: Startup = getattr(request.app.state, "startup", Startup())
+    return found
+
+
+async def autostart(app: Any, preset_id: str, speed: float = 1.0) -> None:
+    """Start a session from a preset, serve it over OPC UA and run it, so a gateway reads live
+    points as soon as the models are built (the first build of the whole site compiles for
+    several minutes; the server answers meanwhile)."""
+    app.state.startup = state = Startup(preset=preset_id, state="starting")
+    try:
+        store: SqliteStore = app.state.store
+        preset = next((p for p in _head_presets(app, store) if p.id == preset_id), None)
+        if preset is None:
+            raise ValueError(f"no preset {preset_id!r}")
+        revision = store.head()
+        doc = store.get(revision) if revision is not None else None
+        if doc is None:
+            raise ValueError("the World Model has no revision yet")
+        session = await run_in_threadpool(
+            Session, doc, preset.scope, dt=preset.dt, revision=revision, resolve=store.get
+        )
+        if not hasattr(app.state, "runtime"):
+            app.state.runtime = Registry()
+        registry: Registry = app.state.runtime
+        live = _Live(registry.new_id(), session)
+        registry.sessions[live.id] = live
+        if preset.conditions:
+            await _do(live, session.apply, "conditions", {"changes": preset.conditions})
+        bridge = getattr(app.state, "opcua", None)
+        if bridge is not None and bridge.live is None:
+            await bridge.attach(live)
+        await _do(live, session.run, speed)
+        _start(live)
+        state.session, state.state = live.id, "running"
+    except Exception as e:  # noqa: BLE001 - reported on /startup, the server keeps serving
+        state.state, state.error = "failed", str(getattr(e, "detail", e))
 
 
 # --- sessions ----------------------------------------------------------------------------------
@@ -330,8 +429,8 @@ async def create_session(body: SessionIn, runtime: Runtime, store: Store) -> Ses
             revision=revision,
             resolve=store.get,
         )
-    except CompileError as e:
-        raise HTTPException(422, str(e)) from e
+    except (CompileError, ValueError) as e:
+        raise HTTPException(422, str(e).strip("'\"")) from e
     live = _Live(runtime.new_id(), session)
     runtime.sessions[live.id] = live
     return _out(live)
@@ -641,8 +740,10 @@ def diagnostics(sid: str, runtime: Runtime) -> dict[str, Any]:
 
 
 @router.websocket("/sessions/{sid}/stream")
-async def stream(websocket: WebSocket, sid: str) -> None:
-    """Every frame the session produces, as JSON, starting with the current one."""
+async def stream(websocket: WebSocket, sid: str, max_hz: float = 2.0) -> None:
+    """The session's frames as JSON, starting with the current one, at most `max_hz` a second
+    (0: every frame). A whole-site frame is over a megabyte, so a client gets the newest frame
+    at that rate rather than every step of a fast run."""
     registry: Registry | None = getattr(websocket.app.state, "runtime", None)
     live = registry.sessions.get(sid) if registry is not None else None
     if live is None:
@@ -653,8 +754,16 @@ async def stream(websocket: WebSocket, sid: str) -> None:
     live.subscribers.add(queue)
     try:
         await websocket.send_json(live.session.sim.frame().to_json())
+        interval = 1.0 / max_hz if max_hz > 0 else 0.0
+        loop = asyncio.get_running_loop()
         while True:
-            await websocket.send_json(await queue.get())
+            frame = await queue.get()
+            while not queue.empty():
+                frame = queue.get_nowait()
+            sent = loop.time()
+            await websocket.send_json(frame)
+            if interval:
+                await asyncio.sleep(max(0.0, interval - (loop.time() - sent)))
     except WebSocketDisconnect:
         pass
     finally:

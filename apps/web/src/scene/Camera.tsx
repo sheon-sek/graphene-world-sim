@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import CameraControls from "camera-controls";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three/webgpu";
 import { useSim } from "../live/store";
 import type { HallLayout, SceneAsset } from "./hall/layout";
@@ -43,36 +43,111 @@ export function overview(layout: HallLayout): { eye: THREE.Vector3; target: THRE
   return { eye, target };
 }
 
-export function CameraRig({ layout }: { layout: HallLayout }) {
+/**
+ * Camera controls for a 3D view: left drag orbits; right drag, middle drag or Shift with left
+ * drag pans; the wheel zooms towards the cursor; the arrow keys pan. The controls live as
+ * long as the canvas, and keep an on-demand frame loop drawing while the camera moves.
+ */
+export function useCameraControls({ maxDistance = 70 }: { maxDistance?: number } = {}): CameraControls {
   const { camera, gl } = useThree();
   const controls = useMemo(() => new CameraControls(camera, gl.domElement), [camera, gl]);
-  const selected = useSim((s) => s.selected);
-  const first = useRef(true);
+  const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
     controls.minDistance = 1.5;
-    controls.maxDistance = 70;
+    controls.maxDistance = maxDistance;
     controls.maxPolarAngle = Math.PI * 0.48;
     controls.dollyToCursor = true;
     controls.smoothTime = 0.45;
-    const { eye, target } = overview(layout);
-    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, false);
-    return () => controls.dispose();
-  }, [controls, layout]);
-
-  useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    const asset = layout.assets.find((a) => a.id === selected);
-    const { eye, target } = asset ? viewOf(asset, layout) : overview(layout);
-    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, true);
-  }, [selected, layout, controls]);
+    controls.draggingSmoothTime = 0.08;
+    const A = CameraControls.ACTION;
+    controls.mouseButtons.left = A.ROTATE;
+    controls.mouseButtons.middle = A.TRUCK;
+    controls.mouseButtons.right = A.TRUCK;
+    controls.mouseButtons.wheel = A.DOLLY;
+    const element = gl.domElement;
+    // Shift turns the left button into pan, for trackpads and one-button mice.
+    const shift = (e: KeyboardEvent) => {
+      controls.mouseButtons.left = e.shiftKey ? A.TRUCK : A.ROTATE;
+    };
+    const keys = (e: KeyboardEvent) => {
+      const step = Math.max(0.5, controls.distance * 0.05);
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
+      const moves: Record<string, [number, number]> = {
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+        ArrowUp: [0, step],
+        ArrowDown: [0, -step],
+      };
+      const move = moves[e.key];
+      if (!move) return;
+      e.preventDefault();
+      void controls.truck(move[0], 0, true);
+      void controls.forward(move[1], true);
+    };
+    const menu = (e: Event) => e.preventDefault();
+    element.addEventListener("contextmenu", menu);
+    window.addEventListener("keydown", shift);
+    window.addEventListener("keyup", shift);
+    element.tabIndex = 0;
+    element.addEventListener("keydown", keys);
+    if (window.gws) window.gws.camera = controls; // for end-to-end tests and the console
+    return () => {
+      window.removeEventListener("keydown", shift);
+      window.removeEventListener("keyup", shift);
+      element.removeEventListener("keydown", keys);
+      element.removeEventListener("contextmenu", menu);
+      controls.dispose();
+    };
+  }, [controls, gl, maxDistance]);
 
   useFrame((_, dt) => {
-    controls.update(dt);
+    if (controls.update(dt)) invalidate();
   }, -1);
+  return controls;
+}
+
+export interface View {
+  eye: THREE.Vector3;
+  target: THREE.Vector3;
+}
+
+/**
+ * Start at `home`, and fly to `viewFor(selected)` once each time the selection changes. A new
+ * view (a new layout, or a new canvas after a quality change) starts at the selection
+ * without a flight.
+ */
+export function useFlyToSelection(controls: CameraControls, home: View, viewFor: (id: string) => View | null): void {
+  const selected = useSim((s) => s.selected);
+  const flownTo = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    void controls.setLookAt(home.eye.x, home.eye.y, home.eye.z, home.target.x, home.target.y, home.target.z, false);
+    flownTo.current = undefined;
+  }, [controls, home]);
+  useEffect(() => {
+    if (flownTo.current === selected) return;
+    const fly = flownTo.current !== undefined;
+    flownTo.current = selected;
+    const view = selected ? viewFor(selected) : null;
+    if (!fly && !view) return;
+    const { eye, target } = view ?? home;
+    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, fly);
+  }, [selected, controls, home, viewFor]);
+}
+
+/** The hall's camera: the overview, and a flight to the selected asset. */
+export function CameraRig({ layout }: { layout: HallLayout }) {
+  const controls = useCameraControls();
+  const home = useMemo(() => overview(layout), [layout]);
+  const viewFor = useCallback(
+    (id: string) => {
+      const asset = layout.assets.find((a) => a.id === id);
+      return asset ? viewOf(asset, layout) : null;
+    },
+    [layout],
+  );
+  useFlyToSelection(controls, home, viewFor);
   return null;
 }
 

@@ -89,8 +89,8 @@ export async function loadLiveHall(api: string, session: string, room: string): 
         id: a.id,
         name: a.name,
         type: a.type,
-        x: a.location.x ?? 0,
-        y: a.location.y ?? 0,
+        x: (a.location.x ?? 0) - hallRoom.x,
+        y: (a.location.y ?? 0) - hallRoom.y,
         in_scope: scope.has(a.id),
         parameters: numeric({ ...defaults, ...a.parameters }),
       };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, must, type Asset, type ComponentType, type Connection, type Site } from "../api/client";
+import { api, must, type Asset, type ComponentType, type Connection, type Schemas, type Site } from "../api/client";
 import type { HallWorld, PlacedAsset } from "../scene/hall/layout";
 
 /** One World Model revision as the workspaces read it: small enough to load whole. */
@@ -89,8 +89,9 @@ export function hallOf(world: WorldData, room: string, scope: Set<string>): Hall
       id: a.id,
       name: a.name,
       type: a.type,
-      x: loc.x,
-      y: loc.y,
+      // The World Model places assets in site coordinates; the hall is drawn from its corner.
+      x: loc.x - (r.x ?? 0),
+      y: loc.y - (r.y ?? 0),
       in_scope: scope.has(a.id),
       parameters: numeric(parametersOf(world, a)),
     });
@@ -100,4 +101,93 @@ export function hallOf(world: WorldData, room: string, scope: Set<string>): Hall
     floor: { id: floor.id, elevation_m: floor.elevation_m ?? 0, height_m: floor.height_m ?? 4.5 },
     assets: placed,
   };
+}
+
+export type PointBinding = Schemas["PointBinding-Output"];
+
+/** Every point of a revision, and which asset each one belongs to. */
+export interface PointIndex {
+  bindings: Map<string, PointBinding>;
+  /** Export path → the asset it measures or commands. */
+  owner: Map<string, string>;
+  /** Asset → its points, in path order. */
+  byAsset: Map<string, string[]>;
+  /** Asset → its fault and alarm points. */
+  alarms: Map<string, string[]>;
+  /** Points no asset owns (site dashboards, plant views). */
+  loose: string[];
+}
+
+const pointCache = new Map<number, Promise<PointIndex>>();
+
+/** The asset a point belongs to: the asset its source reads, the asset its instrument is on,
+ * or the asset whose id is the longest prefix of its path. */
+export function indexPoints(
+  bindings: PointBinding[],
+  assetIds: Iterable<string>,
+  instrumentAsset: Map<string, string>,
+): PointIndex {
+  const ids = [...assetIds].sort((a, b) => b.length - a.length);
+  const index: PointIndex = { bindings: new Map(), owner: new Map(), byAsset: new Map(), alarms: new Map(), loose: [] };
+  for (const b of [...bindings].sort((x, y) => x.path.localeCompare(y.path))) {
+    index.bindings.set(b.path, b);
+    const src = b.source as { kind: string; asset?: string; instrument?: string } | undefined;
+    let owner: string | undefined;
+    if (src?.kind === "asset_signal") owner = src.asset;
+    else if (src?.kind === "instrument" && src.instrument) owner = instrumentAsset.get(src.instrument);
+    owner ??= ids.find((id) => b.path.startsWith(`${id}/`));
+    if (!owner) {
+      index.loose.push(b.path);
+      continue;
+    }
+    index.owner.set(b.path, owner);
+    const list = index.byAsset.get(owner) ?? [];
+    list.push(b.path);
+    index.byAsset.set(owner, list);
+    if (b.point_class === "fault_alarm") {
+      const alarms = index.alarms.get(owner) ?? [];
+      alarms.push(b.path);
+      index.alarms.set(owner, alarms);
+    }
+  }
+  return index;
+}
+
+export function loadPoints(world: WorldData): Promise<PointIndex> {
+  let found = pointCache.get(world.revision);
+  if (!found) {
+    const revision = world.revision;
+    found = (async () => {
+      const bindings: PointBinding[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const page = await must(
+          api.GET("/api/world-model/points", { params: { query: { revision, offset, limit: 1000 } } }),
+        );
+        bindings.push(...page.items);
+        if (bindings.length >= page.total || page.items.length === 0) break;
+      }
+      const instruments = await must(api.GET("/api/world-model/instruments", { params: { query: { revision } } }));
+      const instrumentAsset = new Map(instruments.map((i) => [i.id, i.asset]));
+      return indexPoints(bindings, world.assets.keys(), instrumentAsset);
+    })();
+    found.catch(() => pointCache.delete(revision));
+    pointCache.set(revision, found);
+  }
+  return found;
+}
+
+export function usePoints(world: WorldData | null): PointIndex | null {
+  const [index, setIndex] = useState<PointIndex | null>(null);
+  useEffect(() => {
+    if (!world) return;
+    let alive = true;
+    loadPoints(world).then(
+      (i) => alive && setIndex(i),
+      () => alive && setIndex(null),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [world]);
+  return index;
 }

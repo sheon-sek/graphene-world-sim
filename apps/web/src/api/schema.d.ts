@@ -70,7 +70,8 @@ export interface paths {
         };
         /**
          * Presets
-         * @description Scopes worth simulating, with the step and conditions they were validated at.
+         * @description Scopes worth simulating, from the whole site down to a slice, with the step and
+         *     conditions they were validated at. The scopes are those of the head revision.
          */
         get: operations["presets_api_runtime_presets_get"];
         put?: never;
@@ -484,6 +485,26 @@ export interface paths {
          *     why. `GET` on the same path follows it.
          */
         post: operations["swap_api_runtime_sessions__sid__swap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runtime/startup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Startup
+         * @description Whether the server is starting a session by itself, and which one once it runs.
+         */
+        get: operations["startup_api_runtime_startup_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1768,6 +1789,24 @@ export interface components {
              */
             label?: string;
         };
+        /**
+         * Startup
+         * @description The session the server starts by itself (`gws_api.serve --start`).
+         */
+        Startup: {
+            /** Error */
+            error?: string | null;
+            /** Preset */
+            preset?: string | null;
+            /** Session */
+            session?: string | null;
+            /**
+             * State
+             * @default off
+             * @enum {string}
+             */
+            state?: "off" | "starting" | "running" | "failed";
+        };
         /** StaticValue */
         StaticValue: {
             /**
@@ -2857,6 +2896,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    startup_api_runtime_startup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Startup"];
                 };
             };
         };

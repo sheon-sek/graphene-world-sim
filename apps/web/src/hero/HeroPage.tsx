@@ -3,6 +3,7 @@ import { kelvinToCelsius, ReplaySource, stateNumber, type Frame } from "../live/
 import { loadLiveHall, loadRecording, type LoadedHall } from "../live/hall";
 import { useSim } from "../live/store";
 import { frameStats, HallView, type ViewOptions } from "../scene/HallView";
+import { initialQuality, saveQuality } from "../scene/quality";
 import { layoutHall, type HallLayout, type SceneAsset } from "../scene/hall/layout";
 import { DESIGN_FAN_RPM, FAN_SLOW_MOTION } from "../scene/hall/units";
 import { rendererInfo } from "../scene/renderer";
@@ -336,6 +337,7 @@ export function HeroPage() {
     const q = new URLSearchParams(window.location.search);
     return { airField: q.get("field") !== "0", ambientOcclusion: q.get("ao") !== "0", bloom: q.get("bloom") !== "0" };
   });
+  const [quality, setQuality] = useState(() => initialQuality().quality);
   const layout = useMemo(() => (hall ? layoutHall(hall.world) : null), [hall]);
   if (error) return <div className="hero-error">Could not load the hall: {error}</div>;
   if (!hall || !layout) return <div className="hero-loading">Loading the hall…</div>;
@@ -344,7 +346,7 @@ export function HeroPage() {
   return (
     <div className="hero">
       <SceneBoundary>
-        <HallView world={hall.world} options={options} />
+        <HallView world={hall.world} options={options} quality={quality} onSlow={() => setQuality("low")} />
       </SceneBoundary>
       <div className="hud top-left">
         <span className="eyebrow">
@@ -370,6 +372,18 @@ export function HeroPage() {
               {label}
             </label>
           ))}
+          <label>
+            <input
+              type="checkbox"
+              checked={quality === "low"}
+              onChange={() => {
+                const next = quality === "low" ? "high" : "low";
+                saveQuality(next);
+                setQuality(next);
+              }}
+            />
+            Low GPU mode
+          </label>
         </div>
         {options.airField && <Legend />}
       </div>

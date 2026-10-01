@@ -156,3 +156,13 @@ def test_plant_load_is_the_heat_the_chillers_take_out_of_the_water(
     assert out["cooling_load_demand"] == pytest.approx(load)
     assert out["plant_load"] == pytest.approx(100.0 * load / 3500.0)  # of the running R_C1
     assert UNITS["cooling_load_demand"] == "kW" and UNITS["plant_load"] == "%"
+
+
+def test_staging_wired_the_pre_83_way_names_the_fix_instead_of_failing_every_step(
+    doc: WorldModel,
+) -> None:
+    staging = next(b for b in doc.control_bindings.values() if b.function == "chw_staging")
+    statuses = staging.reads[-4:]
+    old = staging.model_copy(update={"reads": ("HDR/TS-01", "HDR/TS-02", "HDR/FM-01", *statuses)})
+    with pytest.raises(ValueError, match="import it again"):
+        controllers.BLOCKS["chw_staging"](old, doc)

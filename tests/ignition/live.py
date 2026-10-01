@@ -128,6 +128,8 @@ class Simulator:
                 str(work / "world.sqlite"),
                 "--import-graphene",
                 str(ROOT / "data" / "graphene"),
+                "--start",
+                "none",
             ],
             cwd=ROOT,
             stdout=log.open("wb"),
