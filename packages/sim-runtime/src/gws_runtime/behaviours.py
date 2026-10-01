@@ -247,12 +247,46 @@ def _outputs(**units: str) -> dict[str, Output]:
     }
 
 
+CHILLER_CAP_FUN_T = (
+    9.187704e-01,
+    4.509452e-02,
+    -5.119187e-03,
+    -2.095629e-04,
+    -6.432511e-04,
+    2.791545e-03,
+)
+CHILLER_EIR_FUN_T = (
+    7.511044e-01,
+    2.415573e-02,
+    -5.310959e-03,
+    -1.073812e-03,
+    1.189538e-04,
+    1.604476e-03,
+)
+CHILLER_T_CON_ENT_NOMINAL_C = 24.89
+"""The Carrier 19XR record's capacity and EIR curves (biquadratic in leaving CHW and entering
+CW, degC) and the condenser temperature they are rated at."""
+
+
+def _rated_at(curve: tuple[float, ...], t_eva_c: float, t_con_c: float) -> str:
+    """The curve scaled to read 1 at the asset's own rating point, as Modelica Buildings
+    expects of a performance record (#82): the record is rated at 5.56 degC leaving CHW, the
+    plant at its set point."""
+    a = curve
+    x, y = t_eva_c, t_con_c
+    at = a[0] + a[1] * x + a[2] * x * x + a[3] * y + a[4] * y * y + a[5] * x * y
+    return "{" + ", ".join(modelica_real(c / at) for c in a) + "}"
+
+
 def _chiller(p: Params) -> dict[str, str]:
     q = si(_num(p, "q_nominal"), "kW")
     t_set = si(_num(p, "chw_supply_temp_set"), "degC")
+    t_set_c = _num(p, "chw_supply_temp_set")
     record = (
         "Buildings.Fluid.Chillers.Data.ElectricEIR.ElectricEIRChiller_Carrier_19XR_1076kW_5_52COP_Vanes("
         f"QEva_flow_nominal={modelica_real(-q)}, "
+        f"capFunT={_rated_at(CHILLER_CAP_FUN_T, t_set_c, CHILLER_T_CON_ENT_NOMINAL_C)}, "
+        f"EIRFunT={_rated_at(CHILLER_EIR_FUN_T, t_set_c, CHILLER_T_CON_ENT_NOMINAL_C)}, "
         f"COP_nominal={modelica_real(_num(p, 'cop_nominal'))}, "
         f"mEva_flow_nominal={modelica_real(_num(p, 'm_chw_flow_nominal'))}, "
         f"mCon_flow_nominal={modelica_real(_num(p, 'm_cw_flow_nominal'))}, "

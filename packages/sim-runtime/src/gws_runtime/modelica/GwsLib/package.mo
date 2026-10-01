@@ -332,7 +332,7 @@ package GwsLib "Equipment models of the Graphene World Simulator: one model per 
       m2_flow_nominal = mAir_flow_nominal,
       dp1_nominal = dpWat_nominal / 2,
       dp2_nominal = dpAir_nominal,
-      Q_flow_nominal = Q_flow_nominal,
+      Q_flow_nominal = -Q_flow_nominal "Heat flows from the air (2) to the water (1)",
       configuration = Buildings.Fluid.Types.HeatExchangerConfiguration.CounterFlow,
       T_a1_nominal = TWatEnt_nominal,
       T_a2_nominal = TAirEnt_nominal);

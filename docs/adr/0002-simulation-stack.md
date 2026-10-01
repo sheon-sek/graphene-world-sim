@@ -214,3 +214,25 @@ Phase 7 (#8) built decision 4 of Amendment 1.
   it is exported, a point binding for each member of its type's point template; `remove`
   takes an asset out with its connections, instruments and point bindings, and drops the
   references other entities hold to it.
+
+## Amendment 6: Library sanity checks (2026-10-01)
+
+Modelica Buildings checks some parameters at initialisation. Each warning these checks raised
+on the slice is either fixed or accepted here (#82):
+
+- **Coil heat flow sign (fixed).** `DryCoilEffectivenessNTU` takes `Q_flow_nominal` as the heat
+  flowing from medium 1 (the water) to medium 2 (the air). A cooling coil moves heat the other
+  way, so `GwsLib.FanCoil` now passes its design cooling as a negative number.
+- **Chiller capacity curve at nominal (fixed).** The Carrier 19XR record is rated at 5.56 °C
+  leaving chilled water, and the plant runs at its 14 °C set point. At 14 °C the record's
+  capacity curve read 1.116 and its EIR curve read 0.654, so the chiller ran about 1.7 times
+  its rated COP. Each asset's record now scales both curves to read 1 at its own leaving set
+  point (`behaviours._rated_at`). The chiller then meets `cop_nominal` at its rating and
+  draws more power at part load than before (about 97 kW instead of 66 kW for the slice's
+  373 kW). Scenario truths that quoted absolute power no longer do.
+- **Cooling tower water flow ratio (accepted).** `YorkCalc` sizes its fill so that the tower
+  meets `TApp_nominal` at the nominal flow, and reports the result as `FRWat`. The site's
+  towers are rated at a 5 K approach at 27 °C wet bulb, which the York correlation reaches
+  only at 1.12 times its own design water-to-air ratio. 1.12 is inside the correlation's
+  validity (a liquid-to-gas ratio up to 8). Only the declared type of `FRWat` (a mass
+  fraction, at most 1) is exceeded, so the warning is accepted and the site's rating kept.

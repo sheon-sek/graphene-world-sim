@@ -128,7 +128,7 @@
             "cause": "sensor bias"
           }
         ],
-        "impact": "The biased header reading reaches the plant controls, which act on it: the chiller is trimmed colder (supply about 1.5 K colder, input power about 66 to 81 kW), and secondary flow drops from about 73 to 53 m3/h as the colder water meets the load with less flow. The plant itself is healthy; the fault is in the instrument.",
+        "impact": "The biased header reading reaches the plant controls, which act on it: the chiller is trimmed colder (supply about 1.5 K colder, at more input power), and secondary flow drops from about 73 to 53 m3/h as the colder water meets the load with less flow. The plant itself is healthy; the fault is in the instrument.",
         "evidence": [
           "Chiller System Control/Chillers/CH-001/CHWS Temp",
           "Chiller_System/Main Headers/FM-01/Flow Rate",
