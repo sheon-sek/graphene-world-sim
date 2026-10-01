@@ -16,7 +16,10 @@ gws_api.serve (one process)
 ## How it is hosted
 
 `uv run python -m gws_api.serve` starts the web app, the API, the simulation and the OPC UA
-server in one process. There is nothing else to run.
+server in one process. There is nothing else to run. On start it also starts the **Whole site**
+session and serves it, so all 8,905 points go live as soon as the models are built (about 10
+minutes the first time, seconds after that); `--start none` leaves OPC UA idle until you serve a
+session.
 
 | Setting | Value | Change it with |
 | --- | --- | --- |
@@ -53,8 +56,8 @@ reach it as long as port 4840 is open in the firewall.
 
 ## Which session it serves
 
-The server publishes one session at a time. Starting a session from the web app serves it when
-nothing else is served. To choose another:
+The server publishes one session at a time: by default the whole site it started itself.
+Starting a session from the web app serves it when nothing else is served. To choose another:
 
 - in the web app, open the session's **OPC UA & Ignition** workspace and press **Serve this
   session over OPC UA**; or
@@ -90,7 +93,8 @@ endpoint filled in.
    - every point as a tag at its export path;
    - an alarm on each Boolean fault or alarm point;
    - with `?history=<provider>`, history on every tag (sampled at most once a second).
-4. **Serve a session** in the web app. The tags turn Good within seconds.
+4. The tags turn Good within seconds of the whole site running. If you started the server with
+   another `--start`, serve a **Whole site** session in the web app.
 
 A gateway that already has the original Graphene `[DemoTwin]` provider needs no new tags: its
 item paths use the same node ids. Point its OPC UA connection at the simulator's endpoint.

@@ -78,9 +78,10 @@ nor the libraries are there, starting a session fails with these steps.
 ```sh
 pnpm --filter @gws/web build
 uv run python -m gws_api.serve --import-graphene data/graphene --web apps/web/dist
+# starts the whole site and serves it on opc.tcp://<host>:4840/graphene/twin (--start none to skip)
 # http://127.0.0.1:8000/          the Sessions page, then Operations, Engineering, Diagnostics
 # http://127.0.0.1:8000/#/hero    the recorded hero data hall
-# ?3d=0                           the plan view instead of the 3D hall
+# ?view=site|hall|plan            the whole building in 3D (default), one hall in 3D, or the 2D plan
 ```
 
 The end-to-end workflow test (add, configure, connect, run, fault, observe, recover) starts
