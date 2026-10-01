@@ -112,16 +112,15 @@ export function CameraRig({ layout }: { layout: HallLayout }) {
   }, [controls, layout]);
 
   useEffect(() => {
-    if (flownTo.current === undefined) {
-      // The first selection seen is where the page opened; the overview stays.
-      flownTo.current = selected;
-      return;
-    }
     if (flownTo.current === selected) return;
+    // A new view (a new hall, or a new canvas after a quality change) starts at the selected
+    // asset without a flight; after that, each new selection flies there once.
+    const fly = flownTo.current !== undefined;
     flownTo.current = selected;
     const asset = layout.assets.find((a) => a.id === selected);
+    if (!fly && !asset) return;
     const { eye, target } = asset ? viewOf(asset, layout) : overview(layout);
-    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, true);
+    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, fly);
   }, [selected, layout, controls]);
 
   const invalidate = useThree((s) => s.invalidate);
