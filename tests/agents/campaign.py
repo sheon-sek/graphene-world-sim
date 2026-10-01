@@ -82,6 +82,7 @@ def main() -> None:
     parser.add_argument("scenarios", nargs="*")
     parser.add_argument("--analyse-only", action="store_true")
     parser.add_argument("--baseline-s", type=float, default=300.0)
+    parser.add_argument("--speed", type=float, default=10.0)
     args = parser.parse_args()
     if args.analyse_only:
         print(analyse(json.loads((evaluate.AGENTS / "run.json").read_text())), flush=True)
@@ -94,7 +95,7 @@ def main() -> None:
             continue  # analysed by an earlier, interrupted campaign
         ensure_docker()
         try:
-            record = evaluate.run(scenario, args.baseline_s)
+            record = evaluate.run(scenario, args.baseline_s, args.speed)
         except Exception as e:  # one failed run must not stop the campaign
             print(f"{scenario}: run failed: {type(e).__name__}: {e}", flush=True)
             continue

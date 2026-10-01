@@ -93,9 +93,20 @@ class Gateway:
         the container."""
         setup = igdev("setup")
         igdev("gateway", "reset", "--timeout", "10m")
+        return cls._find(setup["namespace"])
+
+    @classmethod
+    def attach(cls, token: str) -> Gateway:
+        """The gateway igdev already runs, kept as an earlier run left it, with that run's API
+        token."""
+        gateway = cls._find(igdev("setup")["namespace"])
+        gateway.token = token
+        return gateway
+
+    @classmethod
+    def _find(cls, namespace: str) -> Gateway:
         igdev("gateway", "wait", "--timeout", "10m")
         url = igdev("gateway", "url")["url"]
-        namespace = setup["namespace"]
         container = _sh(
             "docker", "ps", "-q", "--filter", f"label=com.docker.compose.project={namespace}"
         ).split()[0]
@@ -252,6 +263,19 @@ class Gateway:
     def find(self, resource_type: str, name: str) -> tuple[int, Any]:
         quoted = urllib.parse.quote(name, safe="")
         return self.request("GET", f"/data/api/v1/resources/find/{resource_type}/{quoted}")
+
+    def delete(self, resource_type: str, name: str) -> None:
+        """Delete a named resource; one that does not exist is already gone."""
+        status, found = self.find(resource_type, name)
+        if status == 404:
+            return
+        if status != 200:
+            raise GatewayError(f"find {resource_type} {name}: {status}")
+        quoted = urllib.parse.quote(name, safe="")
+        path = f"/data/api/v1/resources/{resource_type}/{quoted}/{found['signature']}"
+        status, body = self.request("DELETE", path)
+        if status not in (200, 204):
+            raise GatewayError(f"delete {resource_type} {name}: {status} {str(body)[:600]}")
 
     def import_tags(self, provider: str, document: dict[str, Any]) -> Any:
         def attempt() -> Any:

@@ -29,6 +29,7 @@ Rules of the evaluation:
   questions or field checks; say which field checks you would ask for.
 - The gateway's clock is UTC. Everything of interest happened between {WINDOW_START} and
   {WINDOW_END} UTC; the plant has been held in its final state since.
+{PLAYBACK}
 
 Finish with your incident answer, then a final fenced `json` block, exactly this shape:
 
