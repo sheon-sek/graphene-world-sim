@@ -61,6 +61,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runtime/builds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current Builds
+         * @description Models being fetched or compiled right now, with how far each has got.
+         */
+        get: operations["current_builds_api_runtime_builds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runtime/presets": {
         parameters: {
             query?: never;
@@ -998,6 +1018,27 @@ export interface components {
             /** Session */
             session: string | null;
         };
+        /** BuildOut */
+        BuildOut: {
+            /** Assets */
+            assets: number;
+            /** Done */
+            done: number;
+            /** Elapsed S */
+            elapsed_s: number;
+            /** Memory Gb */
+            memory_gb: number | null;
+            /** Memory Limit Gb */
+            memory_limit_gb: number | null;
+            /** Memory Needed Gb */
+            memory_needed_gb: number;
+            /** Partition */
+            partition: string;
+            /** Phase */
+            phase: string;
+            /** Total */
+            total: number;
+        };
         /**
          * ChangeClass
          * @description How an edit reaches a running simulation, from cheapest to most disruptive.
@@ -1796,6 +1837,12 @@ export interface components {
         Startup: {
             /** Error */
             error?: string | null;
+            /**
+             * Physics
+             * @default ready
+             * @enum {string}
+             */
+            physics?: "ready" | "building" | "failed";
             /** Preset */
             preset?: string | null;
             /** Session */
@@ -1806,6 +1853,11 @@ export interface components {
              * @enum {string}
              */
             state?: "off" | "starting" | "running" | "failed";
+            /**
+             * Waiting
+             * @default 0
+             */
+            waiting?: number;
         };
         /** StaticValue */
         StaticValue: {
@@ -2029,6 +2081,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_builds_api_runtime_builds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuildOut"][];
                 };
             };
         };

@@ -1,0 +1,49 @@
+name: fmu-cache
+
+# Compiles the FMUs of every preset and publishes the new ones to the `fmu-cache` release,
+# which `gws_runtime.compiler.PREBUILT` downloads from, so starting the whole site does not
+# need OpenModelica or 8 GB of memory on the user's machine. FMUs are named by the hash of
+# their source, so an old one is never served for a changed model.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/sim-runtime/src/**"
+      - "packages/world-model/src/**"
+      - "packages/api/src/gws_api/runtime.py"
+      - "packages/api/src/gws_api/prebuild.py"
+      - "data/graphene/**"
+      - "spikes/phase1/Dockerfile"
+      - ".github/workflows/fmu-cache.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fmu-cache
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GWS_OMC_IMAGE: gws-omc:1.25
+      GWS_FMU_CACHE: ${{ github.workspace }}/.fmu-cache
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          python-version: "3.12"
+      - run: uv sync --locked
+      - run: docker build -t gws-omc:1.25 spikes/phase1
+      - run: uv run python -m gws_api.prebuild data/graphene --list new.txt
+      - name: Publish the new FMUs
+        run: |
+          if [ ! -s new.txt ]; then echo "nothing new"; exit 0; fi
+          gh release view fmu-cache >/dev/null 2>&1 || gh release create fmu-cache --prerelease \
+            --title "Prebuilt FMUs" --notes "Models the runtime downloads by partition name. Built by the fmu-cache workflow."
+          xargs gh release upload fmu-cache --clobber < new.txt

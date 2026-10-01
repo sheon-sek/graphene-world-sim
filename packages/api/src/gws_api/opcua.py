@@ -200,6 +200,10 @@ class Bridge:
 
     async def _publish(self, frame: dict[str, Any]) -> None:
         points: dict[str, dict[str, Any]] = frame["points"]
+        if self._removing is not None:
+            # A frame stepped before the swap can arrive after it: removed points keep
+            # reading removed until their nodes go.
+            points = {p: v for p, v in points.items() if p not in self._removing[1]}
         bindings = self.doc.point_bindings if self.doc is not None else {}
         values = {
             path: PointValue(

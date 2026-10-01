@@ -186,6 +186,73 @@
         "title": "AttachIn",
         "type": "object"
       },
+      "BuildOut": {
+        "properties": {
+          "assets": {
+            "title": "Assets",
+            "type": "integer"
+          },
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "elapsed_s": {
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "memory_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory Gb"
+          },
+          "memory_limit_gb": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory Limit Gb"
+          },
+          "memory_needed_gb": {
+            "title": "Memory Needed Gb",
+            "type": "number"
+          },
+          "partition": {
+            "title": "Partition",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "partition",
+          "assets",
+          "phase",
+          "elapsed_s",
+          "done",
+          "total",
+          "memory_gb",
+          "memory_limit_gb",
+          "memory_needed_gb"
+        ],
+        "title": "BuildOut",
+        "type": "object"
+      },
       "ChangeClass": {
         "description": "How an edit reaches a running simulation, from cheapest to most disruptive.",
         "enum": [
@@ -2234,6 +2301,16 @@
             ],
             "title": "Error"
           },
+          "physics": {
+            "default": "ready",
+            "enum": [
+              "ready",
+              "building",
+              "failed"
+            ],
+            "title": "Physics",
+            "type": "string"
+          },
           "preset": {
             "anyOf": [
               {
@@ -2266,6 +2343,11 @@
             ],
             "title": "State",
             "type": "string"
+          },
+          "waiting": {
+            "default": 0,
+            "title": "Waiting",
+            "type": "integer"
           }
         },
         "title": "Startup",
@@ -2671,6 +2753,32 @@
         "summary": "Attach",
         "tags": [
           "opcua"
+        ]
+      }
+    },
+    "/api/runtime/builds": {
+      "get": {
+        "description": "Models being fetched or compiled right now, with how far each has got.",
+        "operationId": "current_builds_api_runtime_builds_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BuildOut"
+                  },
+                  "title": "Response Current Builds Api Runtime Builds Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current Builds",
+        "tags": [
+          "runtime"
         ]
       }
     },

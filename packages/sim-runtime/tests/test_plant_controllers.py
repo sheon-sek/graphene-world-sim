@@ -166,3 +166,16 @@ def test_staging_wired_the_pre_83_way_names_the_fix_instead_of_failing_every_ste
     old = staging.model_copy(update={"reads": ("HDR/TS-01", "HDR/TS-02", "HDR/FM-01", *statuses)})
     with pytest.raises(ValueError, match="import it again"):
         controllers.BLOCKS["chw_staging"](old, doc)
+
+
+def test_rotation_keeps_trying_until_a_chiller_reports_its_hours(
+    blocks: dict[str, Block],
+) -> None:
+    rotation = blocks["rotation"]
+    bus = Bus({})
+    rotation.step(0.0, 1.0, bus)
+    assert bus.writes == {}
+    hours = dict.fromkeys(rotation.binding.reads, 100.0)
+    bus.readings.update(hours | {rotation.binding.reads[1]: 10.0})
+    rotation.step(1.0, 1.0, bus)
+    assert list(bus.writes.values()) == [rotation.chillers[1]]  # type: ignore[attr-defined]

@@ -17,9 +17,10 @@ gws_api.serve (one process)
 
 `uv run python -m gws_api.serve` starts the web app, the API, the simulation and the OPC UA
 server in one process. There is nothing else to run. On start it also starts the **Whole site**
-session and serves it, so all 8,905 points go live as soon as the models are built (about 10
-minutes the first time, seconds after that); `--start none` leaves OPC UA idle until you serve a
-session.
+session and serves it within seconds. The electrical, network, service and controller points
+are live at once; the thermofluid plant's points join when its model is downloaded (seconds) or,
+offline, built once on this machine (10 to 15 minutes), and read Bad (out of service) until
+then. `--start none` leaves OPC UA idle until you serve a session.
 
 | Setting | Value | Change it with |
 | --- | --- | --- |
