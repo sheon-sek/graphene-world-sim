@@ -121,6 +121,8 @@ def classify(
         return PointClass.ENERGY_INTEGRAL
     if path.startswith(_FAULT_ALARM_FOLDERS) or _FAULT_ALARM.search(name):
         return PointClass.FAULT_ALARM
+    if path in ("IPS/Load Status", "IPS/Device Status"):  # the IPS panel's alarm contacts
+        return PointClass.FAULT_ALARM
     if type_id == "Water Leak Cable Sensor" and name == "Status":
         return PointClass.FAULT_ALARM
     if _EQUIPMENT_STATE_FIRST.search(name):
