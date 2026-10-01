@@ -409,14 +409,14 @@ class Rotation(Block):
         self.elapsed += dt
         if self.elapsed < float(self.param("interval_s", 3600.0)):
             return
-        self.elapsed = 0.0
         hours = []
         for ch, reference in zip(self.chillers, self.binding.reads, strict=True):
             value = _number(bus.read(reference))
             if value is not None:
                 hours.append((value, ch))
         if not hours:
-            return
+            return  # no chiller reports its hours yet (out of scope, or still starting): retry
+        self.elapsed = 0.0
         lead = min(hours)[1]
         if lead != self.lead:
             self.lead = lead
