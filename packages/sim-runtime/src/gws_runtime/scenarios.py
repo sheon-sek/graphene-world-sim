@@ -90,10 +90,23 @@ class ScenarioSet:
         return round(seconds / self.dt)
 
 
+STANDBY: tuple[str, ...] = (
+    "Chiller/R_C2",
+    "Chiller/R_CP2",
+    "Chiller/R_CP6",
+    "Chiller/R_CV2",
+    "Chiller/R_CV6",
+    "Chiller/R_CV10",
+    *(f"Cooling Towers Plant/R_P1_CT{i}" for i in range(6, 11)),
+)
+"""Chiller 2 with its legs and its five towers: the standby the staging controller starts when
+chiller 1 trips (#84)."""
+
+
 def scope(doc: WorldModel) -> frozenset[str]:
-    """Where scenarios run: the Phase 1 slice's thermofluid plant plus every asset without a
-    thermofluid model (electrical, network, services, controllers, instruments). It compiles
-    to the slice's one partition, so it runs fast and needs no new FMU, while every power and
+    """Where scenarios run: the Phase 1 slice's thermofluid plant and its standby chiller, plus
+    every asset without a thermofluid model (electrical, network, services, controllers,
+    instruments). It compiles to one small partition, so it runs fast, while every power and
     network fault reaches the points Ignition reads."""
     thermofluid = {
         a
@@ -101,7 +114,7 @@ def scope(doc: WorldModel) -> frozenset[str]:
         if (behaviour := doc.component_types[asset.type].behaviour or "").startswith("GwsLib.")
         and not behaviour.startswith("GwsLib.Electrical.")
     }
-    return frozenset(SLICE) | (doc.assets.keys() - thermofluid)
+    return frozenset(SLICE) | frozenset(STANDBY) | (doc.assets.keys() - thermofluid)
 
 
 def schedule(

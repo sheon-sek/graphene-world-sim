@@ -27,11 +27,11 @@
             "cause": "trip"
           }
         ],
-        "impact": "The only running chiller stops: chilled-water supply temperature climbs, the buffer tanks discharge and DH01 air warms.",
+        "impact": "The running chiller stops and the staging controller starts the standby, R_C2, within about a minute; chilled-water supply holds at its set point and DH01 is unaffected, but the plant has lost its standby until R_C1 is reset.",
         "evidence": [
           "Chiller/R_C1/System Failure_Trip",
           "Chiller/R_C1/Input Power",
-          "Chiller/R_C1/Discharge - Low Temperature"
+          "Chiller/R_C2/On_Off"
         ]
       }
     },
