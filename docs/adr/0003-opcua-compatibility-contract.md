@@ -102,3 +102,10 @@ When the served session swaps to another revision (ADR-0002 Amendment 5):
 - Points the new revision removes read **BadNotFound** for ten seconds, so a client sees them
   go Bad, and then their nodes are removed with a GeneralModelChangeEvent. An Ignition tag on
   a removed point then reports that its item no longer exists.
+
+## Amendment 4: A ratio with nothing to divide by (2026-10-01)
+
+A ratio aggregate whose denominator is zero, such as `Dashboard/Transformer Efficiency` while
+the site runs on gensets and every incomer reads 0 kW, has no value. It reads
+**BadNoData** (reason `undefined`), not plain Bad. An analyst then sees "no data", not a fault
+in the data chain (#81).

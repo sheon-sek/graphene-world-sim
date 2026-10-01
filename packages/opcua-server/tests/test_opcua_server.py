@@ -12,7 +12,7 @@ import pytest
 from asyncua import Client, ua
 
 from gws_opcua.points import PointSpec, PointValue, Scalar
-from gws_opcua.server import PointServer
+from gws_opcua.server import PointServer, status_code
 
 T0 = datetime(2026, 9, 30, 12, 0, tzinfo=UTC)
 SPECS = [
@@ -191,3 +191,8 @@ def test_rejects_a_path_that_is_both_a_point_and_a_folder() -> None:
                 await server.set_points([PointSpec("A/B", "Int4"), PointSpec("A/B/C", "Int4")])
 
     asyncio.run(main())
+
+
+def test_a_ratio_with_nothing_to_divide_by_reads_no_data() -> None:
+    assert status_code("bad", "undefined").value == ua.StatusCodes.BadNoData
+    assert status_code("bad", "not_simulated").value == ua.StatusCodes.BadConfigurationError
