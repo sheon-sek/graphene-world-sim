@@ -532,9 +532,29 @@ code {
   font: 600 16px var(--font-display);
 }
 
-.view-bar button {
+.view-bar button,
+.view-bar select {
   pointer-events: auto;
   font: 12px var(--font-ui);
+}
+
+.view-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.view-hint {
+  position: absolute;
+  z-index: 3;
+  left: 10px;
+  bottom: 8px;
+  margin: 0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 45%);
+  color: rgb(255 255 255 / 75%);
+  font: 11px var(--font-ui);
+  pointer-events: none;
 }
 
 .view .hall-canvas {
@@ -1082,4 +1102,64 @@ code {
 
 .applied p {
   margin: 0 0 8px;
+}
+
+/* --- OPC UA & Ignition ------------------------------------------------------------------- */
+
+.opcua {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 8px;
+  padding: 8px;
+  height: 100%;
+  overflow: auto;
+  align-content: start;
+}
+
+.opcua p {
+  line-height: 1.5;
+}
+
+.opcua .facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  margin: 12px 0;
+}
+
+.opcua .facts dt {
+  color: var(--muted, #8b98a5);
+}
+
+.opcua .facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.opcua .steps {
+  padding-left: 20px;
+  line-height: 1.55;
+}
+
+.opcua .steps li + li {
+  margin-top: 6px;
+}
+
+.opcua .form-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.opcua .actions {
+  margin: 10px 0;
+}
+
+.opcua a.button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border: 1px solid #2b8fba;
+  border-radius: 6px;
+  background: #1b6f93;
+  color: var(--ink);
+  text-decoration: none;
 }

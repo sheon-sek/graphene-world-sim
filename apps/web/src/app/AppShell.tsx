@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { EngineeringPage } from "../eng/EngineeringPage";
 import { OperationsPage } from "../ops/OperationsPage";
 import { DiagnosticsPage } from "../ops/DiagnosticsPage";
+import { OpcUaPage } from "../ops/OpcUaPage";
 import { Lifecycle } from "./Lifecycle";
 import { href, WORKSPACES, type Workspace } from "./router";
 import { usePoll, useSession } from "./session";
@@ -10,6 +11,7 @@ const LABEL: Record<Workspace, string> = {
   operations: "Operations",
   engineering: "Engineering",
   diagnostics: "Diagnostics",
+  opcua: "OPC UA & Ignition",
 };
 
 function Banner() {
@@ -47,6 +49,7 @@ export function AppShell({ sid, workspace }: { sid: string; workspace: Workspace
   let body: ReactNode = null;
   if (workspace === "operations") body = <OperationsPage sid={sid} />;
   else if (workspace === "engineering") body = <EngineeringPage sid={sid} />;
+  else if (workspace === "opcua") body = <OpcUaPage sid={sid} />;
   else body = <DiagnosticsPage sid={sid} />;
   return (
     <div className="shell">

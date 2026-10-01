@@ -9,8 +9,8 @@ export type Route =
   | { name: "hero" }
   | { name: "session"; session: string; workspace: Workspace };
 
-export type Workspace = "operations" | "engineering" | "diagnostics";
-export const WORKSPACES: Workspace[] = ["operations", "engineering", "diagnostics"];
+export type Workspace = "operations" | "engineering" | "diagnostics" | "opcua";
+export const WORKSPACES: Workspace[] = ["operations", "engineering", "diagnostics", "opcua"];
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
