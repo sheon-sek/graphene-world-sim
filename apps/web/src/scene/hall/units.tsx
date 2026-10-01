@@ -22,6 +22,8 @@ export function Pickable({ id, children }: { id: string; children: ReactNode }) 
       userData={{ assetId: id }}
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
+        // A drag that started on the asset orbits or pans the camera; it does not select.
+        if (e.delta > 4) return;
         select(id);
       }}
       onPointerOver={(e: ThreeEvent<PointerEvent>) => {

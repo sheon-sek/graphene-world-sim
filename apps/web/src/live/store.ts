@@ -43,7 +43,7 @@ export const useSim = create<SimState>((set, get) => ({
 declare global {
   interface Window {
     /** The client store, for end-to-end tests and the browser console. */
-    gws?: { store: typeof useSim };
+    gws?: { store: typeof useSim; camera?: unknown };
   }
 }
 

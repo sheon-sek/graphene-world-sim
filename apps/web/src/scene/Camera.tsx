@@ -43,11 +43,18 @@ export function overview(layout: HallLayout): { eye: THREE.Vector3; target: THRE
   return { eye, target };
 }
 
+/**
+ * Orbit, pan and zoom around the hall, and fly to the selected asset.
+ *
+ * Left drag orbits; right drag, middle drag or Shift with left drag pans; the wheel zooms
+ * towards the cursor; the arrow keys pan. The controls live as long as the canvas: the
+ * overview is set when the hall changes, and a flight starts only when the selection changes.
+ */
 export function CameraRig({ layout }: { layout: HallLayout }) {
   const { camera, gl } = useThree();
   const controls = useMemo(() => new CameraControls(camera, gl.domElement), [camera, gl]);
   const selected = useSim((s) => s.selected);
-  const first = useRef(true);
+  const flownTo = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     controls.minDistance = 1.5;
@@ -55,23 +62,72 @@ export function CameraRig({ layout }: { layout: HallLayout }) {
     controls.maxPolarAngle = Math.PI * 0.48;
     controls.dollyToCursor = true;
     controls.smoothTime = 0.45;
+    controls.draggingSmoothTime = 0.08;
+    const A = CameraControls.ACTION;
+    controls.mouseButtons.left = A.ROTATE;
+    controls.mouseButtons.middle = A.TRUCK;
+    controls.mouseButtons.right = A.TRUCK;
+    controls.mouseButtons.wheel = A.DOLLY;
+    const element = gl.domElement;
+    // Shift turns the left button into pan, for trackpads and one-button mice.
+    const shift = (e: KeyboardEvent) => {
+      controls.mouseButtons.left = e.shiftKey ? A.TRUCK : A.ROTATE;
+    };
+    const keys = (e: KeyboardEvent) => {
+      const step = Math.max(0.5, controls.distance * 0.05);
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
+      const moves: Record<string, [number, number]> = {
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+        ArrowUp: [0, step],
+        ArrowDown: [0, -step],
+      };
+      const move = moves[e.key];
+      if (!move) return;
+      e.preventDefault();
+      void controls.truck(move[0], 0, true);
+      void controls.forward(move[1], true);
+    };
+    const menu = (e: Event) => e.preventDefault();
+    element.addEventListener("contextmenu", menu);
+    window.addEventListener("keydown", shift);
+    window.addEventListener("keyup", shift);
+    element.tabIndex = 0;
+    if (window.gws) window.gws.camera = controls; // for end-to-end tests and the console
+    element.addEventListener("keydown", keys);
+    return () => {
+      window.removeEventListener("keydown", shift);
+      window.removeEventListener("keyup", shift);
+      element.removeEventListener("keydown", keys);
+      element.removeEventListener("contextmenu", menu);
+      controls.dispose();
+    };
+  }, [controls, gl]);
+
+  useEffect(() => {
     const { eye, target } = overview(layout);
     void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, false);
-    return () => controls.dispose();
+    flownTo.current = undefined;
   }, [controls, layout]);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
+    if (flownTo.current === undefined) {
+      // The first selection seen is where the page opened; the overview stays.
+      flownTo.current = selected;
       return;
     }
+    if (flownTo.current === selected) return;
+    flownTo.current = selected;
     const asset = layout.assets.find((a) => a.id === selected);
     const { eye, target } = asset ? viewOf(asset, layout) : overview(layout);
     void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, true);
   }, [selected, layout, controls]);
 
+  const invalidate = useThree((s) => s.invalidate);
   useFrame((_, dt) => {
-    controls.update(dt);
+    // With the frame loop on demand, keep drawing while the camera is still moving.
+    if (controls.update(dt)) invalidate();
   }, -1);
   return null;
 }
