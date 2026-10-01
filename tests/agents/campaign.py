@@ -5,8 +5,9 @@ mode) whose only door into the plant is `tests/agents/mcp.py`, and keep its answ
     uv run python tests/agents/campaign.py [scenario ...]    # default: every scenario
 
 Answers land in `.agents/results/<scenario>.md` next to the run record `<scenario>.run.json`;
-grading them against the scenarios' truth is a separate, reviewed step. `--analyse-only`
-skips the run and analyses whatever `.agents/run.json` holds.
+grading them against the scenarios' truth is a separate, reviewed step. A scenario that
+already has an answer is skipped, so an interrupted campaign resumes where it stopped.
+`--analyse-only` skips the run and analyses whatever `.agents/run.json` holds.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "ignition"))
 
 import evaluate  # noqa: E402
-from gateway import ROOT  # noqa: E402
+from gateway import ROOT, _wait  # noqa: E402
 
 from gws_runtime.scenarios import ScenarioSet  # noqa: E402
 
@@ -62,6 +63,20 @@ def analyse(record: dict[str, object]) -> Path:
     return out
 
 
+def ensure_docker() -> None:
+    """A cloud container that was reclaimed comes back without its Docker daemon."""
+    if subprocess.run(["docker", "info"], capture_output=True, check=False).returncode == 0:
+        return
+    subprocess.Popen(["dockerd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _wait(
+        "docker",
+        120,
+        lambda: subprocess.run(["docker", "info"], capture_output=True, check=False).returncode
+        == 0,
+        2,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("scenarios", nargs="*")
@@ -75,6 +90,9 @@ def main() -> None:
         s.id for s in ScenarioSet.read(ROOT / "data/scenarios/incidents.json").scenarios
     ]
     for scenario in ids:
+        if (RESULTS / f"{scenario}.md").exists():
+            continue  # analysed by an earlier, interrupted campaign
+        ensure_docker()
         try:
             record = evaluate.run(scenario, args.baseline_s)
         except Exception as e:  # one failed run must not stop the campaign
