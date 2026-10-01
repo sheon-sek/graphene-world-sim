@@ -484,8 +484,18 @@ def _generate(
 
 # --- building ------------------------------------------------------------------------------
 
-IMAGE = os.environ.get("GWS_OMC_IMAGE", "openmodelica/openmodelica:v1.25.0-minimal")
+STOCK_IMAGE = "openmodelica/openmodelica:v1.25.0-minimal"
+"""OpenModelica's own image. It ships no Modelica libraries, so it needs `GWS_OMLIB`."""
+LIBRARY_IMAGE = "gws-omc:1.25"
+"""The stock image with the libraries at /opt/omlib, built from spikes/phase1/Dockerfile."""
 LIBDIR = os.environ.get("GWS_OMLIB", "/opt/omlib")
+IMAGE = os.environ.get("GWS_OMC_IMAGE", STOCK_IMAGE if "GWS_OMLIB" in os.environ else LIBRARY_IMAGE)
+LIBRARIES = ("Modelica 4.0.0", "ModelicaServices 4.0.0", "Complex 4.0.0.mo", "Buildings 11.1.0")
+"""What the build script loads, laid out as `<Name> <version>` so loadModel finds each."""
+SETUP = (
+    "Build the image with the libraries (docker build -t gws-omc:1.25 spikes/phase1), or set "
+    "GWS_OMLIB to a host directory holding " + ", ".join(LIBRARIES) + "; see README.md."
+)
 CACHE = Path(os.environ.get("GWS_FMU_CACHE", Path.home() / ".cache" / "gws-world-sim" / "fmu"))
 
 SCRIPT = """setModelicaPath("{libdir}");
@@ -537,6 +547,24 @@ exec clang "$@"
 """
 
 
+def toolchain_problem(image: str = IMAGE, libdir: str = LIBDIR) -> str | None:
+    """Why the OpenModelica toolchain cannot build, or None. Checked before every build, so a
+    machine without the Modelica libraries fails with the fix instead of an omc scope error."""
+    if not libdir.startswith("/opt/"):
+        missing = [lib for lib in LIBRARIES if not (Path(libdir) / lib).exists()]
+        if missing:
+            return f"GWS_OMLIB={libdir} lacks {', '.join(missing)}. {SETUP}"
+        return None
+    if image == STOCK_IMAGE:
+        return f"{image} has no Modelica libraries. {SETUP}"
+    if shutil.which("docker") is None:
+        return "OpenModelica runs in Docker, and docker is not on the PATH."
+    found = subprocess.run(["docker", "image", "inspect", image], capture_output=True, check=False)
+    if found.returncode != 0:
+        return f"Docker image {image} is not built. {SETUP}"
+    return None
+
+
 def cached(partition: Partition, cache: Path = CACHE) -> Path | None:
     fmu = cache / f"{partition.name}.fmu"
     return fmu if fmu.exists() else None
@@ -547,6 +575,8 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
     the seconds spent compiling (0 for a cache hit)."""
     if (hit := cached(partition, cache)) is not None:
         return hit, 0.0
+    if (problem := toolchain_problem()) is not None:
+        raise CompileError(f"OpenModelica cannot build {partition.name}: {problem}")
     cache.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix=f"{partition.name}-", dir=cache))
     (work / f"{partition.name}.mo").write_text(partition.source, encoding="utf-8")

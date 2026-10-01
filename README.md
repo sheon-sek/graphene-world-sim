@@ -53,6 +53,20 @@ pnpm --filter @gws/web api:gen
 
 Run the application: the API, the runtime and the web app in one process. Starting a session
 compiles its models with OpenModelica (ADR-0002) the first time; later starts use the FMU cache.
+OpenModelica runs in Docker and needs the Modelica Standard Library 4.0.0 and Modelica Buildings
+11.1.0, which OpenModelica's own image does not include. Build the image CI uses once; it
+downloads both libraries from GitHub:
+
+```sh
+docker build -t gws-omc:1.25 spikes/phase1
+```
+
+The runtime uses `gws-omc:1.25` by default. To use a library tree on the host instead, set
+`GWS_OMLIB` to a directory holding `Modelica 4.0.0`, `ModelicaServices 4.0.0`,
+`Complex 4.0.0.mo` and `Buildings 11.1.0` (laid out as in the Dockerfile); the runtime then
+mounts it into `openmodelica/openmodelica:v1.25.0-minimal`. `GWS_OMC_IMAGE` overrides the image
+and `GWS_FMU_CACHE` the cache directory (`~/.cache/gws-world-sim/fmu`). If neither the image
+nor the libraries are there, starting a session fails with these steps.
 
 ```sh
 pnpm --filter @gws/web build
