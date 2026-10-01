@@ -30,14 +30,26 @@ That one process serves:
 | The OPC UA server | `opc.tcp://<this machine>:4840/graphene/twin` |
 
 On start, the server also starts the **Whole site** session, runs it at real time and serves
-it over OPC UA, so Ignition reads every point without anyone opening the web app. The first
-time, building the whole site's models takes about 10 minutes; the web app and API answer
-meanwhile, and the Sessions page shows the progress. Choose another preset with
-`--start incidents` or `--start dh01-slice`, or nothing with `--start none`.
+it over OPC UA, so Ignition reads every point without anyone opening the web app. It runs
+within seconds: the electrical network, network devices, services and controllers need no
+compiled model. The thermofluid plant (chillers, pumps, towers, cooling units, hall air) is
+one physical model compiled to an FMU; until it is ready its points read Bad (out of service),
+and when it is ready it joins the running session without a restart. Choose another preset
+with `--start incidents` or `--start dh01-slice`, or nothing with `--start none`.
 
-Starting a session compiles its models with OpenModelica in Docker the first time. Docker must
-be running and the Modelica libraries available; the README's *Development* section has the
-setup. Compiled models are cached (`~/.cache/gws-world-sim/fmu`), so later starts are fast.
+**Where the plant model comes from.** The models are named by a hash of their source, and
+looked up in this order:
+
+1. the cache (`~/.cache/gws-world-sim/fmu`, or `GWS_FMU_CACHE`): instant;
+2. the prebuilt models CI publishes on the repository's `fmu-cache` release: a download of
+   a few seconds (35 MB for the whole site). `GWS_FMU_PREBUILT=` (empty) turns this off;
+3. built on this machine by OpenModelica in Docker: the README's *Development* section has the
+   setup. The whole site's plant is a large model (121 assets, about 41,000 variables);
+   building it takes about 10 to 15 minutes and about 9 GB of memory, once.
+
+The Sessions page, and a bar at the top of a session, show a build as it runs: the step, the
+C files compiled so far, the time and the memory it uses. A build that runs out of memory, or
+runs longer than an hour (`GWS_COMPILE_TIMEOUT`, seconds), stops with an error that says so.
 
 The World Model is kept in `world.sqlite` in the folder you start from. After you pull a newer
 version, the server adds the newer import as a new revision on start, so an old store does not
@@ -52,7 +64,7 @@ assets) from one revision. Pick by what you need:
 
 | Preset | Assets | Points live over OPC UA | First start | Use it for |
 | --- | --- | --- | --- | --- |
-| **Whole site** | all (777) | all 8,905 | compiles about 10 min, needs about 8 GB of RAM; the server starts it by itself | Feeding a complete Ignition project; the real building |
+| **Whole site** | all (777) | all 8,905 | runs in seconds; the plant joins when its model is downloaded (or built once: 10–15 min, about 9 GB); the server starts it by itself | Feeding a complete Ignition project; the real building |
 | **Incident scope** | 638 | about 6,600 | about 1 min | The Phase 8 fault scenarios: the whole electrical network, network devices, services, with chillers 1 and 2 and their towers |
 | **DH01 cooling slice** | 18 | about 880 | under 1 min | A quick look at one cooling chain in hall DH01 |
 
@@ -166,8 +178,8 @@ quick way to see the 3D view and to check how a computer copes with it.
 | You see | Do |
 | --- | --- |
 | Starting a session fails with a message about the Modelica libraries or the Docker image | Follow the README's *Development* section to set up OpenModelica. |
-| Starting the whole site takes a long time | Expected on the first start (about 10 minutes). Keep the page open. Later starts use the cache. |
-| The whole site fails to compile with an out-of-memory error | Close other heavy programs (an Ignition gateway in Docker uses about 2 GB) and try again; the compiler needs about 8 GB. |
+| The plant assets stay Bad (out of service) for minutes | The plant model is being built on this machine because it could not be downloaded (offline, or a model changed since the last published one). The progress bar shows how far it is; it happens once. |
+| The build stops with an out-of-memory error, or says Docker has too little memory | Close other heavy programs (an Ignition gateway in Docker uses about 2 GB), or give Docker more memory (Docker Desktop: Settings > Resources; WSL: `memory=` in `.wslconfig`). It needs about 9 GB. |
 | A red banner saying a control binding "needs 4 per chiller", or `not enough values to unpack` | The World Model store is from an older version. Restart the server (it re-imports), or start it with `--reimport`. |
 | The 3D view is slow | Choose **Low GPU**, or **Plan**. |
 | Ignition tags read Bad (out of service) | The whole site is still building (see the Sessions page), no session is served, or the point is outside the served session's scope. Serve a **Whole site** session in **OPC UA & Ignition**. |
