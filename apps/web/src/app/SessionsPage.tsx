@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, must, type Preset, type Schemas, type SessionInfo } from "../api/client";
+import { BuildProgress } from "./BuildProgress";
 import { href, navigate } from "./router";
 
 /** Open a running session, or create one from a preset scope. */
@@ -21,8 +22,8 @@ export function SessionsPage() {
     const poll = async () => {
       const s = await must(api.GET("/api/runtime/startup")).catch(() => null);
       setStartup(s);
-      if (s?.state === "starting") timer = window.setTimeout(poll, 3000);
-      else if (s?.state === "running") must(api.GET("/api/runtime/sessions")).then(setSessions, () => undefined);
+      if (s?.state === "running") must(api.GET("/api/runtime/sessions")).then(setSessions, () => undefined);
+      if (s?.state === "starting" || s?.physics === "building") timer = window.setTimeout(poll, 3000);
     };
     void poll();
     return () => window.clearTimeout(timer);
@@ -58,25 +59,8 @@ export function SessionsPage() {
           <a href="https://github.com/sheon-sek/graphene-world-sim/blob/main/docs/guide/user-guide.md">user guide</a>.
         </p>
       </header>
-      {startup?.state === "starting" && (
-        <p className="banner busy" data-testid="startup">
-          The server is starting the {presets.find((p) => p.id === startup.preset)?.name ?? startup.preset} session. The
-          first start of the whole site builds its models, which takes several minutes; it opens here and is served over
-          OPC UA as soon as it runs.
-        </p>
-      )}
-      {startup?.state === "running" && startup.session && (
-        <p className="banner" data-testid="startup">
-          The server started the {presets.find((p) => p.id === startup.preset)?.name ?? startup.preset} session at
-          start-up and serves it over OPC UA.{" "}
-          <a href={href({ name: "session", session: startup.session, workspace: "operations" })}>Open {startup.session}</a>
-        </p>
-      )}
-      {startup?.state === "failed" && (
-        <p className="banner error" role="alert">
-          The server could not start the {startup.preset} session: {startup.error}
-        </p>
-      )}
+      {startup && startup.state !== "off" && <StartupBanner startup={startup} presets={presets} />}
+      <BuildProgress watch={creating !== null || startup?.state === "starting" || startup?.physics === "building"} />
       {error && (
         <p className="banner error" role="alert">
           {error}
@@ -92,12 +76,23 @@ export function SessionsPage() {
               <p className="muted">
                 {p.scope.length} assets · {p.dt} s step · room {p.room}
               </p>
-              <button className="primary" disabled={creating !== null} onClick={() => void create(p)}>
-                {creating === p.id ? "Starting…" : "Start session"}
-              </button>
+              {startup?.preset === p.id && startup.session ? (
+                // The server already runs this preset; a second copy would only build its models again.
+                <a className="button primary" href={href({ name: "session", session: startup.session, workspace: "operations" })}>
+                  Open {startup.session}
+                </a>
+              ) : (
+                <button
+                  className="primary"
+                  disabled={creating !== null || (startup?.preset === p.id && startup.state === "starting")}
+                  onClick={() => void create(p)}
+                >
+                  {creating === p.id ? "Starting…" : "Start session"}
+                </button>
+              )}
               {creating === p.id && (
                 <p className="muted" role="status">
-                  The first start of a scope compiles its models; keep this page open. Later starts use the cache.
+                  The first start of a scope builds its models (progress above). Later starts use the cache.
                 </p>
               )}
             </article>
@@ -143,5 +138,44 @@ export function SessionsPage() {
         <a href="#/hero">Hero data hall</a>, a recorded FCU trip in 3D.
       </p>
     </main>
+  );
+}
+
+function StartupBanner({ startup, presets }: { startup: Schemas["Startup"]; presets: Preset[] }) {
+  const name = presets.find((p) => p.id === startup.preset)?.name ?? startup.preset;
+  const open = startup.session && (
+    <a href={href({ name: "session", session: startup.session, workspace: "operations" })}>Open {startup.session}</a>
+  );
+  if (startup.state === "starting")
+    return (
+      <p className="banner busy" data-testid="startup">
+        The server is starting the {name} session.
+      </p>
+    );
+  if (startup.state === "failed")
+    return (
+      <p className="banner error" role="alert" data-testid="startup">
+        The server could not start the {name} session: {startup.error}
+      </p>
+    );
+  if (startup.physics === "building")
+    return (
+      <p className="banner busy" data-testid="startup">
+        The server runs the {name} session and serves it over OPC UA. {startup.waiting} plant assets (chillers, pumps,
+        towers, cooling units, hall air) join it when their thermofluid model is ready; until then their points read
+        Bad (out of service). {open}
+      </p>
+    );
+  if (startup.physics === "failed")
+    return (
+      <p className="banner error" role="alert" data-testid="startup">
+        The server runs the {name} session, but its thermofluid model could not be built, so {startup.waiting} plant
+        assets are not simulated: {startup.error} {open}
+      </p>
+    );
+  return (
+    <p className="banner" data-testid="startup">
+      The server started the {name} session at start-up and serves it over OPC UA. {open}
+    </p>
   );
 }

@@ -26,7 +26,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from gws_api.history import History
 from gws_runtime import gate, scenarios
-from gws_runtime.compiler import CompileError
+from gws_runtime.compiler import CompileError, builds, cached, plan
 from gws_runtime.lifecycle import TRAJECTORY_EVENTS, Session, Swap
 from gws_runtime.master import ELECTRICAL_UNITS, RuntimeProblem, Simulation
 from gws_world_model.model import AssetSignal, InstrumentSource, PointClass, WorldModel
@@ -295,9 +295,9 @@ def _presets(doc: WorldModel) -> list[Preset]:
                 f"Every asset of the World Model ({len(doc.assets)}), so all "
                 f"{len(doc.point_bindings):,} points are served over OPC UA: both plants, all "
                 "eight halls, the electrical network, the network devices and the building "
-                "services. "
-                "The first start compiles the whole-site model, which takes about 15 minutes and "
-                "about 8 GB of memory; later starts use the FMU cache."
+                "services. It starts at once with everything but the thermofluid plant, whose "
+                "model is downloaded prebuilt (or, offline, built here once: about 10 minutes "
+                "and 8 GB of memory) and joins the running session when ready."
             ),
             scope=sorted(doc.assets),
             dt=SITE_DT,
@@ -361,6 +361,34 @@ class Startup(BaseModel):
     state: Literal["off", "starting", "running", "failed"] = "off"
     session: str | None = None
     error: str | None = None
+    physics: Literal["ready", "building", "failed"] = "ready"
+    """`building`: the session runs every asset that needs no compiled model while the
+    thermofluid models are fetched or built; they join it (by a swap) when ready."""
+    waiting: int = 0
+    """Assets of the preset not yet simulated because their models are being built."""
+
+
+class BuildOut(BaseModel):
+    partition: str
+    assets: int
+    phase: str
+    elapsed_s: float
+    done: int
+    total: int
+    memory_gb: float | None
+    memory_limit_gb: float | None
+    memory_needed_gb: float
+
+
+@router.get("/builds", response_model=list[BuildOut])
+def current_builds() -> list[dict[str, Any]]:
+    """Models being fetched or compiled right now, with how far each has got."""
+    return builds()
+
+
+def _unbuilt(doc: WorldModel, scope: frozenset[str]) -> frozenset[str]:
+    """The assets of `scope` whose models are not in the FMU cache yet."""
+    return frozenset(a for p in plan(doc, scope).partitions if cached(p) is None for a in p.assets)
 
 
 @router.get("/startup", response_model=Startup)
@@ -384,8 +412,13 @@ async def autostart(app: Any, preset_id: str, speed: float = 1.0) -> None:
         doc = store.get(revision) if revision is not None else None
         if doc is None:
             raise ValueError("the World Model has no revision yet")
+        # Start at once with every asset whose models are ready (electrical, network,
+        # services, controllers and cached plants), so OPC UA publishes from the first
+        # seconds; the rest joins when its models are fetched or built.
+        full = frozenset(preset.scope)
+        waiting = await run_in_threadpool(_unbuilt, doc, full)
         session = await run_in_threadpool(
-            Session, doc, preset.scope, dt=preset.dt, revision=revision, resolve=store.get
+            Session, doc, full - waiting, dt=preset.dt, revision=revision, resolve=store.get
         )
         if not hasattr(app.state, "runtime"):
             app.state.runtime = Registry()
@@ -400,6 +433,16 @@ async def autostart(app: Any, preset_id: str, speed: float = 1.0) -> None:
         await _do(live, session.run, speed)
         _start(live)
         state.session, state.state = live.id, "running"
+        if waiting:
+            state.physics, state.waiting = "building", len(waiting)
+            swap: Swap = await _do(live, session.prepare, revision, sorted(full))
+            live.swapper = asyncio.create_task(_swapper(live))
+            while swap.state in ("compiling", "ready"):
+                await asyncio.sleep(SWAP_POLL_S)
+            if swap.state == "applied":
+                state.physics, state.waiting = "ready", 0
+            else:
+                state.physics, state.error = "failed", swap.reason
     except Exception as e:  # noqa: BLE001 - reported on /startup, the server keeps serving
         state.state, state.error = "failed", str(getattr(e, "detail", e))
 

@@ -144,6 +144,7 @@ def test_server_starts_a_preset_at_start_up_and_reports_it() -> None:
                 break
             time.sleep(0.05)
         assert startup["state"] == "running" and startup["preset"] == "small", startup
+        assert startup["physics"] == "ready" and startup["waiting"] == 0
         session = client.get(f"{API}/sessions/{startup['session']}").json()
         assert session["running"] is True and set(session["scope"]) == {IT, "UPS/UPS 1"}
 

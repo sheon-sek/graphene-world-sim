@@ -3,6 +3,7 @@ import { EngineeringPage } from "../eng/EngineeringPage";
 import { OperationsPage } from "../ops/OperationsPage";
 import { DiagnosticsPage } from "../ops/DiagnosticsPage";
 import { OpcUaPage } from "../ops/OpcUaPage";
+import { BuildProgress } from "./BuildProgress";
 import { Lifecycle } from "./Lifecycle";
 import { href, WORKSPACES, type Workspace } from "./router";
 import { usePoll, useSession } from "./session";
@@ -71,6 +72,7 @@ export function AppShell({ sid, workspace }: { sid: string; workspace: Workspace
         <Lifecycle sid={sid} />
       </header>
       <Banner />
+      <BuildProgress />
       <div className="workspace">{body}</div>
     </div>
   );
