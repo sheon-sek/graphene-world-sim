@@ -29,7 +29,10 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
+import urllib.request
+import zipfile
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -511,6 +514,29 @@ buildModelFMU({model}, version="2.0", fmuType="me", fileNamePrefix="{model}",
 
 CC = r"""#!/bin/sh
 # The C compiler OpenModelica builds the FMU with: clang, except for the variable table.
+#
+# OpenModelica runs `cmake --build . --parallel`, which is `make -j` with no limit: every C
+# file of the model compiles at once, beside omc still holding the translated model. For the
+# whole site that is hundreds of clang processes and more memory than most machines have, so
+# a build that should take minutes swaps for hours or is killed. Each call here first takes
+# one of GWS_CC_JOBS slots (a flock on a file) and holds it until clang exits.
+# Waiting callers queue on one lock, so only the head of the queue polls the slots.
+slots="${0%/*}/.cc-slots"
+mkdir -p "$slots"
+exec 8>"$slots/queue"
+flock 8
+held=""
+while [ -z "$held" ]; do
+  i=1
+  while [ "$i" -le "${GWS_CC_JOBS:-2}" ]; do
+    exec 9>"$slots/$i"
+    if flock -n 9; then held=$i; break; fi
+    exec 9>&-
+    i=$((i + 1))
+  done
+  [ -n "$held" ] || sleep 0.2
+done
+exec 8>&-
 # OpenModelica writes every variable's name, comment and attributes as one straight-line
 # function in <model>_init_fmu.c, a million lines for a whole site, and clang's time grows
 # faster than the function. This splits it into functions of 5,000 lines and compiles it
@@ -570,19 +596,214 @@ def cached(partition: Partition, cache: Path = CACHE) -> Path | None:
     return fmu if fmu.exists() else None
 
 
+PREBUILT = os.environ.get(
+    "GWS_FMU_PREBUILT",
+    "https://github.com/sheon-sek/graphene-world-sim/releases/download/fmu-cache",
+)
+"""Where prebuilt FMUs are fetched from, by partition name, before compiling one (an empty
+value turns it off). CI compiles the presets' partitions and publishes them there, so a
+machine starting the whole site downloads its models in seconds instead of building them."""
+COMPILE_TIMEOUT_S = float(os.environ.get("GWS_COMPILE_TIMEOUT", 3600))
+"""A build that runs longer is stopped and reported, never left hanging."""
+SITE_PEAK_GB = 7.4
+SITE_SOURCE_CHARS = 171_052
+"""omc translating the whole site's partition (121 assets) holds 7.4 GB until the build ends;
+its memory grows with the size of the generated model."""
+CC_JOB_GB = 1.5
+"""What one clang compiling a large generated C file can take."""
+
+
+def translate_gb(partition: Partition) -> float:
+    return 0.5 + (SITE_PEAK_GB - 0.5) * len(partition.source) / SITE_SOURCE_CHARS
+
+
+def memory_needed_gb(partition: Partition) -> float:
+    """Roughly how much memory building the partition needs: omc, and one C compile."""
+    return round(translate_gb(partition) + CC_JOB_GB, 1)
+
+
+def cc_jobs(partition: Partition, memory_gb: float | None, cpus: int | None = None) -> int:
+    """How many C files to compile at once: as many as the memory left beside omc allows,
+    at most one per CPU."""
+    cpus = cpus or os.cpu_count() or 2
+    if memory_gb is None:
+        return max(1, min(cpus, 2))
+    return max(1, min(cpus, int((memory_gb - translate_gb(partition)) / CC_JOB_GB)))
+
+
+@dataclass
+class Build:
+    """A partition being fetched or compiled, as `GET /api/runtime/builds` shows it."""
+
+    partition: str
+    assets: int
+    memory_needed_gb: float
+    phase: str = "waiting"
+    """`downloading`, `translating` (omc loads the libraries and flattens the model; most of
+    the memory), `generating` (writes C), `compiling` (C files `done` of `total`),
+    `packaging`."""
+    started: float = field(default_factory=time.time)
+    done: int = 0
+    total: int = 0
+    memory_gb: float | None = None
+    memory_limit_gb: float | None = None
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "partition": self.partition,
+            "assets": self.assets,
+            "phase": self.phase,
+            "elapsed_s": round(time.time() - self.started, 1),
+            "done": self.done,
+            "total": self.total,
+            "memory_gb": self.memory_gb,
+            "memory_limit_gb": self.memory_limit_gb,
+            "memory_needed_gb": self.memory_needed_gb,
+        }
+
+
+_GUARD = threading.Lock()
+_LOCKS: dict[str, threading.Lock] = {}
+BUILDS: dict[str, Build] = {}
+"""Builds in progress, by partition name."""
+
+
+def builds() -> list[dict[str, object]]:
+    with _GUARD:
+        return [b.to_json() for b in BUILDS.values()]
+
+
+def _lock(name: str) -> threading.Lock:
+    with _GUARD:
+        return _LOCKS.setdefault(name, threading.Lock())
+
+
+def fetch_prebuilt(partition: Partition, cache: Path = CACHE, base: str = PREBUILT) -> Path | None:
+    """The partition's FMU from the prebuilt store, or None when it has none (or is offline)."""
+    if not base:
+        return None
+    cache.mkdir(parents=True, exist_ok=True)
+    tmp = cache / f"{partition.name}.fmu.part"
+    try:
+        with urllib.request.urlopen(f"{base}/{partition.name}.fmu", timeout=20) as r:
+            with tmp.open("wb") as f:
+                shutil.copyfileobj(r, f, 1 << 20)
+        with zipfile.ZipFile(tmp) as z:
+            if "modelDescription.xml" not in z.namelist():
+                raise zipfile.BadZipFile("no modelDescription.xml")
+    except (OSError, zipfile.BadZipFile):  # 404, offline, a broken download: build it here
+        tmp.unlink(missing_ok=True)
+        return None
+    target = cache / f"{partition.name}.fmu"
+    tmp.replace(target)
+    (cache / f"{partition.name}.json").write_text(
+        json.dumps(partition.manifest(), indent=1), encoding="utf-8"
+    )
+    return target
+
+
+def docker_memory_gb() -> float | None:
+    """The memory Docker can give a container, or None when Docker does not say."""
+    try:
+        out = subprocess.run(
+            ["docker", "info", "--format", "{{.MemTotal}}"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=20,
+        ).stdout.strip()
+        return round(int(out) / 2**30, 1) if out.isdigit() and int(out) > 0 else None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+_SIZE = re.compile(r"([\d.]+)\s*([KMGT]?i?B)")
+_UNITS = {
+    "B": 1,
+    "KiB": 2**10,
+    "MiB": 2**20,
+    "GiB": 2**30,
+    "TiB": 2**40,
+    "KB": 1e3,
+    "MB": 1e6,
+    "GB": 1e9,
+    "TB": 1e12,
+}
+
+
+def _container_memory_gb(container: str) -> float | None:
+    try:
+        out = subprocess.run(
+            ["docker", "stats", "--no-stream", "--format", "{{.MemUsage}}", container],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=20,
+        ).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    m = _SIZE.search(out)
+    return round(float(m.group(1)) * _UNITS.get(m.group(2), 1) / 2**30, 2) if m else None
+
+
+def _progress(work: Path, build: Build) -> None:
+    """Read how far omc is from the files it has written."""
+    sources = next(work.glob("*.fmutmp/sources"), None)
+    if sources is None:
+        build.phase = "translating"
+        return
+    if next(sources.parent.glob("binaries/*"), None) is not None:
+        build.phase = "packaging"
+        return
+    c = sum(1 for _ in sources.rglob("*.c"))
+    cmake = next(sources.glob("build_cmake*"), None)
+    if cmake is None:
+        build.phase, build.done, build.total = "generating", c, 0
+        return
+    build.phase, build.total = "compiling", c
+    build.done = min(c, sum(1 for _ in cmake.rglob("*.o")))
+
+
 def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, float]:
-    """The partition's FMU, compiled unless the cache already holds it. Returns the path and
-    the seconds spent compiling (0 for a cache hit)."""
+    """The partition's FMU: from the cache, else the prebuilt store, else compiled here.
+    Returns the path and the seconds spent compiling (0 when it was not compiled). One build
+    runs per partition at a time; a second caller waits for it and gets its result."""
     if (hit := cached(partition, cache)) is not None:
         return hit, 0.0
+    with _lock(partition.name):
+        if (hit := cached(partition, cache)) is not None:
+            return hit, 0.0
+        build = Build(partition.name, len(partition.assets), memory_needed_gb(partition))
+        with _GUARD:
+            BUILDS[partition.name] = build
+        try:
+            build.phase = "downloading"
+            if (fetched := fetch_prebuilt(partition, cache)) is not None:
+                return fetched, 0.0
+            return _compile(partition, cache, build)
+        finally:
+            with _GUARD:
+                BUILDS.pop(partition.name, None)
+
+
+def _compile(partition: Partition, cache: Path, build: Build) -> tuple[Path, float]:
     if (problem := toolchain_problem()) is not None:
         raise CompileError(f"OpenModelica cannot build {partition.name}: {problem}")
+    build.memory_limit_gb = docker_memory_gb()
+    if build.memory_limit_gb is not None and build.memory_limit_gb < build.memory_needed_gb:
+        raise CompileError(
+            f"Building {partition.name} ({len(partition.assets)} assets) needs about "
+            f"{build.memory_needed_gb} GB of memory, and Docker can use "
+            f"{build.memory_limit_gb} GB. Give Docker more memory (Docker Desktop: Settings > "
+            "Resources; WSL: memory= in .wslconfig), or start a smaller scope."
+        )
+    build.phase = "translating"
     cache.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix=f"{partition.name}-", dir=cache))
     (work / f"{partition.name}.mo").write_text(partition.source, encoding="utf-8")
     shutil.copy(GWSLIB, work / "GwsLib.mo")
     cc = work / "gws-cc"
-    cc.write_text(CC, encoding="utf-8")
+    cc.write_text(CC, encoding="utf-8", newline="\n")
     cc.chmod(0o755)
     (work / "build.mos").write_text(
         SCRIPT.format(libdir=LIBDIR, gwslib=work / "GwsLib.mo", model=partition.name),
@@ -594,18 +815,44 @@ def compile_partition(partition: Partition, cache: Path = CACHE) -> tuple[Path, 
         mounts.update(str(p.resolve()) for p in Path(LIBDIR).iterdir() if p.is_symlink())
     # OpenModelica passes the compiler to CMake by name, so the wrapper goes on the PATH.
     path = f"{work}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-    cmd = ["docker", "run", "--rm", "-w", str(work), "-e", f"PATH={path}"]
+    container = f"gws-omc-{work.name}"
+    jobs = cc_jobs(partition, build.memory_limit_gb)
+    cmd = ["docker", "run", "--rm", "--name", container, "-w", str(work), "-e", f"PATH={path}"]
+    cmd += ["-e", f"GWS_CC_JOBS={jobs}"]
     for m in sorted(mounts):
         cmd += ["-v", f"{m}:{m}"]
     cmd += [IMAGE, "omc", "build.mos"]
-    t0 = time.monotonic()
-    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    seconds = time.monotonic() - t0
     log = work / "build.log"
-    log.write_text(result.stdout + result.stderr, encoding="utf-8")
+    t0 = time.monotonic()
+    with log.open("w", encoding="utf-8") as out:
+        proc = subprocess.Popen(cmd, stdout=out, stderr=subprocess.STDOUT, text=True)
+        polls = 0
+        while proc.poll() is None:
+            if time.monotonic() - t0 > COMPILE_TIMEOUT_S:
+                subprocess.run(["docker", "kill", container], capture_output=True, check=False)
+                proc.kill()
+                proc.wait()
+                raise CompileError(
+                    f"Building {partition.name} took longer than {COMPILE_TIMEOUT_S / 60:.0f} "
+                    f"minutes and was stopped (GWS_COMPILE_TIMEOUT); see {log}"
+                )
+            _progress(work, build)
+            if polls % 3 == 0:
+                build.memory_gb = _container_memory_gb(container) or build.memory_gb
+            polls += 1
+            time.sleep(2.0)
+    seconds = time.monotonic() - t0
+    text = log.read_text(encoding="utf-8", errors="replace")
     built = work / f"{partition.name}.fmu"
-    if result.returncode != 0 or not built.exists():
-        tail = "\n".join((result.stdout + result.stderr).strip().splitlines()[-20:])
+    if proc.returncode == 137:
+        raise CompileError(
+            f"OpenModelica was killed building {partition.name} (exit 137), almost always "
+            f"because memory ran out (it was using {build.memory_gb or '?'} GB). It needs "
+            f"about {build.memory_needed_gb} GB; give Docker more memory, close other large "
+            "programs, or start a smaller scope."
+        )
+    if proc.returncode != 0 or not built.exists():
+        tail = "\n".join(text.strip().splitlines()[-20:])
         raise CompileError(f"OpenModelica failed for {partition.name}; see {log}\n{tail}")
     target = cache / f"{partition.name}.fmu"
     built.replace(target)
