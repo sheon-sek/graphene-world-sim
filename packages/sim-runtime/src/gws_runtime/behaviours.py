@@ -465,6 +465,7 @@ BEHAVIOURS: dict[str, Behaviour] = {
             "TChwSup": "TEnt",
             "TChwRet": "TRet",
             "dpLoop": "dp",
+            "Trip": "tripped",
         },
         derived={"frequency": ("Hz", lambda s: MAINS_HZ * _f(s, "speed"))},
     ),

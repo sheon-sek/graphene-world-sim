@@ -84,7 +84,7 @@ def test_a_session_is_served_with_timestamps_scope_and_commands(
 ) -> None:
     http, endpoint, _ = served
     status = http.get(f"{API}/opcua").json()
-    assert status["session"] is None and status["revision"] == 2 and status["points"] == 8812
+    assert status["session"] is None and status["revision"] == 2 and status["points"] == 8906
     sid = http.post(f"{API}/runtime/sessions", json={"scope": SCOPE, "revision": 1}).json()["id"]
 
     async def main() -> None:
@@ -93,7 +93,7 @@ def test_a_session_is_served_with_timestamps_scope_and_commands(
             assert idle.StatusCode.value == ua.StatusCodes.BadOutOfService
 
             attached = http.put(f"{API}/opcua/session", json={"session": sid}).json()
-            assert attached["session"] == sid and attached["points"] == 8811
+            assert attached["session"] == sid and attached["points"] == 8905
             frame = http.post(f"{API}/runtime/sessions/{sid}/step", json={"steps": 3}).json()
 
             expected = frame["points"][IT_LOAD]["value"]
@@ -156,7 +156,7 @@ def test_a_session_is_served_with_timestamps_scope_and_commands(
                 return True
 
             await _eventually(grown)
-            assert http.get(f"{API}/opcua").json()["points"] == 8812
+            assert http.get(f"{API}/opcua").json()["points"] == 8906
 
             http.delete(f"{API}/runtime/sessions/{sid}")
             assert http.get(f"{API}/opcua").json()["session"] is None

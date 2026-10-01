@@ -712,7 +712,11 @@ class ElectricalNetwork:
         for node, kind in self._kind.items():
             faults = self._faults_of(node)
             vm = self.supply(node)
-            s: dict[str, float | bool] = {"V_pu": vm, "energised": vm >= ENERGISED_PU}
+            s: dict[str, float | bool] = {
+                "V_pu": vm,
+                "energised": vm >= ENERGISED_PU,
+                "deenergised": vm < ENERGISED_PU,
+            }
             if kind in (UTILITY, GENSET, UPS):
                 p, q = (float(v) for v in self._ext_pq[self._ext_of[node]])
             elif kind == LOAD:

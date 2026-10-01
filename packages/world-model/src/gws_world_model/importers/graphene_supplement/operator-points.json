@@ -1,0 +1,21 @@
+{
+  "note": "Points an operator needs that the Graphene source does not define, found by the Phase 8 analyst agents (#85). A UPS says nothing of its battery: the rectifier-failure analyst could not tell it was carrying the load from battery. A chiller pump has no trip point, so a trip read the same as a lost run command. A power-quality meter raises no alarm when its voltage goes, so the incomers stayed quiet through a utility loss. The FCU's Flowrate (its chilled water) has no unit. Each new member follows the type's UDT and ADR-0003, and reads what the model already computes.",
+  "members": {
+    "UPS": {
+      "Battery Charge": {"data_type": "Float4", "unit": "%"},
+      "On Battery": {"data_type": "Boolean"},
+      "Input Active Power": {"data_type": "Float4", "unit": "kW"}
+    },
+    "Chiller Pump": {
+      "Trip": {"data_type": "Boolean"}
+    },
+    "GPQM144": {
+      "Loss of Voltage Alarm": {"data_type": "Boolean"}
+    }
+  },
+  "member_units": {
+    "FCU": {
+      "Flowrate": "m³/h"
+    }
+  }
+}
