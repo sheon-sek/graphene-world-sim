@@ -1035,6 +1035,7 @@ class Simulation:
                 self._was_running[asset] = running
                 self.starts[asset] = starts
                 state[asset]["starts_day"] = len(starts)
+                self.units[(asset, "starts_day")] = "times/day"  # a count over the last day
                 recent = sum(t > self.t - CYCLING_WINDOW_S for t in starts)
                 state[asset]["short_cycling"] = recent > CYCLING_STARTS
         self.network.step(self.t)
