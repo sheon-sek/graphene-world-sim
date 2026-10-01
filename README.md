@@ -7,9 +7,16 @@ to it exactly as it would to real equipment.
 
 > **The application injects the cause. The simulation engine computes the consequences.**
 
-Status: Phase 2 (World Model). The graphene site is imported as World Model revision 1 and can
-be read and edited through the API; nothing simulates yet. The plan is tracked as one epic issue
-per phase, with tasks as sub-issues.
+Status: all phases (0 to 8) are complete. The whole Graphene site simulates in real time and
+serves all 8,905 points over OPC UA; an Ignition gateway reads them Good. The plan is tracked as
+one epic issue per phase, with tasks as sub-issues.
+
+## Documentation
+
+- [User guide](docs/guide/user-guide.md): sessions and presets, running, faults, the 3D view,
+  engineering edits, diagnostics, troubleshooting.
+- [OPC UA and Ignition](docs/guide/opcua-ignition.md): how the OPC UA server is hosted, what it
+  publishes, and how to connect an Ignition gateway and import the tags.
 
 ## Layout
 
