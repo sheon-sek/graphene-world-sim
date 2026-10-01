@@ -24,7 +24,8 @@ Rules of the evaluation:
   (`python3 tests/agents/mcp.py tools` lists the tools). The REST server is not connected, and
   no Tool lists active alarms; alarm points are Boolean tags you can read and trend.
 - Do not read any other file in `{ROOT}` or elsewhere except the assistant's prompt and
-  skills, run no other command, and do not use the network any other way. The operator is not available for
+  skills, and do not use the network any other way. You may filter that command's output
+  with shell tools or scratch scripts of your own. The operator is not available for
   questions or field checks; say which field checks you would ask for.
 - The gateway's clock is UTC. Everything of interest happened between {WINDOW_START} and
   {WINDOW_END} UTC; the plant has been held in its final state since.
