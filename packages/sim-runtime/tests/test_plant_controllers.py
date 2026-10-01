@@ -65,8 +65,8 @@ def test_staging_starts_the_lead_chiller_with_its_own_pumps_and_valves(
         "Chiller/R_CV5:position",
         "Chiller/R_CV9:position",
     ]
-    status = {r: True for r in staging.binding.reads[3:]}
-    bus = Bus({"HDR/TS-01": 20.0, "HDR/TS-02": 14.0, "HDR/FM-01": 100.0, **status})
+    status = {r: True for r in staging.status_refs}  # type: ignore[attr-defined]
+    bus = Bus({"CH-001/TS-01": 20.0, "CH-001/TS-02": 14.0, "CH-001/FM-01": 100.0, **status})
     staging.step(0.0, 5.0, bus)
     assert bus.writes["Chiller/R_C1:enable"] is True
     assert bus.writes["Chiller/R_C2:enable"] is False
@@ -75,10 +75,10 @@ def test_staging_starts_the_lead_chiller_with_its_own_pumps_and_valves(
 
 def test_staging_replaces_a_tripped_chiller(blocks: dict[str, Block]) -> None:
     staging = blocks["chw_staging"]
-    status = {r: True for r in staging.binding.reads[3:]}
-    bus = Bus({"HDR/TS-01": 20.0, "HDR/TS-02": 14.0, "HDR/FM-01": 100.0, **status})
+    status = {r: True for r in staging.status_refs}  # type: ignore[attr-defined]
+    bus = Bus({"CH-001/TS-01": 20.0, "CH-001/TS-02": 14.0, "CH-001/FM-01": 100.0, **status})
     staging.step(0.0, 5.0, bus)
-    bus.readings[staging.binding.reads[3]] = False  # R_C1 stops: it tripped
+    bus.readings[staging.status_refs[0]] = False  # type: ignore[attr-defined]  # R_C1 stops: it tripped
     for _ in range(3):
         staging.step(0.0, 5.0, bus)
     assert bus.writes["Chiller/R_C2:enable"] is True
@@ -129,5 +129,30 @@ def test_hmi_settings_start_at_the_configured_values_and_an_operator_write_takes
 def test_hmi_registers_read_in_the_units_the_hmi_shows() -> None:
     from gws_runtime.controllers.hmi import CONFIGURATION, SETTINGS, UNITS
 
-    assert set(UNITS) <= set(SETTINGS) | set(CONFIGURATION) | {"dp_pid_output", "bypass_pid_output"}
+    status = {"dp_pid_output", "bypass_pid_output", "cooling_load_demand", "plant_load"}
+    assert set(UNITS) <= set(SETTINGS) | set(CONFIGURATION) | status
     assert UNITS["chw_supply_temp_set"] == "degC" and UNITS["tower_approach_set"] == "dK"
+
+
+def test_plant_load_is_the_heat_the_chillers_take_out_of_the_water(
+    doc: WorldModel, blocks: dict[str, Block]
+) -> None:
+    """#83: the load is each chiller's flow across its own entering and leaving water, not the
+    header's difference across the secondary loop's flow."""
+    from gws_runtime.controllers.hmi import UNITS, PlantHmi
+
+    staging = blocks["chw_staging"]
+    status = {r: True for r in staging.status_refs}  # type: ignore[attr-defined]
+    # R_C1 at its design flow, 0.47 K across it; R_C2 off, its meters still reading.
+    readings = {"CH-001/TS-01": 14.36, "CH-001/TS-02": 13.89, "CH-001/FM-01": 603.8}
+    readings |= {"CH-002/TS-01": 14.4, "CH-002/TS-02": 14.4, "CH-002/FM-01": 0.0}
+    bus = Bus({**readings, **status})
+    staging.step(0.0, 5.0, bus)
+    load = staging.signals()["load_kW"]
+    assert load == pytest.approx(603.8 * 4.184 * 0.47 / 3.6, rel=1e-6)  # about 330 kW
+
+    hmi = PlantHmi.build("~PLC-01", doc, blocks.values())
+    out = hmi.signals(0.0, {}, None)
+    assert out["cooling_load_demand"] == pytest.approx(load)
+    assert out["plant_load"] == pytest.approx(100.0 * load / 3500.0)  # of the running R_C1
+    assert UNITS["cooling_load_demand"] == "kW" and UNITS["plant_load"] == "%"

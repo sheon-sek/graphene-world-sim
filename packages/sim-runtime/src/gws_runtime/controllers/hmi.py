@@ -95,6 +95,8 @@ UNITS: dict[str, str] = {
     "stage_up_inhibit_delay": "s",
     "dp_pid_output": "%",
     "bypass_pid_output": "%",
+    "cooling_load_demand": "kW",
+    "plant_load": "%",
 }
 """The unit each numeric register and status value holds, which is the unit its HMI shows."""
 
@@ -176,12 +178,14 @@ class PlantHmi:
 
         staging = self.blocks.get("chw_staging")
         stage = self._status(staging)
-        capacity = sum(getattr(staging, "capacity", {}).values()) if staging else 0.0
+        on: Sequence[str] = list(getattr(staging, "on", []))
+        rated: Mapping[str, float] = getattr(staging, "capacity", {})
+        # Plant load is the share of the running chillers' capacity the load takes.
+        capacity = sum(rated.get(c, 0.0) for c in on)
         load = stage.get("load_kW")
         if load is not None:
             out["cooling_load_demand"] = float(load)
             out["plant_load"] = 100.0 * float(load) / capacity if capacity > 0 else 0.0
-        on: Sequence[str] = list(getattr(staging, "on", []))
         chillers: Sequence[str] = list(getattr(staging, "chillers", []))
         up = float(getattr(staging, "up_timer", 0.0))
         down = float(getattr(staging, "down_timer", 0.0))
