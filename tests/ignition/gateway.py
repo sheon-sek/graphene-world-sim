@@ -98,8 +98,8 @@ class Gateway:
     @classmethod
     def attach(cls, token: str) -> Gateway:
         """The gateway igdev already runs, kept as an earlier run left it, with that run's API
-        token."""
-        gateway = cls._find(igdev("setup")["namespace"])
+        token. Not `igdev setup`: it finds the running gateway's ports taken and moves them."""
+        gateway = cls._find(igdev("gateway", "status")["namespace"])
         gateway.token = token
         return gateway
 
