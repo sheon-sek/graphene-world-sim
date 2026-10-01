@@ -809,7 +809,7 @@
       "source": {
         "kind": "asset_signal",
         "asset": "~IPS-PANEL",
-        "signal": "load_ok"
+        "signal": "load_alarm"
       },
       "note": "the IPS panel's own reading (graphene supplement control-room.json)"
     },
@@ -818,7 +818,7 @@
       "source": {
         "kind": "asset_signal",
         "asset": "~IPS-PANEL",
-        "signal": "device_ok"
+        "signal": "device_alarm"
       },
       "note": "the IPS panel's own reading (graphene supplement control-room.json)"
     },
@@ -845,7 +845,7 @@
       "source": {
         "kind": "asset_signal",
         "asset": "~IPS-PANEL",
-        "signal": "pe_connected"
+        "signal": "pe_fault"
       },
       "note": "the IPS panel's own reading (graphene supplement control-room.json)"
     },

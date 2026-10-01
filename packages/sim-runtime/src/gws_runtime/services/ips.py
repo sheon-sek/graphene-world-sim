@@ -123,6 +123,12 @@ class IpsPanels:
                 "ct_short": "ct_short" in faults,
                 "device_ok": energised and not faults and not hot and not faulted,
             }
+            # The panel's alarm contacts, as the Ignition project reads them: true is the
+            # alarm (each tag alarms at 1), so a healthy panel reads all of them false.
+            s = out[asset]
+            s["load_alarm"] = not s["load_ok"]
+            s["device_alarm"] = not s["device_ok"]
+            s["pe_fault"] = not s["pe_connected"]
         return out
 
     def snapshot(self) -> dict[str, Any]:

@@ -197,9 +197,11 @@ def test_the_ips_panel_reports_its_load_heat_and_insulation(site: WorldModel) ->
     out = s.step()["~IPS-PANEL"]
     assert out["load_pct"] == 90 and out["load_ok"] and out["device_ok"]
     assert out["insulation_kohm"] == 800 and out["pe_connected"]
+    # Healthy, its alarm contacts (what Ignition's IPS alarm tags read) are all false.
+    assert not (out["load_alarm"] or out["device_alarm"] or out["pe_fault"])
     s.services.fault("~IPS-PANEL", "cooling_loss", {"rise_factor": 2.0})
     out = s.step(40, dt=300.0)["~IPS-PANEL"]
-    assert out["over_temperature"] and not out["device_ok"]
+    assert out["over_temperature"] and not out["device_ok"] and out["device_alarm"]
     s.state["IPS/Circuit 3"] = {"insulation_fault": True}
     assert s.step()["~IPS-PANEL"]["insulation_kohm"] < 800 * 6 * 0.05 + 1
     assert s.services.demand_w("~IPS-LOAD-1") > 0.6 * 1.2e3 - 1
