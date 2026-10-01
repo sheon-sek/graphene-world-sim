@@ -29,7 +29,7 @@ export interface ViewOptions extends EffectOptions {
 /** Frames per second over the last half second, for the page's readout. */
 export const frameStats = { fps: 0, frames: 0, since: 0 };
 
-function FrameMeter({ onSlow }: { onSlow?: (fps: number) => void }) {
+export function FrameMeter({ onSlow }: { onSlow?: (fps: number) => void }) {
   const slowSince = useRef<number | null>(null);
   const started = useRef(performance.now());
   useFrame(() => {
@@ -54,7 +54,7 @@ function FrameMeter({ onSlow }: { onSlow?: (fps: number) => void }) {
 }
 
 /** Draws at most `fps` frames a second, on a canvas whose frame loop is on demand. */
-function FrameLimiter({ fps }: { fps: number }) {
+export function FrameLimiter({ fps }: { fps: number }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     const id = window.setInterval(() => invalidate(), 1000 / fps);
@@ -63,7 +63,7 @@ function FrameLimiter({ fps }: { fps: number }) {
   return null;
 }
 
-function Environment() {
+export function Environment() {
   const { gl, scene } = useThree();
   useEffect(() => {
     scene.background = new THREE.Color("#0b0f13");

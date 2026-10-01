@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import CameraControls from "camera-controls";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three/webgpu";
 import { useSim } from "../live/store";
 import type { HallLayout, SceneAsset } from "./hall/layout";
@@ -44,21 +44,18 @@ export function overview(layout: HallLayout): { eye: THREE.Vector3; target: THRE
 }
 
 /**
- * Orbit, pan and zoom around the hall, and fly to the selected asset.
- *
- * Left drag orbits; right drag, middle drag or Shift with left drag pans; the wheel zooms
- * towards the cursor; the arrow keys pan. The controls live as long as the canvas: the
- * overview is set when the hall changes, and a flight starts only when the selection changes.
+ * Camera controls for a 3D view: left drag orbits; right drag, middle drag or Shift with left
+ * drag pans; the wheel zooms towards the cursor; the arrow keys pan. The controls live as
+ * long as the canvas, and keep an on-demand frame loop drawing while the camera moves.
  */
-export function CameraRig({ layout }: { layout: HallLayout }) {
+export function useCameraControls({ maxDistance = 70 }: { maxDistance?: number } = {}): CameraControls {
   const { camera, gl } = useThree();
   const controls = useMemo(() => new CameraControls(camera, gl.domElement), [camera, gl]);
-  const selected = useSim((s) => s.selected);
-  const flownTo = useRef<string | null | undefined>(undefined);
+  const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
     controls.minDistance = 1.5;
-    controls.maxDistance = 70;
+    controls.maxDistance = maxDistance;
     controls.maxPolarAngle = Math.PI * 0.48;
     controls.dollyToCursor = true;
     controls.smoothTime = 0.45;
@@ -94,8 +91,8 @@ export function CameraRig({ layout }: { layout: HallLayout }) {
     window.addEventListener("keydown", shift);
     window.addEventListener("keyup", shift);
     element.tabIndex = 0;
-    if (window.gws) window.gws.camera = controls; // for end-to-end tests and the console
     element.addEventListener("keydown", keys);
+    if (window.gws) window.gws.camera = controls; // for end-to-end tests and the console
     return () => {
       window.removeEventListener("keydown", shift);
       window.removeEventListener("keyup", shift);
@@ -103,31 +100,54 @@ export function CameraRig({ layout }: { layout: HallLayout }) {
       element.removeEventListener("contextmenu", menu);
       controls.dispose();
     };
-  }, [controls, gl]);
+  }, [controls, gl, maxDistance]);
 
-  useEffect(() => {
-    const { eye, target } = overview(layout);
-    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, false);
-    flownTo.current = undefined;
-  }, [controls, layout]);
-
-  useEffect(() => {
-    if (flownTo.current === selected) return;
-    // A new view (a new hall, or a new canvas after a quality change) starts at the selected
-    // asset without a flight; after that, each new selection flies there once.
-    const fly = flownTo.current !== undefined;
-    flownTo.current = selected;
-    const asset = layout.assets.find((a) => a.id === selected);
-    if (!fly && !asset) return;
-    const { eye, target } = asset ? viewOf(asset, layout) : overview(layout);
-    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, fly);
-  }, [selected, layout, controls]);
-
-  const invalidate = useThree((s) => s.invalidate);
   useFrame((_, dt) => {
-    // With the frame loop on demand, keep drawing while the camera is still moving.
     if (controls.update(dt)) invalidate();
   }, -1);
+  return controls;
+}
+
+export interface View {
+  eye: THREE.Vector3;
+  target: THREE.Vector3;
+}
+
+/**
+ * Start at `home`, and fly to `viewFor(selected)` once each time the selection changes. A new
+ * view (a new layout, or a new canvas after a quality change) starts at the selection
+ * without a flight.
+ */
+export function useFlyToSelection(controls: CameraControls, home: View, viewFor: (id: string) => View | null): void {
+  const selected = useSim((s) => s.selected);
+  const flownTo = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    void controls.setLookAt(home.eye.x, home.eye.y, home.eye.z, home.target.x, home.target.y, home.target.z, false);
+    flownTo.current = undefined;
+  }, [controls, home]);
+  useEffect(() => {
+    if (flownTo.current === selected) return;
+    const fly = flownTo.current !== undefined;
+    flownTo.current = selected;
+    const view = selected ? viewFor(selected) : null;
+    if (!fly && !view) return;
+    const { eye, target } = view ?? home;
+    void controls.setLookAt(eye.x, eye.y, eye.z, target.x, target.y, target.z, fly);
+  }, [selected, controls, home, viewFor]);
+}
+
+/** The hall's camera: the overview, and a flight to the selected asset. */
+export function CameraRig({ layout }: { layout: HallLayout }) {
+  const controls = useCameraControls();
+  const home = useMemo(() => overview(layout), [layout]);
+  const viewFor = useCallback(
+    (id: string) => {
+      const asset = layout.assets.find((a) => a.id === id);
+      return asset ? viewOf(asset, layout) : null;
+    },
+    [layout],
+  );
+  useFlyToSelection(controls, home, viewFor);
   return null;
 }
 

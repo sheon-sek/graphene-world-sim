@@ -4,7 +4,7 @@ import { display, formatValue, guessUnit, shortName } from "../app/format";
 import { usePoll, useSession } from "../app/session";
 import type { Frame } from "../live/frames";
 import { useSim } from "../live/store";
-import type { WorldData } from "../live/world";
+import type { PointIndex, WorldData } from "../live/world";
 import { Trend, type TrendSeries } from "./Trend";
 
 const NO_STATE: Frame["state"][string] = {};
@@ -22,7 +22,7 @@ function toTrend(values: (number | null)[], signal: string): TrendSeries {
 }
 
 /** The selected asset: its live state and points, and trends of the signals picked (#51). */
-export function Inspector({ sid, world }: { sid: string; world: WorldData | null }) {
+export function Inspector({ sid, world, points: index }: { sid: string; world: WorldData | null; points?: PointIndex | null }) {
   const selected = useSim((s) => s.selected);
   const select = useSim((s) => s.select);
   const state = useSim((s) => (selected ? (s.frame?.state[selected] ?? NO_STATE) : NO_STATE));
@@ -60,7 +60,9 @@ export function Inspector({ sid, world }: { sid: string; world: WorldData | null
   const asset = world?.assets.get(selected);
   const type = asset ? world?.types.get(asset.type) : undefined;
   const inScope = scope?.includes(selected) ?? false;
-  const own = Object.entries(points ?? {}).filter(([p]) => p.startsWith(`${selected}/`));
+  // Every point the asset owns: under its path, or reading it from elsewhere (plant views).
+  const ownPaths = index?.byAsset.get(selected) ?? Object.keys(points ?? {}).filter((p) => p.startsWith(`${selected}/`));
+  const own = ownPaths.map((p) => [p, points?.[p]] as const);
   const active = (faults ?? []).filter((f) => f.target === selected);
   const toggle = (signal: string) =>
     setPicked((p) => {
@@ -102,12 +104,21 @@ export function Inspector({ sid, world }: { sid: string; world: WorldData | null
       )}
       {own.length > 0 && (
         <>
-          <h3>Points</h3>
-          <div className="rows points">
-            {own.slice(0, 40).map(([p, v]) => (
-              <div key={p} className={`row quality-${v.quality}`}>
-                <span>{p.slice(selected.length + 1)}</span>
-                <b>{typeof v.value === "number" ? v.value.toFixed(2) : String(v.value)}</b>
+          <h3>
+            Points <small className="muted">{own.length}</small>
+          </h3>
+          <div className="rows points" data-testid="inspector-points">
+            {own.map(([p, v]) => (
+              <div key={p} className={`row quality-${v?.quality ?? "none"}`} title={`${p}${v?.reason ? ` · ${v.reason}` : ""}`}>
+                <span>{p.startsWith(`${selected}/`) ? p.slice(selected.length + 1) : p}</span>
+                <b>
+                  {v === undefined || v.value === null
+                    ? "–"
+                    : typeof v.value === "number"
+                      ? v.value.toFixed(2)
+                      : String(v.value)}
+                  {index?.bindings.get(p)?.unit ? ` ${index.bindings.get(p)?.unit}` : ""}
+                </b>
               </div>
             ))}
           </div>

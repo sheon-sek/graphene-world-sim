@@ -6,6 +6,7 @@ describe("display", () => {
     expect(display("Q", 150000)).toEqual({ value: "150.0", unit: "kW" });
     expect(display("tripped", true)).toEqual({ value: "true", unit: "" });
     expect(guessUnit("mChw_flow")).toBe("kg/s");
+    expect(guessUnit("THDV")).toBeNull();
     expect(shortName("FCU/L1_FCU1")).toBe("L1_FCU1");
   });
 });

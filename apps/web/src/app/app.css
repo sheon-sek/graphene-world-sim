@@ -1163,3 +1163,185 @@ code {
   color: var(--ink);
   text-decoration: none;
 }
+
+/* --- site view and browsers -------------------------------------------------------------- */
+
+.subtabs {
+  flex-wrap: wrap;
+}
+
+.view-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seg {
+  display: inline-flex;
+  pointer-events: auto;
+}
+
+.seg button {
+  border-radius: 0;
+  font: 12px var(--font-ui);
+}
+
+.seg button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.seg button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.seg button.on {
+  background: #1b6f93;
+  border-color: #2b8fba;
+}
+
+.site-controls {
+  position: absolute;
+  z-index: 3;
+  top: 44px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgb(11 15 19 / 82%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  font: 12px var(--font-ui);
+  color: var(--muted);
+}
+
+.site-controls select {
+  font: 12px var(--font-ui);
+}
+
+.view-hover {
+  position: absolute;
+  z-index: 3;
+  right: 10px;
+  bottom: 8px;
+  margin: 0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 60%);
+  font: 12px var(--font-ui);
+  pointer-events: none;
+}
+
+.alarms-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.browser {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  flex: 1;
+}
+
+.browser input[type="search"] {
+  width: 100%;
+}
+
+.browser .small {
+  margin: 0;
+  font-size: 11px;
+}
+
+.browser .tree,
+.browser .tree ul,
+.browser .point-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.browser .tree,
+.browser .point-list {
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.browser .tree ul {
+  padding-left: 12px;
+}
+
+.browser .tree button,
+.browser .point-list button {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 4px;
+  font-size: 12px;
+}
+
+.browser .tree button:hover,
+.browser .point-list button:hover,
+.browser .tree-leaf.on {
+  background: var(--panel-2);
+}
+
+.browser .tree-head {
+  font-weight: 600;
+}
+
+.browser .tree small {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.browser .tree-leaf.idle {
+  opacity: 0.55;
+}
+
+.browser .point-list .path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser .point-list b {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.q {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.q-good {
+  background: #3fc46a;
+}
+
+.q-uncertain {
+  background: #ff9f0a;
+}
+
+.q-bad {
+  background: #ff3b30;
+}
+
+.inspector-panel .rows.points {
+  max-height: none;
+}

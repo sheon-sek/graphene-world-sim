@@ -3,6 +3,8 @@ import { api, must } from "../api/client";
 import { clock, shortName } from "../app/format";
 import { usePoll, useSession } from "../app/session";
 import { useSim } from "../live/store";
+import type { PointIndex, WorldData } from "../live/world";
+import { AssetTree, PointBrowser } from "./SiteBrowser";
 
 export interface AlarmEntry {
   id: number;
@@ -48,8 +50,18 @@ export function describe(e: SessionEvent): string {
 }
 
 /** The alarm log raised by the scope's fault-alarm points, and the session's event log (#52). */
-export function AlarmsPanel({ sid }: { sid: string }) {
-  const [tab, setTab] = useState<"alarms" | "events">("alarms");
+export function AlarmsPanel({
+  sid,
+  world,
+  points,
+  scope,
+}: {
+  sid: string;
+  world: WorldData | null;
+  points: PointIndex | null;
+  scope: Set<string>;
+}) {
+  const [tab, setTab] = useState<"alarms" | "events" | "assets" | "points">("alarms");
   const [alarms, setAlarms] = useState<AlarmEntry[]>([]);
   const [events, setEvents] = useState<SessionEvent[]>([]);
   const version = useSession((s) => s.version);
@@ -76,8 +88,18 @@ export function AlarmsPanel({ sid }: { sid: string }) {
         <button className={tab === "events" ? "on" : ""} onClick={() => setTab("events")}>
           Events
         </button>
+        <button className={tab === "assets" ? "on" : ""} onClick={() => setTab("assets")} data-testid="tab-assets">
+          Assets
+        </button>
+        <button className={tab === "points" ? "on" : ""} onClick={() => setTab("points")} data-testid="tab-points">
+          Points
+        </button>
       </nav>
-      {tab === "alarms" ? (
+      {tab === "assets" ? (
+        <AssetTree world={world} scope={scope} />
+      ) : tab === "points" ? (
+        <PointBrowser points={points} />
+      ) : tab === "alarms" ? (
         <ul className="log">
           {alarms.length === 0 && <li className="muted">No alarms.</li>}
           {alarms.map((a) => (
