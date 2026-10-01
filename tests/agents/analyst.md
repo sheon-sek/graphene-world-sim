@@ -27,7 +27,7 @@ Rules of the evaluation:
   skills, run no other command, and do not use the network any other way. The operator is not available for
   questions or field checks; say which field checks you would ask for.
 - The gateway's clock is UTC. Everything of interest happened between {WINDOW_START} and
-  {WINDOW_END} UTC; the plant has been held at its {WINDOW_END} state since.
+  {WINDOW_END} UTC; the plant has been held in its final state since.
 
 Finish with your incident answer, then a final fenced `json` block, exactly this shape:
 

@@ -243,7 +243,7 @@ def brief(record: dict[str, Any]) -> str:
         text.replace("{IGNITION_MCP}", str(IGNITION_MCP))
         .replace("{ROOT}", str(ROOT))
         .replace("{WINDOW_START}", f"{start:%H:%M} on {start:%Y-%m-%d}")
-        .replace("{WINDOW_END}", f"{end:%H:%M}")
+        .replace("{WINDOW_END}", f"{end:%H:%M} on {end:%Y-%m-%d}")
         .strip()
     )
 
