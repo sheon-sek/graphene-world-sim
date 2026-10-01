@@ -67,6 +67,13 @@ def main(argv: list[str] | None = None) -> None:
         help="import the Graphene data directory as the first revision if the store is empty",
     )
     parser.add_argument(
+        "--start",
+        default="site",
+        metavar="PRESET",
+        help="start this preset's session, serve it over OPC UA and run it at real time: "
+        "site (default), incidents, dh01-slice, or none",
+    )
+    parser.add_argument(
         "--reimport",
         action="store_true",
         help="with --import-graphene: add the import as a new revision even over edited revisions",
@@ -75,7 +82,11 @@ def main(argv: list[str] | None = None) -> None:
     store = SqliteStore(args.db)
     if args.import_graphene is not None:
         print(seed(store, args.import_graphene, reimport=args.reimport), file=sys.stderr)
-    app = create_app(store, opcua_endpoint=None if args.no_opcua else args.opc_endpoint)
+    app = create_app(
+        store,
+        opcua_endpoint=None if args.no_opcua else args.opc_endpoint,
+        start=None if args.start == "none" else args.start,
+    )
     if args.web is not None:
         app.mount("/", StaticFiles(directory=args.web, html=True), name="web")
     # Open frame streams would otherwise hold a shutdown forever.

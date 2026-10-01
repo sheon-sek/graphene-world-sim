@@ -2220,6 +2220,57 @@
         "title": "SnapshotIn",
         "type": "object"
       },
+      "Startup": {
+        "description": "The session the server starts by itself (`gws_api.serve --start`).",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "preset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session"
+          },
+          "state": {
+            "default": "off",
+            "enum": [
+              "off",
+              "starting",
+              "running",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "Startup",
+        "type": "object"
+      },
       "StaticValue": {
         "additionalProperties": false,
         "properties": {
@@ -3902,6 +3953,28 @@
           }
         },
         "summary": "Swap",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/runtime/startup": {
+      "get": {
+        "description": "Whether the server is starting a session by itself, and which one once it runs.",
+        "operationId": "startup_api_runtime_startup_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Startup"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Startup",
         "tags": [
           "runtime"
         ]

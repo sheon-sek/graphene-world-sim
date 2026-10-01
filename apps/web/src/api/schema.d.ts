@@ -491,6 +491,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runtime/startup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Startup
+         * @description Whether the server is starting a session by itself, and which one once it runs.
+         */
+        get: operations["startup_api_runtime_startup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/world-model/assets": {
         parameters: {
             query?: never;
@@ -1769,6 +1789,24 @@ export interface components {
              */
             label?: string;
         };
+        /**
+         * Startup
+         * @description The session the server starts by itself (`gws_api.serve --start`).
+         */
+        Startup: {
+            /** Error */
+            error?: string | null;
+            /** Preset */
+            preset?: string | null;
+            /** Session */
+            session?: string | null;
+            /**
+             * State
+             * @default off
+             * @enum {string}
+             */
+            state?: "off" | "starting" | "running" | "failed";
+        };
         /** StaticValue */
         StaticValue: {
             /**
@@ -2858,6 +2896,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    startup_api_runtime_startup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Startup"];
                 };
             };
         };

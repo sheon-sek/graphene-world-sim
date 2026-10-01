@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: external
     ? undefined
     : {
-        command: `rm -f e2e-world.sqlite && cd ../.. && uv run python -m gws_api.serve --db apps/web/e2e-world.sqlite --import-graphene data/graphene --no-opcua --web apps/web/dist --port ${port}`,
+        command: `rm -f e2e-world.sqlite && cd ../.. && uv run python -m gws_api.serve --db apps/web/e2e-world.sqlite --import-graphene data/graphene --start none --no-opcua --web apps/web/dist --port ${port}`,
         url: `http://127.0.0.1:${port}/api/runtime/presets`,
         timeout: 120_000,
         reuseExistingServer: false,

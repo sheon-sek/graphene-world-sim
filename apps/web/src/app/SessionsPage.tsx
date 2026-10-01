@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { api, must, type Preset, type SessionInfo } from "../api/client";
-import { navigate } from "./router";
+import { api, must, type Preset, type Schemas, type SessionInfo } from "../api/client";
+import { href, navigate } from "./router";
 
 /** Open a running session, or create one from a preset scope. */
 export function SessionsPage() {
@@ -8,10 +8,24 @@ export function SessionsPage() {
   const [presets, setPresets] = useState<Preset[]>([]);
   const [creating, setCreating] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [startup, setStartup] = useState<Schemas["Startup"] | null>(null);
 
   useEffect(() => {
     must(api.GET("/api/runtime/sessions")).then(setSessions, (e: unknown) => setError(String(e)));
     must(api.GET("/api/runtime/presets")).then(setPresets, (e: unknown) => setError(String(e)));
+  }, []);
+
+  // The server starts a preset by itself (the whole site, by default); follow it until it runs.
+  useEffect(() => {
+    let timer: number | undefined;
+    const poll = async () => {
+      const s = await must(api.GET("/api/runtime/startup")).catch(() => null);
+      setStartup(s);
+      if (s?.state === "starting") timer = window.setTimeout(poll, 3000);
+      else if (s?.state === "running") must(api.GET("/api/runtime/sessions")).then(setSessions, () => undefined);
+    };
+    void poll();
+    return () => window.clearTimeout(timer);
   }, []);
 
   async function create(preset: Preset) {
@@ -44,6 +58,25 @@ export function SessionsPage() {
           <a href="https://github.com/sheon-sek/graphene-world-sim/blob/main/docs/guide/user-guide.md">user guide</a>.
         </p>
       </header>
+      {startup?.state === "starting" && (
+        <p className="banner busy" data-testid="startup">
+          The server is starting the {presets.find((p) => p.id === startup.preset)?.name ?? startup.preset} session. The
+          first start of the whole site builds its models, which takes several minutes; it opens here and is served over
+          OPC UA as soon as it runs.
+        </p>
+      )}
+      {startup?.state === "running" && startup.session && (
+        <p className="banner" data-testid="startup">
+          The server started the {presets.find((p) => p.id === startup.preset)?.name ?? startup.preset} session at
+          start-up and serves it over OPC UA.{" "}
+          <a href={href({ name: "session", session: startup.session, workspace: "operations" })}>Open {startup.session}</a>
+        </p>
+      )}
+      {startup?.state === "failed" && (
+        <p className="banner error" role="alert">
+          The server could not start the {startup.preset} session: {startup.error}
+        </p>
+      )}
       {error && (
         <p className="banner error" role="alert">
           {error}

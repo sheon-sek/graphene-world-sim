@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 from collections.abc import AsyncIterator
@@ -18,22 +19,30 @@ TITLE = "Graphene World Sim API"
 VERSION = "0.4.0"
 
 
-def create_app(store: SqliteStore | None = None, opcua_endpoint: str | None = None) -> FastAPI:
-    """The API application. With `opcua_endpoint`, it also serves OPC UA there while it runs."""
+def create_app(
+    store: SqliteStore | None = None,
+    opcua_endpoint: str | None = None,
+    start: str | None = None,
+) -> FastAPI:
+    """The API application. With `opcua_endpoint`, it also serves OPC UA there while it runs.
+    With `start`, it starts a session from that preset, serves it and runs it at real time."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        if opcua_endpoint is None:
-            yield
-            return
-        bridge = opcua.Bridge(PointServer(opcua_endpoint), app.state.store)
-        await bridge.start()
-        app.state.opcua = bridge
+        bridge = None
+        if opcua_endpoint is not None:
+            bridge = opcua.Bridge(PointServer(opcua_endpoint), app.state.store)
+            await bridge.start()
+            app.state.opcua = bridge
+        task = asyncio.create_task(runtime.autostart(app, start)) if start else None
         try:
             yield
         finally:
-            del app.state.opcua
-            await bridge.stop()
+            if task is not None:
+                task.cancel()
+            if bridge is not None:
+                del app.state.opcua
+                await bridge.stop()
 
     app = FastAPI(title=TITLE, version=VERSION, lifespan=lifespan)
     app.state.store = store if store is not None else SqliteStore()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -116,3 +117,41 @@ def test_presets_go_from_the_whole_site_down_to_the_slice(client: TestClient) ->
     assert "Chiller/R_C2" in incidents["scope"] and len(incidents["scope"]) < len(assets)
     assert preset["id"] == "dh01-slice" and "FCU/L1_FCU1" in preset["scope"]
     assert preset["conditions"] == {"it_fraction": {"DH01": 0.3}}
+
+
+def test_server_starts_a_preset_at_start_up_and_reports_it() -> None:
+    from gws_api.runtime import Preset
+
+    store = SqliteStore()
+    head = store.create_revision(
+        build(Sources.read(ROOT / "data" / "graphene")), "import", "importer"
+    ).number
+    app = create_app(store, start="small")
+    small = Preset(
+        id="small",
+        name="Small",
+        description="",
+        scope=[IT, "UPS/UPS 1"],
+        dt=1.0,
+        room="DH01",
+        conditions={},
+    )
+    app.state.presets = {head: [small]}
+    with TestClient(app) as client:
+        for _ in range(200):
+            startup = client.get(f"{API}/startup").json()
+            if startup["state"] != "starting":
+                break
+            time.sleep(0.05)
+        assert startup["state"] == "running" and startup["preset"] == "small", startup
+        session = client.get(f"{API}/sessions/{startup['session']}").json()
+        assert session["running"] is True and set(session["scope"]) == {IT, "UPS/UPS 1"}
+
+    with TestClient(create_app(store, start="nope")) as client:
+        for _ in range(200):
+            startup = client.get(f"{API}/startup").json()
+            if startup["state"] != "starting":
+                break
+            time.sleep(0.05)
+        assert startup["state"] == "failed" and "nope" in startup["error"]
+    store.close()

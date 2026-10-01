@@ -335,19 +335,73 @@ def _presets(doc: WorldModel) -> list[Preset]:
     ]
 
 
+def _head_presets(app: Any, store: SqliteStore) -> list[Preset]:
+    head = store.head()
+    if head is None:
+        return []
+    if not hasattr(app.state, "presets"):
+        app.state.presets = {}
+    cache: dict[int, list[Preset]] = app.state.presets
+    if head not in cache:
+        cache[head] = _presets(store.get(head))
+    return cache[head]
+
+
 @router.get("/presets", response_model=list[Preset])
 def presets(request: Request, store: Store) -> list[Preset]:
     """Scopes worth simulating, from the whole site down to a slice, with the step and
     conditions they were validated at. The scopes are those of the head revision."""
-    head = store.head()
-    if head is None:
-        return []
-    if not hasattr(request.app.state, "presets"):
-        request.app.state.presets = {}
-    cache: dict[int, list[Preset]] = request.app.state.presets
-    if head not in cache:
-        cache[head] = _presets(store.get(head))
-    return cache[head]
+    return _head_presets(request.app, store)
+
+
+class Startup(BaseModel):
+    """The session the server starts by itself (`gws_api.serve --start`)."""
+
+    preset: str | None = None
+    state: Literal["off", "starting", "running", "failed"] = "off"
+    session: str | None = None
+    error: str | None = None
+
+
+@router.get("/startup", response_model=Startup)
+def startup(request: Request) -> Startup:
+    """Whether the server is starting a session by itself, and which one once it runs."""
+    found: Startup = getattr(request.app.state, "startup", Startup())
+    return found
+
+
+async def autostart(app: Any, preset_id: str, speed: float = 1.0) -> None:
+    """Start a session from a preset, serve it over OPC UA and run it, so a gateway reads live
+    points as soon as the models are built (the first build of the whole site compiles for
+    several minutes; the server answers meanwhile)."""
+    app.state.startup = state = Startup(preset=preset_id, state="starting")
+    try:
+        store: SqliteStore = app.state.store
+        preset = next((p for p in _head_presets(app, store) if p.id == preset_id), None)
+        if preset is None:
+            raise ValueError(f"no preset {preset_id!r}")
+        revision = store.head()
+        doc = store.get(revision) if revision is not None else None
+        if doc is None:
+            raise ValueError("the World Model has no revision yet")
+        session = await run_in_threadpool(
+            Session, doc, preset.scope, dt=preset.dt, revision=revision, resolve=store.get
+        )
+        if not hasattr(app.state, "runtime"):
+            app.state.runtime = Registry()
+        registry: Registry = app.state.runtime
+        live = _Live(registry.new_id(), session)
+        registry.sessions[live.id] = live
+        if preset.conditions:
+            await _do(live, session.apply, "conditions", {"changes": preset.conditions})
+        bridge = getattr(app.state, "opcua", None)
+        if bridge is not None and bridge.live is None:
+            await bridge.attach(live)
+        await _do(live, session.run, speed)
+        _start(live)
+        state.session, state.state = live.id, "running"
+    except Exception as e:  # noqa: BLE001 - reported on /startup, the server keeps serving
+        state.state, state.error = "failed", str(getattr(e, "detail", e))
 
 
 # --- sessions ----------------------------------------------------------------------------------
@@ -686,8 +740,10 @@ def diagnostics(sid: str, runtime: Runtime) -> dict[str, Any]:
 
 
 @router.websocket("/sessions/{sid}/stream")
-async def stream(websocket: WebSocket, sid: str) -> None:
-    """Every frame the session produces, as JSON, starting with the current one."""
+async def stream(websocket: WebSocket, sid: str, max_hz: float = 2.0) -> None:
+    """The session's frames as JSON, starting with the current one, at most `max_hz` a second
+    (0: every frame). A whole-site frame is over a megabyte, so a client gets the newest frame
+    at that rate rather than every step of a fast run."""
     registry: Registry | None = getattr(websocket.app.state, "runtime", None)
     live = registry.sessions.get(sid) if registry is not None else None
     if live is None:
@@ -698,8 +754,16 @@ async def stream(websocket: WebSocket, sid: str) -> None:
     live.subscribers.add(queue)
     try:
         await websocket.send_json(live.session.sim.frame().to_json())
+        interval = 1.0 / max_hz if max_hz > 0 else 0.0
+        loop = asyncio.get_running_loop()
         while True:
-            await websocket.send_json(await queue.get())
+            frame = await queue.get()
+            while not queue.empty():
+                frame = queue.get_nowait()
+            sent = loop.time()
+            await websocket.send_json(frame)
+            if interval:
+                await asyncio.sleep(max(0.0, interval - (loop.time() - sent)))
     except WebSocketDisconnect:
         pass
     finally:
